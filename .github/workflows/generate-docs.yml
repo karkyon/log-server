@@ -16,12 +16,12 @@
 name: 機能仕様書 自動生成
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'logs/features/**.jsonl'
-      - 'logs/screenshots/**'
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'logs/features/**.jsonl'
+  #     - 'logs/screenshots/**'
 
   # 手動実行（任意の featureId を指定して実行）
   workflow_dispatch:
