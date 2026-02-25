@@ -1,0 +1,120 @@
+# .github/workflows/generate-docs.yml
+# ============================================================
+# 機能仕様書 自動生成ワークフロー
+#
+# トリガー:
+#   - logs/features/ または logs/screenshots/ 以下のファイルが
+#     main ブランチに Push されたとき
+#   - Actions タブから手動実行も可能（featureId を指定）
+#
+# 処理:
+#   1. 変更された .jsonl ファイルから featureId を検出
+#   2. node scripts/generate.js <featureId> を実行
+#   3. 生成された docs/ を自動コミット & Push
+# ============================================================
+
+name: 機能仕様書 自動生成
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'logs/features/**.jsonl'
+      - 'logs/screenshots/**'
+
+  # 手動実行（任意の featureId を指定して実行）
+  workflow_dispatch:
+    inputs:
+      feature_id:
+        description: '生成対象の featureId（例: MC_PRODUCTS_LIST）。空欄で全機能を再生成'
+        required: false
+        default: ''
+
+jobs:
+  generate:
+    name: 仕様書生成
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # docs/ への自動 commit に必要
+
+    steps:
+      # ── 1. ソースをチェックアウト ──────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2    # 直前のコミットと比較するため 2 件取得
+
+      # ── 2. Node.js セットアップ ────────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # ── 3. 依存パッケージインストール ──────────────────────────────────────
+      - name: Install dependencies
+        run: npm ci
+
+      # ── 4. 生成対象の featureId を特定 ────────────────────────────────────
+      #       Push 時: 変更された .jsonl のファイル名から抽出
+      #       手動実行時: 入力値を使用（空欄なら logs/features/ 全件）
+      - name: Detect target featureIds
+        id: detect
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # 手動実行
+            FEATURE_INPUT="${{ github.event.inputs.feature_id }}"
+            if [ -z "$FEATURE_INPUT" ]; then
+              # 空欄 → logs/features/ 内の全 .jsonl を対象
+              IDS=$(ls logs/features/*.jsonl 2>/dev/null | xargs -I{} basename {} .jsonl | tr '\n' ' ')
+            else
+              IDS="$FEATURE_INPUT"
+            fi
+          else
+            # Push 時 → 変更ファイルから抽出
+            CHANGED=$(git diff --name-only HEAD~1 HEAD -- 'logs/features/*.jsonl' 'logs/screenshots/**')
+            # logs/features/MC_XXX.jsonl → MC_XXX
+            # logs/screenshots/MC_XXX/   → MC_XXX
+            IDS=$(echo "$CHANGED" | grep -oP '(?<=logs/features/)[^.]+(?=\.jsonl)|(?<=logs/screenshots/)[^/]+' | sort -u | tr '\n' ' ')
+          fi
+
+          echo "feature_ids=$IDS" >> $GITHUB_OUTPUT
+          echo "検出された featureId: $IDS"
+
+      # ── 5. 各 featureId に対して仕様書生成 ────────────────────────────────
+      - name: Generate documents
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          IDS="${{ steps.detect.outputs.feature_ids }}"
+
+          if [ -z "$IDS" ]; then
+            echo "生成対象の featureId が見つかりませんでした。スキップします。"
+            exit 0
+          fi
+
+          for ID in $IDS; do
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "生成中: $ID"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            node scripts/generate.js "$ID"
+          done
+
+      # ── 6. docs/index.html（一覧ページ）を更新 ───────────────────────────
+      - name: Update docs index
+        run: node scripts/generate-index.js
+        continue-on-error: true   # 一覧生成が失敗しても仕様書は保存する
+
+      # ── 7. 生成ファイルを自動コミット & Push ──────────────────────────────
+      - name: Commit and push generated docs
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add docs/
+          git diff --cached --quiet && echo "変更なし。コミットをスキップします。" && exit 0
+
+          FEATURE_IDS="${{ steps.detect.outputs.feature_ids }}"
+          git commit -m "docs: 機能仕様書を自動生成 [${FEATURE_IDS}] [skip ci]"
+          git push
