@@ -1,14 +1,19 @@
-// ~/projects/log-server/server.js
+// ~/projects/log-server/server.js  v2.1
+// 変更履歴:
+//   v1.0 - 初版（/log, /screenshot, /ping）
+//   v2.0 - featureId別ディレクトリ保存、/features, /logs/:featureId API追加
+//   v2.1 - /screenshot に featureId を受け取り logs/screenshots/{featureId}/ に保存
+//          SHOTエントリを features/{featureId}.jsonl にも記録（analyze-logs.js紐付け用）
 const express = require('express');
 const cors    = require('cors');
 const fs      = require('fs');
 const path    = require('path');
 
-const app       = express();
-const PORT      = 3099;
-const LOGS_DIR  = path.join(__dirname, 'logs');
-const FEAT_DIR  = path.join(LOGS_DIR, 'features');   // 機能別ログ格納ディレクトリ
-const SS_DIR    = path.join(LOGS_DIR, 'screenshots'); // 機能別スクショ格納ディレクトリ
+const app      = express();
+const PORT     = 3099;
+const LOGS_DIR = path.join(__dirname, 'logs');
+const FEAT_DIR = path.join(LOGS_DIR, 'features');   // 機能別ログ格納ディレクトリ
+const SS_DIR   = path.join(LOGS_DIR, 'screenshots'); // 機能別スクショ格納ディレクトリ
 
 // ── ベースディレクトリ作成 ──
 [LOGS_DIR, FEAT_DIR, SS_DIR].forEach(dir => {
@@ -49,6 +54,8 @@ app.post('/log', (req, res) => {
 /* ------------------------------------------------------------------ *
  * スクリーンショット受信・保存
  * 保存先: logs/screenshots/<featureId>/<ts>_<screenId>_<trigger>_<traceId>.jpg
+ * v2.1変更: featureId を body から受け取り featureId 別ディレクトリに保存
+ *           SHOTエントリを features/{featureId}.jsonl にも記録
  * ------------------------------------------------------------------ */
 app.post('/screenshot', (req, res) => {
   try {
@@ -68,19 +75,21 @@ app.post('/screenshot', (req, res) => {
     const base64 = imageData.replace(/^data:image\/(png|jpeg);base64,/, '');
     fs.writeFileSync(filepath, base64, 'base64');
 
-    // ログにも記録（機能別ログファイルへ）
+    // analyze-logs.js がトレースIDで紐付けるための SCREENSHOT エントリ
+    // file パスは logs/ からの相対パスで統一（GitHub Pages では docs/screenshots/ に変換される）
     const logFile = path.join(FEAT_DIR, `${featureId}.jsonl`);
-    const entry = {
+    const ssEntry = {
       type     : 'SCREENSHOT',
       featureId: featureId,
       traceId  : traceId,
       screenId : screenId,
       trigger  : trigger,
-      file     : `screenshots/${featureId}/${filename}`,  // GitHubでの相対パス
+      file     : `logs/screenshots/${featureId}/${filename}`,
       _savedAt : new Date().toISOString()
     };
-    fs.appendFileSync(logFile, JSON.stringify(entry) + '\n', 'utf8');
+    fs.appendFileSync(logFile, JSON.stringify(ssEntry) + '\n', 'utf8');
 
+    console.log(`[SS] 保存: logs/screenshots/${featureId}/${filename}`);
     res.json({ saved: filename, featureId: featureId });
 
   } catch (err) {
@@ -132,7 +141,7 @@ app.get('/ping', (req, res) => res.json({ status: 'ok', port: PORT }));
 
 // サーバ起動（1回のみ）
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[LOG SERVER] 起動中 → http://0.0.0.0:${PORT}`);
+  console.log(`[LOG SERVER v2.1] 起動中 → http://0.0.0.0:${PORT}`);
   console.log(`  ログ保存先   : ${FEAT_DIR}/<featureId>.jsonl`);
   console.log(`  スクショ保存先: ${SS_DIR}/<featureId>/`);
 });

@@ -182,8 +182,11 @@ function buildScreenshotPanel(issue) {
     const borderColor = isBefore ? 'border-orange-300' : isAfter ? 'border-red-300' : isError ? 'border-red-500' : 'border-gray-200';
     const headerColor = isBefore ? 'bg-orange-50 text-orange-700' : isAfter ? 'bg-red-50 text-red-700' : isError ? 'bg-red-100 text-red-800' : 'bg-gray-50 text-gray-600';
 
-    // docs/issues/ からの相対パス
-    const relPath = filePath.startsWith('logs/screenshots/') ? '../../' + filePath : filePath;
+    // GitHub Pages 配信パス: docs/screenshots/{featureId}/{filename}
+    // docs/issues/index.html からの相対パス: ../screenshots/{featureId}/{filename}
+    const relPath = filePath.startsWith('logs/screenshots/')
+      ? '../' + filePath.replace('logs/screenshots/', 'screenshots/')
+      : filePath;
 
     return `
     <div class="rounded-xl border-2 ${borderColor} overflow-hidden flex-1 basis-56 min-w-0">
