@@ -532,7 +532,7 @@ function renderFlowPage(featureId, seqs) {
       '<div class="flow-node">' +
         '<div class="' + cls + (s.autoNG ? ' is-ng' : '') + '" ' +
           'id="fbox-' + esk + '" ' +
-          'onclick="scrollToThumb(\'' + efid + '\',\'' + s.seqNo + '\')">' +
+          'onclick="showPage(\'' + efid + '\');setTimeout(function(){scrollToActionLog(\'' + efid + '\',' + s.seqNo + ');},300);">' +
           '<div class="flow-box-screen-id">' + esc(s.screenId) + '</div>' +
           '<div class="flow-box-label">' + esc((s.summary || '').slice(0, 16)) + '</div>' +
           '<div class="flow-box-sub">' + esc((s.opContent || '').slice(0, 16)) + '</div>' +
@@ -1191,17 +1191,30 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '  var el=document.getElementById("tl-filter-btns"); if(!el) return;',
     '  el.innerHTML=Object.keys(TL_COLORS).map(function(fid){',
     '    var col=TL_COLORS[fid];',
-    '    return \'<button onclick="tlFilterFid(\\"\'+fid+\'\\")"\'+',
+    '    return \'<button onclick="tlFilterFid(\\\'"+fid+"\\\')"\'+',
     '      \' style="font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;\'+',
     '      \'border:1px solid \'+col+\';background:white;color:\'+col+\';"> \'+fid.replace("MC_","")+" </button>";',
     '  }).join("");',
     '}',
+    '// リサイズで再描画（タイムライン表示中のみ）',
+    'var _tlResizeTimer=null;',
+    'window.addEventListener("resize",function(){',
+    '  if(document.getElementById("timeline")&&',
+    '     document.getElementById("timeline").style.display!=="none"){',
+    '    clearTimeout(_tlResizeTimer);',
+    '    _tlResizeTimer=setTimeout(renderTlCards,150);',
+    '  }',
+    '});',
+    '',
     'function tlFilterAll(){ tlVisible=null; renderTlCards(); }',
     'function tlFilterFid(fid){ tlVisible=[fid]; renderTlCards(); }',
     'function renderTlCards(){',
-    '  var TL_COLS=6;',
-    '  var data=tlVisible?TL_DATA.filter(function(s){ return tlVisible.indexOf(s.featureId)>=0; }):TL_DATA;',
     '  var cont=document.getElementById("tl-serpentine"); if(!cont) return;',
+    '  var containerEl=document.getElementById("tl-container");',
+    '  var containerW=containerEl ? Math.max(containerEl.offsetWidth-40, 300) : 900;',
+    '  var CARD_SLOT=150;', // カード120px + 矢印16px + gap14px
+    '  var TL_COLS=Math.max(2, Math.floor(containerW/CARD_SLOT));',
+    '  var data=tlVisible?TL_DATA.filter(function(s){ return tlVisible.indexOf(s.featureId)>=0; }):TL_DATA;',
     '  var lbl=document.getElementById("tl-total-label"); if(lbl) lbl.textContent=data.length+" seq";',
     '  var cards=data.map(function(s,idx){',
     '    var col=TL_COLORS[s.featureId]||"#94a3b8";',
@@ -1408,9 +1421,9 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '      ngS+',
     '      \'  </div>\'+',
     '      \'  <div style="display:flex;gap:8px;flex-shrink:0;">\'+',
-    '      \'    <button onclick="openPatternModal(\\"\'+p.id+\'\\")"\'+',
+    '      \'    <button onclick="openPatternModal(\\\'"+p.id+"\\\')"\'+',
     '      \'      style="font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid #94a3b8;background:white;cursor:pointer;">\u270f\ufe0f \u7de8\u96c6</button>\'+',
-    '      \'    <button onclick="deletePattern(\\"\'+p.id+\'\\")"\'+',
+    '      \'    <button onclick="deletePattern(\\\'"+p.id+"\\\')"\'+',
     '      \'      style="font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid #fecaca;background:#fff5f5;color:#dc2626;cursor:pointer;">\ud83d\uddd1 \u524a\u9664</button>\'+',
     '      \'  </div>\'+',
     '      \'</div></div>\';',
