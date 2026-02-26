@@ -1,6 +1,4 @@
-{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772089850949-nvru","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-26T07:10:50.949Z","context":{},"_savedAt":"2026-02-26T07:10:51.867Z"}
-{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772089850950-vdai","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-26T07:10:50.950Z","context":{},"_savedAt":"2026-02-26T07:10:51.870Z"}
-{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772089878019-0ph4","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-26T07:11:18.019Z","context":{},"_savedAt":"2026-02-26T07:11:18.927Z"}
-{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772089878055-izti","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-26T07:11:18.055Z","context":{},"_savedAt":"2026-02-26T07:11:18.958Z"}
-{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772089887103-ta9t","screenId":"MC_OPERATOR_AUTHENTICATION","screenName":"ユーザ認証","ts":"2026-02-26T07:11:27.103Z","context":{},"_savedAt":"2026-02-26T07:11:28.007Z"}
-{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772089910474-zt4h","screenId":"MC_MACHINING","screenName":"マシニング情報管理画面","ts":"2026-02-26T07:11:50.474Z","context":{},"_savedAt":"2026-02-26T07:11:51.381Z"}
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772103930563-o73e","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-26T11:05:30.563Z","context":{},"_savedAt":"2026-02-26T11:05:30.500Z"}
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772103930564-cltf","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-26T11:05:30.564Z","context":{},"_savedAt":"2026-02-26T11:05:30.516Z"}
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772104141004-0nrx","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-26T11:09:01.004Z","context":{},"_savedAt":"2026-02-26T11:09:00.945Z"}
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772104141002-vlr0","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-26T11:09:01.002Z","context":{},"_savedAt":"2026-02-26T11:09:00.946Z"}
