@@ -685,8 +685,8 @@ function renderTimelinePage() {
     </div>
   </div>
   <div class="card" style="padding:0;overflow:hidden;">
-    <div id="tl-container" style="overflow-x:auto;overflow-y:auto;max-height:460px;padding:20px;background:#f8fafc;">
-      <div id="tl-row" style="display:flex;gap:10px;align-items:flex-start;min-width:max-content;"></div>
+    <div id="tl-container" style="padding:20px;background:#f8fafc;">
+      <div id="tl-serpentine"></div>
     </div>
   </div>
   <div id="tl-selection-panel" style="display:none;margin-top:16px;">
@@ -1199,18 +1199,17 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     'function tlFilterAll(){ tlVisible=null; renderTlCards(); }',
     'function tlFilterFid(fid){ tlVisible=[fid]; renderTlCards(); }',
     'function renderTlCards(){',
+    '  var TL_COLS=6;',
     '  var data=tlVisible?TL_DATA.filter(function(s){ return tlVisible.indexOf(s.featureId)>=0; }):TL_DATA;',
-    '  var row=document.getElementById("tl-row"); if(!row) return;',
+    '  var cont=document.getElementById("tl-serpentine"); if(!cont) return;',
     '  var lbl=document.getElementById("tl-total-label"); if(lbl) lbl.textContent=data.length+" seq";',
-    '  var sep=\'<div style="display:flex;align-items:center;padding:0 4px;">\'+',
-    '    \'<svg width="16" height="16" viewBox="0 0 16 16">\'+',
-    '    \'<line x1="0" y1="8" x2="10" y2="8" stroke="#cbd5e1" stroke-width="1.5"/>\'+',
-    '    \'<polygon points="8,4 16,8 8,12" fill="#cbd5e1"/></svg></div>\';',
-    '  row.innerHTML=data.map(function(s,idx){',
+    '  var cards=data.map(function(s,idx){',
     '    var col=TL_COLORS[s.featureId]||"#94a3b8";',
     '    var isSel=tlSelected.indexOf(s.globalSeqNo)>=0;',
-    '    var bdr=isSel?"border:2px solid #3b82f6;background:#eff6ff;box-shadow:0 0 0 2px #93c5fd;":"border:2px solid "+col+";background:white;";',
-    '    var ng=s.autoNG?\'<div style="color:#dc2626;font-weight:700;font-size:10px;">\u274c NG</div>\':"";',
+    '    var bdr=isSel?',
+    '      "border:2px solid #3b82f6;background:#eff6ff;box-shadow:0 0 0 2px #93c5fd;"',
+    '      :"border:2px solid "+col+";background:white;";',
+    '    var ng=s.autoNG?\'<div style="color:#dc2626;font-weight:700;font-size:10px;">❌ NG</div>\':"";',
     '    var eBdg=s.consoleErr?\'<span style="background:#fee2e2;color:#b91c1c;border-radius:3px;padding:0 4px;font-size:9px;">\'+s.consoleErr+\' ERR</span>\':"";',
     '    var wBdg=s.consoleWarn?\'<span style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:0 4px;font-size:9px;">\'+s.consoleWarn+\' WRN</span>\':"";',
     '    var th=s.thumbPath',
@@ -1227,7 +1226,29 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '      \'  <div style="font-size:9px;color:#64748b;margin-top:2px;">\'+fmtTJ(s.ts)+\'</div>\'+',
     '      \'  <div style="display:flex;gap:3px;margin-top:3px;flex-wrap:wrap;">\'+ng+eBdg+wBdg+\'</div>\'+',
     '      \'</div></div>\';',
-    '  }).join(sep);',
+    '  });',
+    '  var sep=\'<div style="display:flex;align-items:center;padding:0 2px;">\'+',
+    '    \'<svg width="14" height="14" viewBox="0 0 16 16">\'+',
+    '    \'<line x1="0" y1="8" x2="10" y2="8" stroke="#cbd5e1" stroke-width="1.5"/>\'+',
+    '    \'<polygon points="8,4 16,8 8,12" fill="#cbd5e1"/></svg></div>\';',
+    '  var html="";',
+    '  for(var r=0; r*TL_COLS<cards.length; r++){',
+    '    var chunk=cards.slice(r*TL_COLS, (r+1)*TL_COLS);',
+    '    var isRtl=r%2===1;',
+    '    var isLast=(r+1)*TL_COLS>=cards.length;',
+    '    var rowDir=isRtl?"flex-direction:row-reverse;":"";',
+    '    html+=\'<div style="display:flex;align-items:flex-start;gap:0;flex-wrap:nowrap;\'+rowDir+\'">\'+chunk.join(sep)+\'</div>\';',
+    '    if(!isLast){',
+    '      var uStyle=isRtl',
+    '        ?"display:flex;justify-content:flex-start;padding-left:28px;height:28px;align-items:flex-end;"',
+    '        :"display:flex;justify-content:flex-end;padding-right:28px;height:28px;align-items:flex-end;";',
+    '      var lStyle=isRtl',
+    '        ?"width:36px;height:28px;border:2px dashed #cbd5e1;border-top:none;border-right:none;border-radius:0 0 0 10px;"',
+    '        :"width:36px;height:28px;border:2px dashed #cbd5e1;border-top:none;border-left:none;border-radius:0 0 10px 0;";',
+    '      html+=\'<div style="\'+uStyle+\'"><div style="\'+lStyle+\'"></div></div>\';',
+    '    }',
+    '  }',
+    '  cont.innerHTML=html;',
     '}',
     'function tlCardClick(evt,gseq,idx){',
     '  var data=tlVisible?TL_DATA.filter(function(s){return tlVisible.indexOf(s.featureId)>=0;}):TL_DATA;',
