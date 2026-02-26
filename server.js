@@ -1,9 +1,13 @@
-// ~/projects/log-server/server.js  v2.1
+// ~/projects/log-server/server.js  v2.2
 // 変更履歴:
 //   v1.0 - 初版（/log, /screenshot, /ping）
 //   v2.0 - featureId別ディレクトリ保存、/features, /logs/:featureId API追加
 //   v2.1 - /screenshot に featureId を受け取り logs/screenshots/{featureId}/ に保存
 //          SHOTエントリを features/{featureId}.jsonl にも記録（analyze-logs.js紐付け用）
+//   v2.2 - /consolelog エンドポイント追加
+//          保存先: logs/features/<featureId>.console.jsonl
+//          /consolelogs/:featureId 取得エンドポイント追加
+
 const express = require('express');
 const cors    = require('cors');
 const fs      = require('fs');
@@ -99,12 +103,61 @@ app.post('/screenshot', (req, res) => {
 });
 
 /* ------------------------------------------------------------------ *
+ * コンソールログ受信                                         [v2.2追加]
+ * 保存先: logs/features/<featureId>.console.jsonl
+ *
+ * クライアント側の _setupConsoleCapture() が console.log/warn/error/info/debug
+ * を傍受してバッチ送信してくる。
+ * 機能ログ（.jsonl）とは別ファイルに保存することで分析時に分離しやすくする。
+ * featureId と ts、lastTraceId で機能ログ・スクショとの時系列照合が可能。
+ * ------------------------------------------------------------------ */
+app.post('/consolelog', (req, res) => {
+  try {
+    const featureId = sanitizeFeatureId(req.body.featureId);
+    const logFile   = path.join(FEAT_DIR, `${featureId}.console.jsonl`);
+    const entry     = { ...req.body, _savedAt: new Date().toISOString() };
+
+    fs.appendFileSync(logFile, JSON.stringify(entry) + '\n', 'utf8');
+    res.sendStatus(200);
+  } catch (err) {
+    console.error('[CONSOLELOG ERROR]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ------------------------------------------------------------------ *
+ * コンソールログ一覧取得（JSON配列で返す）                   [v2.2追加]
+ * GET /consolelogs/:featureId
+ * ------------------------------------------------------------------ */
+app.get('/consolelogs/:featureId', (req, res) => {
+  try {
+    const featureId = sanitizeFeatureId(req.params.featureId);
+    const logFile   = path.join(FEAT_DIR, `${featureId}.console.jsonl`);
+
+    if (!fs.existsSync(logFile)) {
+      return res.status(404).json({ error: `Console log for "${featureId}" not found` });
+    }
+
+    const lines   = fs.readFileSync(logFile, 'utf8').split('\n').filter(Boolean);
+    const entries = lines.map(l => {
+      try { return JSON.parse(l); } catch { return null; }
+    }).filter(Boolean);
+
+    res.json({ featureId, count: entries.length, entries });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ------------------------------------------------------------------ *
  * 機能一覧の取得
  * 記録済みの機能名（.jsonlファイル名から取得）を返す
+ * .console.jsonl は除外し、純粋な機能IDのみ返す
  * ------------------------------------------------------------------ */
 app.get('/features', (req, res) => {
   try {
-    const files    = fs.readdirSync(FEAT_DIR).filter(f => f.endsWith('.jsonl'));
+    const files    = fs.readdirSync(FEAT_DIR)
+                       .filter(f => f.endsWith('.jsonl') && !f.endsWith('.console.jsonl'));
     const features = files.map(f => f.replace('.jsonl', ''));
     res.json({ features });
   } catch (err) {
@@ -141,7 +194,8 @@ app.get('/ping', (req, res) => res.json({ status: 'ok', port: PORT }));
 
 // サーバ起動（1回のみ）
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[LOG SERVER v2.1] 起動中 → http://0.0.0.0:${PORT}`);
-  console.log(`  ログ保存先   : ${FEAT_DIR}/<featureId>.jsonl`);
-  console.log(`  スクショ保存先: ${SS_DIR}/<featureId>/`);
+  console.log(`[LOG SERVER v2.2] 起動中 → http://0.0.0.0:${PORT}`);
+  console.log(`  ログ保存先          : ${FEAT_DIR}/<featureId>.jsonl`);
+  console.log(`  コンソールログ保存先: ${FEAT_DIR}/<featureId>.console.jsonl`);
+  console.log(`  スクショ保存先      : ${SS_DIR}/<featureId>/`);
 });

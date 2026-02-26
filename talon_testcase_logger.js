@@ -5,12 +5,19 @@
 })();
 
 /* ============================================================
-   TLog + 自動計装 オールインワン v2.1
+   TLog + 自動計装 オールインワン v2.2
    変更履歴:
      v2.0 - URLパラメータ・前画面・JS例外・Before/After スクショ等追加
      v2.1 - [修正] _capture() で featureId を POST body に含めるよう修正
             [修正] _capture() の SCREENSHOT ログ記録を削除
                    （server.js 側が正確なファイルパスで記録するため二重記録を排除）
+     v2.2 - [追加] TLogAutoInstrument に console キャプチャ機能を追加
+                   console.log / warn / error / info / debug を傍受しサーバへ送信
+                   100ms スロットリングによるバッチ送信で送信過多を防止
+                   直近操作の traceId（_lastTraceId）を各エントリに付与して相関を実現
+            [修正] ボタンクリックハンドラで clickWithBeforeAfterShot / clickWithShot の
+                   戻り値（traceId）を _lastTraceId に代入するよう修正
+                   （これにより console ログと操作ログの時系列照合が正確になる）
    ============================================================ */
 window.TLog = window.TLog || (function () {
 
@@ -268,9 +275,115 @@ window.TLog = window.TLog || (function () {
 
 
 /* ============================================================
-   TLogAutoInstrument v2.0（変更なし）
+   TLogAutoInstrument v2.2
    ============================================================ */
 window.TLogAutoInstrument = window.TLogAutoInstrument || (function () {
+
+  /* ============================================================
+     console キャプチャ（v2.2追加）
+     ────────────────────────────────────────────────────────────
+     目的:
+       ブラウザの DevTools console に出力される
+       log / warn / error / info / debug を傍受してサーバへ送信する。
+       機能ログ（.jsonl）・スクショとは別ファイル（.console.jsonl）に保存され
+       featureId と ts、lastTraceId で時系列照合が可能。
+
+     動作仕様:
+       ① ネイティブの console 動作はそのまま維持（開発時の利便性を損なわない）
+       ② args をシリアライズ（循環参照・DOM要素に対して安全に対応）
+       ③ error / warn にはスタックトレースの先頭4行を付与
+       ④ 100ms バッチ送信（スロットリング）で fetch 過多を防止
+       ⑤ _lastTraceId に直近の操作 traceId を保持し各エントリに付与
+          → ボタン操作 → console.log の流れを traceId で紐付けられる
+
+     _lastTraceId の更新タイミング:
+       ボタンクリックハンドラ内で TLog.clickWithBeforeAfterShot / clickWithShot の
+       戻り値（traceId）を受け取り _lastTraceId に代入する。
+       これにより「どのボタン操作の直後に出力された console か」が特定可能になる。
+   ============================================================ */
+  const CONSOLE_SERVER = 'http://192.168.1.11:3099/consolelog';
+
+  // 直近のボタン操作 traceId（console ログとの相関キー）
+  // ボタンクリックハンドラで更新される（後述）
+  let _lastTraceId    = null;
+
+  // 100ms バッチ送信用の内部キューとタイマー
+  let _consoleSendTimer = null;
+  let _consoleQueue     = [];
+
+  /* ----------------------------------------------------------
+   * キューに溜まった console ログをまとめてサーバへ送信する
+   * （同一 100ms 内の複数出力を1件ずつではなく纏めて送ることで
+   *   fetch 回数を削減し、ページパフォーマンスへの影響を最小化する）
+   * ---------------------------------------------------------- */
+  function _flushConsoleQueue() {
+    if (_consoleQueue.length === 0) return;
+    const batch = _consoleQueue.splice(0);   // キューをクリアしてコピーを取得
+    batch.forEach(entry => {
+      fetch(CONSOLE_SERVER, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify(entry)
+      }).catch(() => {});
+    });
+  }
+
+  /* ----------------------------------------------------------
+   * console の各レベル（log/warn/error/info/debug）をラップし
+   * サーバへの送信処理を追加する。
+   * featureId を引数で受け取り、各エントリに埋め込む。
+   * ---------------------------------------------------------- */
+  function _setupConsoleCapture(featureId) {
+    const LEVELS = ['log', 'warn', 'error', 'info', 'debug'];
+
+    LEVELS.forEach(level => {
+      const native = console[level].bind(console);  // ① ネイティブ関数を保持
+
+      console[level] = function (...args) {
+        native(...args);   // ① 元の console 動作はそのまま維持（DevTools に出力される）
+
+        // ② args をシリアライズ
+        //    - 文字列・数値・真偽値はそのまま
+        //    - オブジェクト・配列は JSON.stringify でシリアライズ（循環参照は String() にフォールバック）
+        //    - null / undefined は文字列に変換
+        const serialized = args.map(a => {
+          if (a === null || a === undefined) return String(a);
+          if (typeof a === 'string' || typeof a === 'number' || typeof a === 'boolean') return a;
+          try { return JSON.parse(JSON.stringify(a)); } catch { return String(a); }
+        });
+
+        // ③ 送信エントリ作成
+        const entry = {
+          type       : 'CONSOLE',
+          featureId  : featureId,
+          level      : level,
+          args       : serialized,
+          lastTraceId: _lastTraceId,   // 直近ボタン操作との紐付けキー
+          ts         : new Date().toISOString()
+        };
+
+        // ③-補: error / warn にはスタックトレース先頭4行を付与して原因特定を容易にする
+        if (level === 'error' || level === 'warn') {
+          try {
+            const err = new Error();
+            entry.stack = err.stack
+              ? err.stack.split('\n').slice(2, 6).join(' | ')
+              : '';
+          } catch (e) { /* スタック取得失敗は無視 */ }
+        }
+
+        // ④ 100ms バッチ送信（スロットリング）
+        _consoleQueue.push(entry);
+        if (_consoleSendTimer) return;   // 既にタイマーが走っている場合はキューに積むだけ
+        _consoleSendTimer = setTimeout(() => {
+          _consoleSendTimer = null;
+          _flushConsoleQueue();
+        }, 100);
+      };
+    });
+  }
+
+  // ── 自動計装 共通設定 ─────────────────────────────────────────────────────
 
   const IGNORE_ID_PATTERNS = [
     /^j_idt/,
@@ -323,6 +436,8 @@ window.TLogAutoInstrument = window.TLogAutoInstrument || (function () {
       TLog.setContext(featureId, opts || {});
       window._TLog_featureId = featureId;
 
+      _setupConsoleCapture(featureId);   // ★ v2.2追加: console キャプチャを有効化
+
       document.querySelectorAll('input[type="text"],input[type="number"],textarea')
         .forEach(el => {
           if (shouldIgnore(el)) return;
@@ -359,19 +474,24 @@ window.TLogAutoInstrument = window.TLogAutoInstrument || (function () {
             const isAction = /SEARCH|SAVE|UPDATE|REGIST|ISSUE|EXEC|SEND|COMMIT|CONFIRM/i
                              .test(btnId + ' ' + btnLabel);
 
+            // v2.2修正: 戻り値（traceId）を受け取り _lastTraceId に代入する
+            //   これにより「このボタン操作の後に出力された console.log」に
+            //   lastTraceId としてこの traceId が付与され、操作と console が紐付く
+            let traceId;
             if (isAction) {
-              TLog.clickWithBeforeAfterShot(
+              traceId = TLog.clickWithBeforeAfterShot(
                 screenId, btnId, 'BTN_CLICK:' + btnLabel,
                 { elementType: 'BUTTON', buttonLabel: btnLabel, formSnapshot: snap },
                 1500
               );
             } else {
-              TLog.clickWithShot(
+              traceId = TLog.clickWithShot(
                 screenId, btnId, 'BTN_CLICK:' + btnLabel,
                 { elementType: 'BUTTON', buttonLabel: btnLabel, formSnapshot: snap },
                 1500
               );
             }
+            _lastTraceId = traceId;   // ★ v2.2修正: 直近操作 traceId を更新
 
             if (btnId.includes('SEARCH')) {
               logSearchResult(screenId);
@@ -428,8 +548,8 @@ function resizeContents_end() {
     既存コード
     */
   
-	// ロガー初期化
-	TLog.screenLoad('MC_SCREENNAME', 'XXXXXXXXXXXXXX');
-	TLogAutoInstrument.init('MC_SCREENNAME', { screenMode: 'auth' });
+  // ロガー初期化
+  TLog.screenLoad('MC_SCREENNAME', 'XXXXXXXXXXXXXX');
+  TLogAutoInstrument.init('MC_SCREENNAME', { screenMode: 'auth' });
 
 }
