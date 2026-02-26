@@ -1,3 +1,6 @@
-{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772089436625-w0ju","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-26T07:03:56.625Z","context":{},"_savedAt":"2026-02-26T07:03:57.542Z"}
-{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772089436673-j3qr","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-26T07:03:56.673Z","context":{},"_savedAt":"2026-02-26T07:03:57.575Z"}
-{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772089469140-8vcs","screenId":"MC_MACHINING","screenName":"マシニング情報管理画面","ts":"2026-02-26T07:04:29.140Z","context":{},"_savedAt":"2026-02-26T07:04:30.044Z"}
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772089850949-nvru","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-26T07:10:50.949Z","context":{},"_savedAt":"2026-02-26T07:10:51.867Z"}
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772089850950-vdai","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-26T07:10:50.950Z","context":{},"_savedAt":"2026-02-26T07:10:51.870Z"}
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772089878019-0ph4","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-26T07:11:18.019Z","context":{},"_savedAt":"2026-02-26T07:11:18.927Z"}
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772089878055-izti","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-26T07:11:18.055Z","context":{},"_savedAt":"2026-02-26T07:11:18.958Z"}
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772089887103-ta9t","screenId":"MC_OPERATOR_AUTHENTICATION","screenName":"ユーザ認証","ts":"2026-02-26T07:11:27.103Z","context":{},"_savedAt":"2026-02-26T07:11:28.007Z"}
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772089910474-zt4h","screenId":"MC_MACHINING","screenName":"マシニング情報管理画面","ts":"2026-02-26T07:11:50.474Z","context":{},"_savedAt":"2026-02-26T07:11:51.381Z"}
