@@ -4,7 +4,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "generate": "node scripts/generate.js"
+    "generate": "node scripts/generate.js",
+    "clean": "rm -rf logs/features logs/screenshots && echo '[CLEAN] ログ・スクショ削除完了'"
   },
   "keywords": [],
   "author": "",

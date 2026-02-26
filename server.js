@@ -189,6 +189,38 @@ app.get('/logs/:featureId', (req, res) => {
   }
 });
 
+/* ------------------------------------------------------------------ *
+ * テスト用ログ一括削除                                    [開発用途限定]
+ * GET /clean
+ * logs/features/*.jsonl, logs/screenshots/ 配下をすべて削除し
+ * ディレクトリ構造だけ再生成する
+ * ⚠ 本番環境では必ずこのエンドポイントを削除またはコメントアウトすること
+ * ------------------------------------------------------------------ */
+app.get('/clean', (req, res) => {
+  try {
+    // features 配下の全 .jsonl を削除
+    if (fs.existsSync(FEAT_DIR)) {
+      fs.readdirSync(FEAT_DIR)
+        .filter(f => f.endsWith('.jsonl'))
+        .forEach(f => fs.unlinkSync(path.join(FEAT_DIR, f)));
+    }
+
+    // screenshots 配下のサブディレクトリごと削除 → 再生成
+    if (fs.existsSync(SS_DIR)) {
+      fs.rmSync(SS_DIR, { recursive: true, force: true });
+      fs.mkdirSync(SS_DIR, { recursive: true });
+    }
+
+    const msg = '[CLEAN] ログ・スクショを全削除しました';
+    console.log(msg);
+    res.json({ status: 'ok', message: msg });
+
+  } catch (err) {
+    console.error('[CLEAN ERROR]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 死活確認
 app.get('/ping', (req, res) => res.json({ status: 'ok', port: PORT }));
 
