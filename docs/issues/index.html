@@ -1,0 +1,2138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>問題・課題ダッシュボード v2.0 | Machining System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    .mono { font-family: 'DM Mono', monospace; }
+    details > summary { user-select: none; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- 固定ナビ -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+    <div class="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+        <span class="text-xs font-semibold tracking-widest text-gray-400 uppercase">Machining System</span>
+        <span class="text-gray-200">/</span>
+        <span class="text-sm font-semibold text-gray-700">問題・課題ダッシュボード</span>
+        <span class="text-xs bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-medium">v2.0</span>
+      </div>
+      <div class="flex items-center gap-4 text-xs text-gray-400">
+        <span>生成: 2026/2/26 10:36:52 JST</span>
+        <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 mono">API不使用・ルールベース自動生成</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-6 pt-20 pb-20">
+
+    <!-- ページヘッダー -->
+    <div class="mb-10 pb-6 border-b border-gray-100">
+      <p class="text-xs font-semibold tracking-widest text-red-400 uppercase mb-2">Issue Dashboard</p>
+      <div class="flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 tracking-tight">問題・課題 可視化ダッシュボード</h1>
+          <p class="text-sm text-gray-400 mt-1">操作ログのルールベース自動解析結果 — 3画面 / 60ログ</p>
+        </div>
+        
+        <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm">
+          <p class="text-xs font-semibold text-red-400 uppercase tracking-wider mb-1">最優先課題</p>
+          <p class="font-semibold text-red-800">（不明） — 🟡 ロガー初期化ミス（UNKNOWN featureId）</p>
+          <p class="text-xs text-red-600 mt-0.5">featureId が &quot;UNKNOWN&quot; のログが 7 件あります。TLogAutoInstrument.init()…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 1: サマリーカード -->
+    <section class="mb-12">
+      <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <span class="w-6 h-6 rounded-md bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">1</span>
+        サマリー
+      </h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm col-span-1">
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">全問題数</p>
+          <p class="text-3xl font-bold text-gray-900">15</p>
+          <p class="text-xs text-gray-400 mt-1">3画面</p>
+        </div>
+        <div class="bg-red-50 rounded-xl border border-red-200 p-4 shadow-sm">
+          <p class="text-xs font-semibold text-red-400 uppercase tracking-wider mb-1">Critical</p>
+          <p class="text-3xl font-bold text-red-700">0</p>
+          <p class="text-xs text-red-400 mt-1">即対応必須</p>
+        </div>
+        <div class="bg-orange-50 rounded-xl border border-orange-200 p-4 shadow-sm">
+          <p class="text-xs font-semibold text-orange-400 uppercase tracking-wider mb-1">High</p>
+          <p class="text-3xl font-bold text-orange-600">7</p>
+          <p class="text-xs text-orange-400 mt-1">優先対応</p>
+        </div>
+        <div class="bg-amber-50 rounded-xl border border-amber-200 p-4 shadow-sm">
+          <p class="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-1">Medium</p>
+          <p class="text-3xl font-bold text-amber-600">6</p>
+          <p class="text-xs text-amber-400 mt-1">計画対応</p>
+        </div>
+        <div class="bg-gray-50 rounded-xl border border-gray-200 p-4 shadow-sm">
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Low</p>
+          <p class="text-3xl font-bold text-gray-600">2</p>
+          <p class="text-xs text-gray-400 mt-1">余裕時対応</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">平均スコア</p>
+          <p class="text-3xl font-bold text-indigo-600">63</p>
+          <p class="text-xs text-gray-400 mt-1">/ 100</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">解析ログ</p>
+          <p class="text-3xl font-bold text-gray-700">60</p>
+          <p class="text-xs text-gray-400 mt-1">件</p>
+        </div>
+      </div>
+    </section>
+
+    
+  <section class="mb-12">
+    <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+      <span class="w-6 h-6 rounded-md bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">2</span>
+      画面別ヒートマップ
+      <span class="text-xs font-normal text-gray-400 ml-2">赤が多いほど問題が集中</span>
+    </h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+    <div class="rounded-xl border border-red-300 bg-red-100 p-4">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <p class="text-xs font-mono text-gray-400">MC_PRODUCTS_LIST</p>
+          <p class="text-sm font-semibold text-gray-800 mt-0.5">部品一覧</p>
+        </div>
+        <span class="text-xl font-bold text-red-800">6</span>
+      </div>
+      <div class="bg-white bg-opacity-60 rounded-full h-1.5 mt-2">
+        <div class="h-1.5 rounded-full bg-red-400" style="width:100%"></div>
+      </div>
+      <div class="flex gap-2 mt-2 text-xs">
+        
+        
+        
+        
+        
+      </div>
+    </div>
+    <div class="rounded-xl border border-red-300 bg-red-100 p-4">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <p class="text-xs font-mono text-gray-400">UNKNOWN</p>
+          <p class="text-sm font-semibold text-gray-800 mt-0.5">（不明）</p>
+        </div>
+        <span class="text-xl font-bold text-red-800">6</span>
+      </div>
+      <div class="bg-white bg-opacity-60 rounded-full h-1.5 mt-2">
+        <div class="h-1.5 rounded-full bg-red-400" style="width:100%"></div>
+      </div>
+      <div class="flex gap-2 mt-2 text-xs">
+        
+        
+        
+        
+        
+      </div>
+    </div>
+    <div class="rounded-xl border border-orange-300 bg-orange-100 p-4">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <p class="text-xs font-mono text-gray-400">MC_OPERATOR_AUTHENTICATION</p>
+          <p class="text-sm font-semibold text-gray-800 mt-0.5">ユーザ認証</p>
+        </div>
+        <span class="text-xl font-bold text-orange-800">3</span>
+      </div>
+      <div class="bg-white bg-opacity-60 rounded-full h-1.5 mt-2">
+        <div class="h-1.5 rounded-full bg-red-400" style="width:50%"></div>
+      </div>
+      <div class="flex gap-2 mt-2 text-xs">
+        
+        
+        
+        
+        
+      </div>
+    </div></div>
+  </section>
+    
+    
+  <section class="mb-12" id="issue-table-section">
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+      <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+        <span class="w-6 h-6 rounded-md bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">4</span>
+        問題一覧（優先度順）
+        <span class="text-xs font-normal text-gray-400">▶ 行クリックで詳細・スクショを展開</span>
+      </h2>
+      <div class="flex flex-wrap gap-2">
+        <select id="filter-severity" onchange="applyFilter()" class="text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 bg-white">
+          <option value="">重大度：すべて</option>
+          <option value="Critical">Critical</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+        <select id="filter-feature" onchange="applyFilter()" class="text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 bg-white">
+          <option value="">画面：すべて</option>
+          <option value="UNKNOWN">UNKNOWN</option><option value="MC_OPERATOR_AUTHENTICATION">MC_OPERATOR_AUTHENTICATION</option><option value="MC_PRODUCTS_LIST">MC_PRODUCTS_LIST</option>
+        </select>
+        <select id="filter-category" onchange="applyFilter()" class="text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 bg-white">
+          <option value="">カテゴリ：すべて</option>
+          <option value="UNKNOWN_FEATURE">🟡 UNKNOWN_FEATURE</option><option value="DUPLICATE_BIND">🔁 DUPLICATE_BIND</option><option value="API_NOT_CALLED">📡 API_NOT_CALLED</option><option value="DUPLICATE_LOAD">🔄 DUPLICATE_LOAD</option><option value="RAPID_BACK">⏩ RAPID_BACK</option><option value="NO_SCREEN_MODE">⚙️ NO_SCREEN_MODE</option><option value="LOW_LOG_COVERAGE">📊 LOW_LOG_COVERAGE</option>
+        </select>
+        <button onclick="resetFilter()" class="text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-500 bg-white hover:bg-gray-50">
+          リセット
+        </button>
+        <span id="filter-count" class="text-xs text-gray-400 self-center"></span>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto rounded-xl border border-gray-100 shadow-sm">
+      <table class="w-full text-sm bg-white" id="issues-table">
+        <thead>
+          <tr class="bg-gray-50 border-b border-gray-200">
+            <th class="px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-10">順位</th>
+            <th class="px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-28">優先度スコア</th>
+            <th class="px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-20">重大度</th>
+            <th class="px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-36">画面</th>
+            <th class="px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-36">カテゴリ</th>
+            <th class="px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">説明 / 操作文脈</th>
+            <th class="px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-20">難易度</th>
+            <th class="px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-20">証拠・詳細</th>
+            <th class="px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-16">状態</th>
+          </tr>
+        </thead>
+        
+    <tbody>
+      <!-- 課題行（クリックで詳細展開） -->
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+          onclick="toggleDetail('R02-UNKNOWN-1772069812204-0')"
+          data-severity="High"
+          data-feature="UNKNOWN"
+          data-category="UNKNOWN_FEATURE">
+        <td class="px-4 py-3 text-center">
+          <span class="inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold
+            bg-red-100 text-red-700">
+            1
+          </span>
+        </td>
+        <td class="px-4 py-3 w-28"><div class="flex items-center gap-2">
+    <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+      <div class="h-1.5 rounded-full" style="width:91%;background:#ef4444"></div>
+    </div>
+    <span class="text-xs font-mono font-bold" style="color:#ef4444">91</span>
+  </div></td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border-orange-300 border">
+            High
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          <p class="text-xs font-mono text-indigo-500">UNKNOWN</p>
+          <p class="text-xs text-gray-500">（不明）</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-sm">🟡</span>
+          <span class="text-xs text-gray-600 ml-1">ロガー初期化ミス（UNKNOWN featureId）</span>
+        </td>
+        <td class="px-4 py-3 max-w-xs">
+          <p class="text-xs text-gray-800 leading-relaxed">featureId が &quot;UNKNOWN&quot; のログが 7 件あります。TLogAutoInstrument.init() が未呼び出し、または resizeContents_start() に配置されています。</p>
+          
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded text-xs font-medium bg-teal-50 text-teal-600">
+            易 Low
+          </span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs text-gray-300">詳細 ▾</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+            Open
+          </span>
+        </td>
+      </tr>
+      <!-- 詳細展開行（v2.0: スクショプレビュー付き） -->
+      <tr id="detail-R02-UNKNOWN-1772069812204-0"
+          class="hidden bg-indigo-50/30 border-b-2 border-indigo-100"
+          data-severity="High"
+          data-feature="UNKNOWN"
+          data-category="UNKNOWN_FEATURE">
+        <td colspan="9" class="px-6 py-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- 左: 課題詳細メタデータ -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📋 課題詳細</p>
+              <div class="bg-white rounded-xl p-3 text-xs space-y-2">
+                <div><span class="text-gray-400 w-16 inline-block">課題ID</span>
+                  <span class="font-mono text-gray-700">R02-UNKNOWN-1772069812204-0</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">ルール</span>
+                  <span class="font-mono text-gray-700">R02</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">再現性</span>
+                  <span class="text-gray-700">Always</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">信頼度</span>
+                  <span class="text-gray-700">95%</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">発生回数</span>
+                  <span class="text-gray-700">7回</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">traceId</span>
+                     <span class="font-mono text-xs text-gray-500 break-all">TR-1772058231063-y5sd</span></div>
+              </div>
+            </div>
+
+            <!-- 中: 操作文脈 + ログ根拠 + 修正提案 -->
+            <div class="space-y-3">
+              
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔍 ログ根拠</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-gray-600 font-mono break-all leading-relaxed">featureId=UNKNOWN のログ 7 件 | SCREEN_LOAD 7 件</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔧 修正提案</p>
+              <div class="bg-emerald-50 rounded-xl p-3">
+                <p class="text-xs text-emerald-800 leading-relaxed">resizeContents_end() の末尾に TLog.screenLoad(&quot;機能ID&quot;, &quot;画面名&quot;) と TLogAutoInstrument.init(&quot;機能ID&quot;, { screenMode: &quot;search&quot; }) を追加してください。</p>
+              </div>
+            </div>
+
+            <!-- 右: スクショプレビュー（v2.0 新機能） -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                📸 スクリーンショット
+                
+              </p>
+              <p class="text-xs text-gray-400 italic">スクリーンショットなし（操作後に自動取得されます）</p>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody>
+      <!-- 課題行（クリックで詳細展開） -->
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+          onclick="toggleDetail('R03-MC_OPERATOR_AUTHENTICATION-1772069812201-0')"
+          data-severity="High"
+          data-feature="MC_OPERATOR_AUTHENTICATION"
+          data-category="DUPLICATE_BIND">
+        <td class="px-4 py-3 text-center">
+          <span class="inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold
+            bg-red-100 text-red-700">
+            2
+          </span>
+        </td>
+        <td class="px-4 py-3 w-28"><div class="flex items-center gap-2">
+    <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+      <div class="h-1.5 rounded-full" style="width:73%;background:#f97316"></div>
+    </div>
+    <span class="text-xs font-mono font-bold" style="color:#f97316">73</span>
+  </div></td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border-orange-300 border">
+            High
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          <p class="text-xs font-mono text-indigo-500">MC_OPERATOR_AUTHENTICATION</p>
+          <p class="text-xs text-gray-500">ユーザ認証</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-sm">🔁</span>
+          <span class="text-xs text-gray-600 ml-1">ボタン重複バインド</span>
+        </td>
+        <td class="px-4 py-3 max-w-xs">
+          <p class="text-xs text-gray-800 leading-relaxed">ボタン &quot;TLN_1_password&quot; が 0ms 以内に 2 回記録されています。addEventListener が複数回バインドされている可能性があります。</p>
+          <p class="text-xs text-indigo-400 mt-0.5 truncate">📍 モード:auth | URLパラメータ:{ faces-redirect=false, COLUMN_0=called_function_id_from, FORMULA_0==, VALUE_0=MC_PRODUCTS_LIST, VALUE_TO_0=, COLUMN_1=called_function_id_to, FORMULA_1==, VALUE_1=MC_MACHINING, VALUE_TO_1=, COLUMN_2=processing_id, FORMULA_2==, VALUE_2=5218, VALUE_TO_2=, COLUMN_3=mc_process_no, FORMULA_3==, VALUE_3=1, VALUE_TO_3=, COLUMN_4=parts_id, FORMULA_4==, VALUE_4=5112, VALUE_TO_4=, COLUMN_5=parts_machining_id, FORMULA_5==, VALUE_5=5218, VALUE_TO_5=, COLUMN_6=parameter_val1, FORMULA_6==, VALUE_6=1, VALUE_TO_6=, PARAM_CALL_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MC, A_HREF_ELM_NAME=1_編集_0, WIN_H=140, WIN_W=690, WIN_POS=WIN_C_MDL, IS_CHILD_FUNC=1, CALL_AUTH=1, PARAM_FUNC_ID=MC_OPERATOR_AUTHENTICATION, INIT_SEARCH=true } | 見出し:マシニングオペレーター認証画面 | 操作:TLN_1_password | 入力:{ elementType=TEXTBOX, newValue=ATOMS }</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-600">
+            中 Medium
+          </span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs text-gray-300">詳細 ▾</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+            Open
+          </span>
+        </td>
+      </tr>
+      <!-- 詳細展開行（v2.0: スクショプレビュー付き） -->
+      <tr id="detail-R03-MC_OPERATOR_AUTHENTICATION-1772069812201-0"
+          class="hidden bg-indigo-50/30 border-b-2 border-indigo-100"
+          data-severity="High"
+          data-feature="MC_OPERATOR_AUTHENTICATION"
+          data-category="DUPLICATE_BIND">
+        <td colspan="9" class="px-6 py-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- 左: 課題詳細メタデータ -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📋 課題詳細</p>
+              <div class="bg-white rounded-xl p-3 text-xs space-y-2">
+                <div><span class="text-gray-400 w-16 inline-block">課題ID</span>
+                  <span class="font-mono text-gray-700">R03-MC_OPERATOR_AUTHENTICATION-1772069812201-0</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">ルール</span>
+                  <span class="font-mono text-gray-700">R03</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">再現性</span>
+                  <span class="text-gray-700">Likely</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">信頼度</span>
+                  <span class="text-gray-700">90%</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">発生回数</span>
+                  <span class="text-gray-700">1回</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">traceId</span>
+                     <span class="font-mono text-xs text-gray-500 break-all">TR-1772058270881-cii6</span></div>
+              </div>
+            </div>
+
+            <!-- 中: 操作文脈 + ログ根拠 + 修正提案 -->
+            <div class="space-y-3">
+              
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📍 操作文脈</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-indigo-700 font-mono leading-relaxed">モード:auth | URLパラメータ:{ faces-redirect=false, COLUMN_0=called_function_id_from, FORMULA_0==, VALUE_0=MC_PRODUCTS_LIST, VALUE_TO_0=, COLUMN_1=called_function_id_to, FORMULA_1==, VALUE_1=MC_MACHINING, VALUE_TO_1=, COLUMN_2=processing_id, FORMULA_2==, VALUE_2=5218, VALUE_TO_2=, COLUMN_3=mc_process_no, FORMULA_3==, VALUE_3=1, VALUE_TO_3=, COLUMN_4=parts_id, FORMULA_4==, VALUE_4=5112, VALUE_TO_4=, COLUMN_5=parts_machining_id, FORMULA_5==, VALUE_5=5218, VALUE_TO_5=, COLUMN_6=parameter_val1, FORMULA_6==, VALUE_6=1, VALUE_TO_6=, PARAM_CALL_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MC, A_HREF_ELM_NAME=1_編集_0, WIN_H=140, WIN_W=690, WIN_POS=WIN_C_MDL, IS_CHILD_FUNC=1, CALL_AUTH=1, PARAM_FUNC_ID=MC_OPERATOR_AUTHENTICATION, INIT_SEARCH=true } | 見出し:マシニングオペレーター認証画面 | 操作:TLN_1_password | 入力:{ elementType=TEXTBOX, newValue=ATOMS }</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔍 ログ根拠</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-gray-600 font-mono break-all leading-relaxed">elementId=TLN_1_password | 時刻差=0ms | ts1=2026-02-25T22:24:30.881Z | ts2=2026-02-25T22:24:30.881Z</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔧 修正提案</p>
+              <div class="bg-emerald-50 rounded-xl p-3">
+                <p class="text-xs text-emerald-800 leading-relaxed">resizeContents_end() が複数回呼ばれていないか確認してください。isValid フラグで初期化ガードを実装し、addEventListener の二重登録を防いでください。</p>
+              </div>
+            </div>
+
+            <!-- 右: スクショプレビュー（v2.0 新機能） -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                📸 スクリーンショット
+                
+              </p>
+              <p class="text-xs text-gray-400 italic">スクリーンショットなし（操作後に自動取得されます）</p>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody>
+      <!-- 課題行（クリックで詳細展開） -->
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+          onclick="toggleDetail('R03-MC_OPERATOR_AUTHENTICATION-1772069812201-1')"
+          data-severity="High"
+          data-feature="MC_OPERATOR_AUTHENTICATION"
+          data-category="DUPLICATE_BIND">
+        <td class="px-4 py-3 text-center">
+          <span class="inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold
+            bg-red-100 text-red-700">
+            3
+          </span>
+        </td>
+        <td class="px-4 py-3 w-28"><div class="flex items-center gap-2">
+    <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+      <div class="h-1.5 rounded-full" style="width:73%;background:#f97316"></div>
+    </div>
+    <span class="text-xs font-mono font-bold" style="color:#f97316">73</span>
+  </div></td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border-orange-300 border">
+            High
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          <p class="text-xs font-mono text-indigo-500">MC_OPERATOR_AUTHENTICATION</p>
+          <p class="text-xs text-gray-500">ユーザ認証</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-sm">🔁</span>
+          <span class="text-xs text-gray-600 ml-1">ボタン重複バインド</span>
+        </td>
+        <td class="px-4 py-3 max-w-xs">
+          <p class="text-xs text-gray-800 leading-relaxed">ボタン &quot;TLN_1_password_CALL_JAVASCRIPT&quot; が 1ms 以内に 2 回記録されています。addEventListener が複数回バインドされている可能性があります。</p>
+          <p class="text-xs text-indigo-400 mt-0.5 truncate">📍 モード:auth | URLパラメータ:{ faces-redirect=false, COLUMN_0=called_function_id_from, FORMULA_0==, VALUE_0=MC_PRODUCTS_LIST, VALUE_TO_0=, COLUMN_1=called_function_id_to, FORMULA_1==, VALUE_1=MC_MACHINING, VALUE_TO_1=, COLUMN_2=processing_id, FORMULA_2==, VALUE_2=5218, VALUE_TO_2=, COLUMN_3=mc_process_no, FORMULA_3==, VALUE_3=1, VALUE_TO_3=, COLUMN_4=parts_id, FORMULA_4==, VALUE_4=5112, VALUE_TO_4=, COLUMN_5=parts_machining_id, FORMULA_5==, VALUE_5=5218, VALUE_TO_5=, COLUMN_6=parameter_val1, FORMULA_6==, VALUE_6=1, VALUE_TO_6=, PARAM_CALL_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MC, A_HREF_ELM_NAME=1_編集_0, WIN_H=140, WIN_W=690, WIN_POS=WIN_C_MDL, IS_CHILD_FUNC=1, CALL_AUTH=1, PARAM_FUNC_ID=MC_OPERATOR_AUTHENTICATION, INIT_SEARCH=true } | 見出し:マシニングオペレーター認証画面 | 操作:TLN_1_password_CALL_JAVASCRIPT | 入力:{ elementType=BUTTON, buttonLabel=ユーザー認証, formSnapshot=[object Object] }</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-600">
+            中 Medium
+          </span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs text-indigo-500 font-medium whitespace-nowrap">📸 1枚 ▾</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+            Open
+          </span>
+        </td>
+      </tr>
+      <!-- 詳細展開行（v2.0: スクショプレビュー付き） -->
+      <tr id="detail-R03-MC_OPERATOR_AUTHENTICATION-1772069812201-1"
+          class="hidden bg-indigo-50/30 border-b-2 border-indigo-100"
+          data-severity="High"
+          data-feature="MC_OPERATOR_AUTHENTICATION"
+          data-category="DUPLICATE_BIND">
+        <td colspan="9" class="px-6 py-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- 左: 課題詳細メタデータ -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📋 課題詳細</p>
+              <div class="bg-white rounded-xl p-3 text-xs space-y-2">
+                <div><span class="text-gray-400 w-16 inline-block">課題ID</span>
+                  <span class="font-mono text-gray-700">R03-MC_OPERATOR_AUTHENTICATION-1772069812201-1</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">ルール</span>
+                  <span class="font-mono text-gray-700">R03</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">再現性</span>
+                  <span class="text-gray-700">Likely</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">信頼度</span>
+                  <span class="text-gray-700">90%</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">発生回数</span>
+                  <span class="text-gray-700">1回</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">traceId</span>
+                     <span class="font-mono text-xs text-gray-500 break-all">TR-1772058270990-aawo</span></div>
+              </div>
+            </div>
+
+            <!-- 中: 操作文脈 + ログ根拠 + 修正提案 -->
+            <div class="space-y-3">
+              
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📍 操作文脈</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-indigo-700 font-mono leading-relaxed">モード:auth | URLパラメータ:{ faces-redirect=false, COLUMN_0=called_function_id_from, FORMULA_0==, VALUE_0=MC_PRODUCTS_LIST, VALUE_TO_0=, COLUMN_1=called_function_id_to, FORMULA_1==, VALUE_1=MC_MACHINING, VALUE_TO_1=, COLUMN_2=processing_id, FORMULA_2==, VALUE_2=5218, VALUE_TO_2=, COLUMN_3=mc_process_no, FORMULA_3==, VALUE_3=1, VALUE_TO_3=, COLUMN_4=parts_id, FORMULA_4==, VALUE_4=5112, VALUE_TO_4=, COLUMN_5=parts_machining_id, FORMULA_5==, VALUE_5=5218, VALUE_TO_5=, COLUMN_6=parameter_val1, FORMULA_6==, VALUE_6=1, VALUE_TO_6=, PARAM_CALL_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MC, A_HREF_ELM_NAME=1_編集_0, WIN_H=140, WIN_W=690, WIN_POS=WIN_C_MDL, IS_CHILD_FUNC=1, CALL_AUTH=1, PARAM_FUNC_ID=MC_OPERATOR_AUTHENTICATION, INIT_SEARCH=true } | 見出し:マシニングオペレーター認証画面 | 操作:TLN_1_password_CALL_JAVASCRIPT | 入力:{ elementType=BUTTON, buttonLabel=ユーザー認証, formSnapshot=[object Object] }</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔍 ログ根拠</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-gray-600 font-mono break-all leading-relaxed">elementId=TLN_1_password_CALL_JAVASCRIPT | 時刻差=1ms | ts1=2026-02-25T22:24:30.989Z | ts2=2026-02-25T22:24:30.990Z</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔧 修正提案</p>
+              <div class="bg-emerald-50 rounded-xl p-3">
+                <p class="text-xs text-emerald-800 leading-relaxed">resizeContents_end() が複数回呼ばれていないか確認してください。isValid フラグで初期化ガードを実装し、addEventListener の二重登録を防いでください。</p>
+              </div>
+            </div>
+
+            <!-- 右: スクショプレビュー（v2.0 新機能） -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                📸 スクリーンショット
+                <span class="text-indigo-400 font-normal ml-1">1枚 — クリックで拡大</span>
+              </p>
+              <div class="flex flex-wrap gap-3">
+    <div class="rounded-xl border-2 border-red-300 overflow-hidden flex-1 basis-56 min-w-0">
+      <div class="bg-red-50 text-red-700 px-3 py-1.5 text-xs font-semibold">📸 AFTER — 操作結果</div>
+      <div class="bg-gray-50 cursor-pointer" onclick="openImg('../screenshots/MC_OPERATOR_AUTHENTICATION/2026-02-25T22-24-33-623Z_MC_OPERATOR_AUTHENTICATION_TLN_1_password_CALL_JAVASCRIPT_AFTER_TR-1772058270990-aawo.jpg')">
+        <img src="../screenshots/MC_OPERATOR_AUTHENTICATION/2026-02-25T22-24-33-623Z_MC_OPERATOR_AUTHENTICATION_TLN_1_password_CALL_JAVASCRIPT_AFTER_TR-1772058270990-aawo.jpg" alt="📸 AFTER — 操作結果"
+          class="w-full h-auto max-h-48 object-contain hover:max-h-none transition-all"
+          onerror="this.parentElement.innerHTML='<div class=\'h-20 flex items-center justify-center text-gray-400 text-xs\'>画像未取得</div>'"
+        />
+      </div>
+      <p class="px-2 py-1 text-xs text-gray-400 font-mono truncate">2026-02-25T22-24-33-623Z_MC_OPERATOR_AUTHENTICATION_TLN_1_password_CALL_JAVASCRIPT_AFTER_TR-1772058270990-aawo.jpg</p>
+    </div></div>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody>
+      <!-- 課題行（クリックで詳細展開） -->
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+          onclick="toggleDetail('R03-MC_OPERATOR_AUTHENTICATION-1772069812201-2')"
+          data-severity="High"
+          data-feature="MC_OPERATOR_AUTHENTICATION"
+          data-category="DUPLICATE_BIND">
+        <td class="px-4 py-3 text-center">
+          <span class="inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold
+            bg-orange-50 text-orange-600">
+            4
+          </span>
+        </td>
+        <td class="px-4 py-3 w-28"><div class="flex items-center gap-2">
+    <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+      <div class="h-1.5 rounded-full" style="width:73%;background:#f97316"></div>
+    </div>
+    <span class="text-xs font-mono font-bold" style="color:#f97316">73</span>
+  </div></td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border-orange-300 border">
+            High
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          <p class="text-xs font-mono text-indigo-500">MC_OPERATOR_AUTHENTICATION</p>
+          <p class="text-xs text-gray-500">ユーザ認証</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-sm">🔁</span>
+          <span class="text-xs text-gray-600 ml-1">ボタン重複バインド</span>
+        </td>
+        <td class="px-4 py-3 max-w-xs">
+          <p class="text-xs text-gray-800 leading-relaxed">ボタン &quot;TLN_1_マシニング情報&quot; が 1ms 以内に 2 回記録されています。addEventListener が複数回バインドされている可能性があります。</p>
+          <p class="text-xs text-indigo-400 mt-0.5 truncate">📍 モード:auth | URLパラメータ:{ faces-redirect=false, COLUMN_0=called_function_id_from, FORMULA_0==, VALUE_0=MC_PRODUCTS_LIST, VALUE_TO_0=, COLUMN_1=called_function_id_to, FORMULA_1==, VALUE_1=MC_MACHINING, VALUE_TO_1=, COLUMN_2=processing_id, FORMULA_2==, VALUE_2=5218, VALUE_TO_2=, COLUMN_3=mc_process_no, FORMULA_3==, VALUE_3=1, VALUE_TO_3=, COLUMN_4=parts_id, FORMULA_4==, VALUE_4=5112, VALUE_TO_4=, COLUMN_5=parts_machining_id, FORMULA_5==, VALUE_5=5218, VALUE_TO_5=, COLUMN_6=parameter_val1, FORMULA_6==, VALUE_6=1, VALUE_TO_6=, PARAM_CALL_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MC, A_HREF_ELM_NAME=1_編集_0, WIN_H=140, WIN_W=690, WIN_POS=WIN_C_MDL, IS_CHILD_FUNC=1, CALL_AUTH=1, PARAM_FUNC_ID=MC_OPERATOR_AUTHENTICATION, INIT_SEARCH=true } | 見出し:マシニングオペレーター認証画面 | 操作:TLN_1_マシニング情報 | 入力:{ elementType=BUTTON, buttonLabel=マシニング情報, formSnapshot=[object Object] }</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-600">
+            中 Medium
+          </span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs text-gray-300">詳細 ▾</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+            Open
+          </span>
+        </td>
+      </tr>
+      <!-- 詳細展開行（v2.0: スクショプレビュー付き） -->
+      <tr id="detail-R03-MC_OPERATOR_AUTHENTICATION-1772069812201-2"
+          class="hidden bg-indigo-50/30 border-b-2 border-indigo-100"
+          data-severity="High"
+          data-feature="MC_OPERATOR_AUTHENTICATION"
+          data-category="DUPLICATE_BIND">
+        <td colspan="9" class="px-6 py-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- 左: 課題詳細メタデータ -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📋 課題詳細</p>
+              <div class="bg-white rounded-xl p-3 text-xs space-y-2">
+                <div><span class="text-gray-400 w-16 inline-block">課題ID</span>
+                  <span class="font-mono text-gray-700">R03-MC_OPERATOR_AUTHENTICATION-1772069812201-2</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">ルール</span>
+                  <span class="font-mono text-gray-700">R03</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">再現性</span>
+                  <span class="text-gray-700">Likely</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">信頼度</span>
+                  <span class="text-gray-700">90%</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">発生回数</span>
+                  <span class="text-gray-700">1回</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">traceId</span>
+                     <span class="font-mono text-xs text-gray-500 break-all">TR-1772058287024-zu08</span></div>
+              </div>
+            </div>
+
+            <!-- 中: 操作文脈 + ログ根拠 + 修正提案 -->
+            <div class="space-y-3">
+              
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📍 操作文脈</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-indigo-700 font-mono leading-relaxed">モード:auth | URLパラメータ:{ faces-redirect=false, COLUMN_0=called_function_id_from, FORMULA_0==, VALUE_0=MC_PRODUCTS_LIST, VALUE_TO_0=, COLUMN_1=called_function_id_to, FORMULA_1==, VALUE_1=MC_MACHINING, VALUE_TO_1=, COLUMN_2=processing_id, FORMULA_2==, VALUE_2=5218, VALUE_TO_2=, COLUMN_3=mc_process_no, FORMULA_3==, VALUE_3=1, VALUE_TO_3=, COLUMN_4=parts_id, FORMULA_4==, VALUE_4=5112, VALUE_TO_4=, COLUMN_5=parts_machining_id, FORMULA_5==, VALUE_5=5218, VALUE_TO_5=, COLUMN_6=parameter_val1, FORMULA_6==, VALUE_6=1, VALUE_TO_6=, PARAM_CALL_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MC, A_HREF_ELM_NAME=1_編集_0, WIN_H=140, WIN_W=690, WIN_POS=WIN_C_MDL, IS_CHILD_FUNC=1, CALL_AUTH=1, PARAM_FUNC_ID=MC_OPERATOR_AUTHENTICATION, INIT_SEARCH=true } | 見出し:マシニングオペレーター認証画面 | 操作:TLN_1_マシニング情報 | 入力:{ elementType=BUTTON, buttonLabel=マシニング情報, formSnapshot=[object Object] }</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔍 ログ根拠</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-gray-600 font-mono break-all leading-relaxed">elementId=TLN_1_マシニング情報 | 時刻差=1ms | ts1=2026-02-25T22:24:47.023Z | ts2=2026-02-25T22:24:47.024Z</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔧 修正提案</p>
+              <div class="bg-emerald-50 rounded-xl p-3">
+                <p class="text-xs text-emerald-800 leading-relaxed">resizeContents_end() が複数回呼ばれていないか確認してください。isValid フラグで初期化ガードを実装し、addEventListener の二重登録を防いでください。</p>
+              </div>
+            </div>
+
+            <!-- 右: スクショプレビュー（v2.0 新機能） -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                📸 スクリーンショット
+                
+              </p>
+              <p class="text-xs text-gray-400 italic">スクリーンショットなし（操作後に自動取得されます）</p>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody>
+      <!-- 課題行（クリックで詳細展開） -->
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+          onclick="toggleDetail('R03-MC_PRODUCTS_LIST-1772069812203-0')"
+          data-severity="High"
+          data-feature="MC_PRODUCTS_LIST"
+          data-category="DUPLICATE_BIND">
+        <td class="px-4 py-3 text-center">
+          <span class="inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold
+            bg-orange-50 text-orange-600">
+            5
+          </span>
+        </td>
+        <td class="px-4 py-3 w-28"><div class="flex items-center gap-2">
+    <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+      <div class="h-1.5 rounded-full" style="width:73%;background:#f97316"></div>
+    </div>
+    <span class="text-xs font-mono font-bold" style="color:#f97316">73</span>
+  </div></td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border-orange-300 border">
+            High
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          <p class="text-xs font-mono text-indigo-500">MC_PRODUCTS_LIST</p>
+          <p class="text-xs text-gray-500">部品一覧</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-sm">🔁</span>
+          <span class="text-xs text-gray-600 ml-1">ボタン重複バインド</span>
+        </td>
+        <td class="px-4 py-3 max-w-xs">
+          <p class="text-xs text-gray-800 leading-relaxed">ボタン &quot;BACK_BUTTON&quot; が 1ms 以内に 2 回記録されています。addEventListener が複数回バインドされている可能性があります。</p>
+          <p class="text-xs text-indigo-400 mt-0.5 truncate">📍 モード:search | URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 } | 操作:BACK_BUTTON | 入力:{ elementType=BUTTON, buttonLabel=BACK_BUTTON, formSnapshot=[object Object] }</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-600">
+            中 Medium
+          </span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs text-gray-300">詳細 ▾</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+            Open
+          </span>
+        </td>
+      </tr>
+      <!-- 詳細展開行（v2.0: スクショプレビュー付き） -->
+      <tr id="detail-R03-MC_PRODUCTS_LIST-1772069812203-0"
+          class="hidden bg-indigo-50/30 border-b-2 border-indigo-100"
+          data-severity="High"
+          data-feature="MC_PRODUCTS_LIST"
+          data-category="DUPLICATE_BIND">
+        <td colspan="9" class="px-6 py-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- 左: 課題詳細メタデータ -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📋 課題詳細</p>
+              <div class="bg-white rounded-xl p-3 text-xs space-y-2">
+                <div><span class="text-gray-400 w-16 inline-block">課題ID</span>
+                  <span class="font-mono text-gray-700">R03-MC_PRODUCTS_LIST-1772069812203-0</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">ルール</span>
+                  <span class="font-mono text-gray-700">R03</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">再現性</span>
+                  <span class="text-gray-700">Likely</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">信頼度</span>
+                  <span class="text-gray-700">90%</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">発生回数</span>
+                  <span class="text-gray-700">1回</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">traceId</span>
+                     <span class="font-mono text-xs text-gray-500 break-all">TR-1772065085422-fidc</span></div>
+              </div>
+            </div>
+
+            <!-- 中: 操作文脈 + ログ根拠 + 修正提案 -->
+            <div class="space-y-3">
+              
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📍 操作文脈</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-indigo-700 font-mono leading-relaxed">モード:search | URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 } | 操作:BACK_BUTTON | 入力:{ elementType=BUTTON, buttonLabel=BACK_BUTTON, formSnapshot=[object Object] }</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔍 ログ根拠</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-gray-600 font-mono break-all leading-relaxed">elementId=BACK_BUTTON | 時刻差=1ms | ts1=2026-02-26T00:18:05.421Z | ts2=2026-02-26T00:18:05.422Z</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔧 修正提案</p>
+              <div class="bg-emerald-50 rounded-xl p-3">
+                <p class="text-xs text-emerald-800 leading-relaxed">resizeContents_end() が複数回呼ばれていないか確認してください。isValid フラグで初期化ガードを実装し、addEventListener の二重登録を防いでください。</p>
+              </div>
+            </div>
+
+            <!-- 右: スクショプレビュー（v2.0 新機能） -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                📸 スクリーンショット
+                
+              </p>
+              <p class="text-xs text-gray-400 italic">スクリーンショットなし（操作後に自動取得されます）</p>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody>
+      <!-- 課題行（クリックで詳細展開） -->
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+          onclick="toggleDetail('R05-MC_PRODUCTS_LIST-1772069812203-0')"
+          data-severity="High"
+          data-feature="MC_PRODUCTS_LIST"
+          data-category="API_NOT_CALLED">
+        <td class="px-4 py-3 text-center">
+          <span class="inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold
+            bg-orange-50 text-orange-600">
+            6
+          </span>
+        </td>
+        <td class="px-4 py-3 w-28"><div class="flex items-center gap-2">
+    <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+      <div class="h-1.5 rounded-full" style="width:64%;background:#f97316"></div>
+    </div>
+    <span class="text-xs font-mono font-bold" style="color:#f97316">64</span>
+  </div></td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border-orange-300 border">
+            High
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          <p class="text-xs font-mono text-indigo-500">MC_PRODUCTS_LIST</p>
+          <p class="text-xs text-gray-500">部品一覧</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-sm">📡</span>
+          <span class="text-xs text-gray-600 ml-1">ボタン押下後API無応答</span>
+        </td>
+        <td class="px-4 py-3 max-w-xs">
+          <p class="text-xs text-gray-800 leading-relaxed">ボタン &quot;BUTTON_MDL_R:0:POS_SEARCH_BTN&quot; 押下後 3秒以内にBACKENDログが記録されていません。REST API呼び出しが失敗しているか、レスポンス取得コードが未実装の可能性があります。</p>
+          <p class="text-xs text-indigo-400 mt-0.5 truncate">📍 モード:search | URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 } | 操作:BUTTON_MDL_R:0:POS_SEARCH_BTN | 入力:{ elementType=BUTTON, buttonLabel=検索, formSnapshot=[object Object] }</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-600">
+            難 High
+          </span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs text-indigo-500 font-medium whitespace-nowrap">📸 2枚 ▾</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+            Open
+          </span>
+        </td>
+      </tr>
+      <!-- 詳細展開行（v2.0: スクショプレビュー付き） -->
+      <tr id="detail-R05-MC_PRODUCTS_LIST-1772069812203-0"
+          class="hidden bg-indigo-50/30 border-b-2 border-indigo-100"
+          data-severity="High"
+          data-feature="MC_PRODUCTS_LIST"
+          data-category="API_NOT_CALLED">
+        <td colspan="9" class="px-6 py-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- 左: 課題詳細メタデータ -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📋 課題詳細</p>
+              <div class="bg-white rounded-xl p-3 text-xs space-y-2">
+                <div><span class="text-gray-400 w-16 inline-block">課題ID</span>
+                  <span class="font-mono text-gray-700">R05-MC_PRODUCTS_LIST-1772069812203-0</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">ルール</span>
+                  <span class="font-mono text-gray-700">R05</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">再現性</span>
+                  <span class="text-gray-700">Sometimes</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">信頼度</span>
+                  <span class="text-gray-700">70%</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">発生回数</span>
+                  <span class="text-gray-700">1回</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">traceId</span>
+                     <span class="font-mono text-xs text-gray-500 break-all">TR-1772058251450-ruwz</span></div>
+              </div>
+            </div>
+
+            <!-- 中: 操作文脈 + ログ根拠 + 修正提案 -->
+            <div class="space-y-3">
+              
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📍 操作文脈</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-indigo-700 font-mono leading-relaxed">モード:search | URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 } | 操作:BUTTON_MDL_R:0:POS_SEARCH_BTN | 入力:{ elementType=BUTTON, buttonLabel=検索, formSnapshot=[object Object] }</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔍 ログ根拠</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-gray-600 font-mono break-all leading-relaxed">UI_CLICK elementId=BUTTON_MDL_R:0:POS_SEARCH_BTN | ts=2026-02-25T22:24:11.477Z | traceId=TR-1772058251450-ruwz | 3秒以内BACKEND=なし</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔧 修正提案</p>
+              <div class="bg-emerald-50 rounded-xl p-3">
+                <p class="text-xs text-emerald-800 leading-relaxed">ブラウザのF12 &gt; Networkタブで実際にREST APIが呼ばれているか確認してください。PrimeFaces AJAXのコールバック内にTLog.backend()の記録を追加してください。</p>
+              </div>
+            </div>
+
+            <!-- 右: スクショプレビュー（v2.0 新機能） -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                📸 スクリーンショット
+                <span class="text-indigo-400 font-normal ml-1">2枚 — クリックで拡大</span>
+              </p>
+              <div class="flex flex-wrap gap-3">
+    <div class="rounded-xl border-2 border-orange-300 overflow-hidden flex-1 basis-56 min-w-0">
+      <div class="bg-orange-50 text-orange-700 px-3 py-1.5 text-xs font-semibold">📸 BEFORE — 操作直前</div>
+      <div class="bg-gray-50 cursor-pointer" onclick="openImg('../screenshots/MC_PRODUCTS_LIST/2026-02-25T22-24-12-274Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_BEFORE_TR-1772058251450-ruwz.jpg')">
+        <img src="../screenshots/MC_PRODUCTS_LIST/2026-02-25T22-24-12-274Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_BEFORE_TR-1772058251450-ruwz.jpg" alt="📸 BEFORE — 操作直前"
+          class="w-full h-auto max-h-48 object-contain hover:max-h-none transition-all"
+          onerror="this.parentElement.innerHTML='<div class=\'h-20 flex items-center justify-center text-gray-400 text-xs\'>画像未取得</div>'"
+        />
+      </div>
+      <p class="px-2 py-1 text-xs text-gray-400 font-mono truncate">2026-02-25T22-24-12-274Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_BEFORE_TR-1772058251450-ruwz.jpg</p>
+    </div>
+    <div class="rounded-xl border-2 border-red-300 overflow-hidden flex-1 basis-56 min-w-0">
+      <div class="bg-red-50 text-red-700 px-3 py-1.5 text-xs font-semibold">📸 AFTER — 操作結果</div>
+      <div class="bg-gray-50 cursor-pointer" onclick="openImg('../screenshots/MC_PRODUCTS_LIST/2026-02-25T22-24-13-925Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_AFTER_TR-1772058251450-ruwz.jpg')">
+        <img src="../screenshots/MC_PRODUCTS_LIST/2026-02-25T22-24-13-925Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_AFTER_TR-1772058251450-ruwz.jpg" alt="📸 AFTER — 操作結果"
+          class="w-full h-auto max-h-48 object-contain hover:max-h-none transition-all"
+          onerror="this.parentElement.innerHTML='<div class=\'h-20 flex items-center justify-center text-gray-400 text-xs\'>画像未取得</div>'"
+        />
+      </div>
+      <p class="px-2 py-1 text-xs text-gray-400 font-mono truncate">2026-02-25T22-24-13-925Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_AFTER_TR-1772058251450-ruwz.jpg</p>
+    </div></div>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody>
+      <!-- 課題行（クリックで詳細展開） -->
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+          onclick="toggleDetail('R05-MC_PRODUCTS_LIST-1772069812203-1')"
+          data-severity="High"
+          data-feature="MC_PRODUCTS_LIST"
+          data-category="API_NOT_CALLED">
+        <td class="px-4 py-3 text-center">
+          <span class="inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold
+            bg-orange-50 text-orange-600">
+            7
+          </span>
+        </td>
+        <td class="px-4 py-3 w-28"><div class="flex items-center gap-2">
+    <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+      <div class="h-1.5 rounded-full" style="width:64%;background:#f97316"></div>
+    </div>
+    <span class="text-xs font-mono font-bold" style="color:#f97316">64</span>
+  </div></td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border-orange-300 border">
+            High
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          <p class="text-xs font-mono text-indigo-500">MC_PRODUCTS_LIST</p>
+          <p class="text-xs text-gray-500">部品一覧</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-sm">📡</span>
+          <span class="text-xs text-gray-600 ml-1">ボタン押下後API無応答</span>
+        </td>
+        <td class="px-4 py-3 max-w-xs">
+          <p class="text-xs text-gray-800 leading-relaxed">ボタン &quot;BUTTON_MDL_R:0:POS_SEARCH_BTN&quot; 押下後 3秒以内にBACKENDログが記録されていません。REST API呼び出しが失敗しているか、レスポンス取得コードが未実装の可能性があります。</p>
+          <p class="text-xs text-indigo-400 mt-0.5 truncate">📍 モード:search | URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 } | 操作:BUTTON_MDL_R:0:POS_SEARCH_BTN | 入力:{ elementType=BUTTON, buttonLabel=検索, formSnapshot=[object Object] }</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-600">
+            難 High
+          </span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs text-indigo-500 font-medium whitespace-nowrap">📸 2枚 ▾</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+            Open
+          </span>
+        </td>
+      </tr>
+      <!-- 詳細展開行（v2.0: スクショプレビュー付き） -->
+      <tr id="detail-R05-MC_PRODUCTS_LIST-1772069812203-1"
+          class="hidden bg-indigo-50/30 border-b-2 border-indigo-100"
+          data-severity="High"
+          data-feature="MC_PRODUCTS_LIST"
+          data-category="API_NOT_CALLED">
+        <td colspan="9" class="px-6 py-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- 左: 課題詳細メタデータ -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📋 課題詳細</p>
+              <div class="bg-white rounded-xl p-3 text-xs space-y-2">
+                <div><span class="text-gray-400 w-16 inline-block">課題ID</span>
+                  <span class="font-mono text-gray-700">R05-MC_PRODUCTS_LIST-1772069812203-1</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">ルール</span>
+                  <span class="font-mono text-gray-700">R05</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">再現性</span>
+                  <span class="text-gray-700">Sometimes</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">信頼度</span>
+                  <span class="text-gray-700">70%</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">発生回数</span>
+                  <span class="text-gray-700">1回</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">traceId</span>
+                     <span class="font-mono text-xs text-gray-500 break-all">TR-1772064978583-5pjc</span></div>
+              </div>
+            </div>
+
+            <!-- 中: 操作文脈 + ログ根拠 + 修正提案 -->
+            <div class="space-y-3">
+              
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📍 操作文脈</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-indigo-700 font-mono leading-relaxed">モード:search | URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 } | 操作:BUTTON_MDL_R:0:POS_SEARCH_BTN | 入力:{ elementType=BUTTON, buttonLabel=検索, formSnapshot=[object Object] }</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔍 ログ根拠</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-gray-600 font-mono break-all leading-relaxed">UI_CLICK elementId=BUTTON_MDL_R:0:POS_SEARCH_BTN | ts=2026-02-26T00:16:18.618Z | traceId=TR-1772064978583-5pjc | 3秒以内BACKEND=なし</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔧 修正提案</p>
+              <div class="bg-emerald-50 rounded-xl p-3">
+                <p class="text-xs text-emerald-800 leading-relaxed">ブラウザのF12 &gt; Networkタブで実際にREST APIが呼ばれているか確認してください。PrimeFaces AJAXのコールバック内にTLog.backend()の記録を追加してください。</p>
+              </div>
+            </div>
+
+            <!-- 右: スクショプレビュー（v2.0 新機能） -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                📸 スクリーンショット
+                <span class="text-indigo-400 font-normal ml-1">2枚 — クリックで拡大</span>
+              </p>
+              <div class="flex flex-wrap gap-3">
+    <div class="rounded-xl border-2 border-orange-300 overflow-hidden flex-1 basis-56 min-w-0">
+      <div class="bg-orange-50 text-orange-700 px-3 py-1.5 text-xs font-semibold">📸 BEFORE — 操作直前</div>
+      <div class="bg-gray-50 cursor-pointer" onclick="openImg('../screenshots/MC_PRODUCTS_LIST/2026-02-26T00-16-19-533Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_BEFORE_TR-1772064978583-5pjc.jpg')">
+        <img src="../screenshots/MC_PRODUCTS_LIST/2026-02-26T00-16-19-533Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_BEFORE_TR-1772064978583-5pjc.jpg" alt="📸 BEFORE — 操作直前"
+          class="w-full h-auto max-h-48 object-contain hover:max-h-none transition-all"
+          onerror="this.parentElement.innerHTML='<div class=\'h-20 flex items-center justify-center text-gray-400 text-xs\'>画像未取得</div>'"
+        />
+      </div>
+      <p class="px-2 py-1 text-xs text-gray-400 font-mono truncate">2026-02-26T00-16-19-533Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_BEFORE_TR-1772064978583-5pjc.jpg</p>
+    </div>
+    <div class="rounded-xl border-2 border-red-300 overflow-hidden flex-1 basis-56 min-w-0">
+      <div class="bg-red-50 text-red-700 px-3 py-1.5 text-xs font-semibold">📸 AFTER — 操作結果</div>
+      <div class="bg-gray-50 cursor-pointer" onclick="openImg('../screenshots/MC_PRODUCTS_LIST/2026-02-26T00-16-21-115Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_AFTER_TR-1772064978583-5pjc.jpg')">
+        <img src="../screenshots/MC_PRODUCTS_LIST/2026-02-26T00-16-21-115Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_AFTER_TR-1772064978583-5pjc.jpg" alt="📸 AFTER — 操作結果"
+          class="w-full h-auto max-h-48 object-contain hover:max-h-none transition-all"
+          onerror="this.parentElement.innerHTML='<div class=\'h-20 flex items-center justify-center text-gray-400 text-xs\'>画像未取得</div>'"
+        />
+      </div>
+      <p class="px-2 py-1 text-xs text-gray-400 font-mono truncate">2026-02-26T00-16-21-115Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_AFTER_TR-1772064978583-5pjc.jpg</p>
+    </div></div>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody>
+      <!-- 課題行（クリックで詳細展開） -->
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+          onclick="toggleDetail('R07-MC_PRODUCTS_LIST-1772069812204-0')"
+          data-severity="Medium"
+          data-feature="MC_PRODUCTS_LIST"
+          data-category="DUPLICATE_LOAD">
+        <td class="px-4 py-3 text-center">
+          <span class="inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold
+            bg-orange-50 text-orange-600">
+            8
+          </span>
+        </td>
+        <td class="px-4 py-3 w-28"><div class="flex items-center gap-2">
+    <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+      <div class="h-1.5 rounded-full" style="width:60%;background:#f97316"></div>
+    </div>
+    <span class="text-xs font-mono font-bold" style="color:#f97316">60</span>
+  </div></td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border-amber-300 border">
+            Medium
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          <p class="text-xs font-mono text-indigo-500">MC_PRODUCTS_LIST</p>
+          <p class="text-xs text-gray-500">部品一覧</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-sm">🔄</span>
+          <span class="text-xs text-gray-600 ml-1">画面重複ロード</span>
+        </td>
+        <td class="px-4 py-3 max-w-xs">
+          <p class="text-xs text-gray-800 leading-relaxed">SCREEN_LOAD が 42ms 以内に2回記録されています。resizeContents_end() が複数回呼ばれているか、isValid ガードが正しく機能していない可能性があります。</p>
+          <p class="text-xs text-indigo-400 mt-0.5 truncate">📍 モード:search | URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 }</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-600">
+            中 Medium
+          </span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs text-indigo-500 font-medium whitespace-nowrap">📸 2枚 ▾</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+            Open
+          </span>
+        </td>
+      </tr>
+      <!-- 詳細展開行（v2.0: スクショプレビュー付き） -->
+      <tr id="detail-R07-MC_PRODUCTS_LIST-1772069812204-0"
+          class="hidden bg-indigo-50/30 border-b-2 border-indigo-100"
+          data-severity="Medium"
+          data-feature="MC_PRODUCTS_LIST"
+          data-category="DUPLICATE_LOAD">
+        <td colspan="9" class="px-6 py-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- 左: 課題詳細メタデータ -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📋 課題詳細</p>
+              <div class="bg-white rounded-xl p-3 text-xs space-y-2">
+                <div><span class="text-gray-400 w-16 inline-block">課題ID</span>
+                  <span class="font-mono text-gray-700">R07-MC_PRODUCTS_LIST-1772069812204-0</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">ルール</span>
+                  <span class="font-mono text-gray-700">R07</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">再現性</span>
+                  <span class="text-gray-700">Likely</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">信頼度</span>
+                  <span class="text-gray-700">85%</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">発生回数</span>
+                  <span class="text-gray-700">1回</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">traceId</span>
+                     <span class="font-mono text-xs text-gray-500 break-all">TR-1772058251972-3ksl</span></div>
+              </div>
+            </div>
+
+            <!-- 中: 操作文脈 + ログ根拠 + 修正提案 -->
+            <div class="space-y-3">
+              
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📍 操作文脈</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-indigo-700 font-mono leading-relaxed">モード:search | URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 }</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔍 ログ根拠</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-gray-600 font-mono break-all leading-relaxed">SCREEN_LOAD 2回 | diff=42ms | ts1=2026-02-25T22:24:11.930Z | ts2=2026-02-25T22:24:11.972Z</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔧 修正提案</p>
+              <div class="bg-emerald-50 rounded-xl p-3">
+                <p class="text-xs text-emerald-800 leading-relaxed">resizeContents_end() にisValidフラグによる実行ガードが実装されているか確認してください。TALONのライフサイクル上、resizeContents_end() が複数回呼ばれることがあります。</p>
+              </div>
+            </div>
+
+            <!-- 右: スクショプレビュー（v2.0 新機能） -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                📸 スクリーンショット
+                <span class="text-indigo-400 font-normal ml-1">2枚 — クリックで拡大</span>
+              </p>
+              <div class="flex flex-wrap gap-3">
+    <div class="rounded-xl border-2 border-gray-200 overflow-hidden flex-1 basis-56 min-w-0">
+      <div class="bg-gray-50 text-gray-600 px-3 py-1.5 text-xs font-semibold">🖥 SCREEN_LOAD — 初期表示</div>
+      <div class="bg-gray-50 cursor-pointer" onclick="openImg('../screenshots/MC_PRODUCTS_LIST/2026-02-25T22-24-13-068Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772058251930-6hgb.jpg')">
+        <img src="../screenshots/MC_PRODUCTS_LIST/2026-02-25T22-24-13-068Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772058251930-6hgb.jpg" alt="🖥 SCREEN_LOAD — 初期表示"
+          class="w-full h-auto max-h-48 object-contain hover:max-h-none transition-all"
+          onerror="this.parentElement.innerHTML='<div class=\'h-20 flex items-center justify-center text-gray-400 text-xs\'>画像未取得</div>'"
+        />
+      </div>
+      <p class="px-2 py-1 text-xs text-gray-400 font-mono truncate">2026-02-25T22-24-13-068Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772058251930-6hgb.jpg</p>
+    </div>
+    <div class="rounded-xl border-2 border-gray-200 overflow-hidden flex-1 basis-56 min-w-0">
+      <div class="bg-gray-50 text-gray-600 px-3 py-1.5 text-xs font-semibold">🖥 SCREEN_LOAD — 初期表示</div>
+      <div class="bg-gray-50 cursor-pointer" onclick="openImg('../screenshots/MC_PRODUCTS_LIST/2026-02-25T22-24-13-038Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772058251972-3ksl.jpg')">
+        <img src="../screenshots/MC_PRODUCTS_LIST/2026-02-25T22-24-13-038Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772058251972-3ksl.jpg" alt="🖥 SCREEN_LOAD — 初期表示"
+          class="w-full h-auto max-h-48 object-contain hover:max-h-none transition-all"
+          onerror="this.parentElement.innerHTML='<div class=\'h-20 flex items-center justify-center text-gray-400 text-xs\'>画像未取得</div>'"
+        />
+      </div>
+      <p class="px-2 py-1 text-xs text-gray-400 font-mono truncate">2026-02-25T22-24-13-038Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772058251972-3ksl.jpg</p>
+    </div></div>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody>
+      <!-- 課題行（クリックで詳細展開） -->
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+          onclick="toggleDetail('R07-MC_PRODUCTS_LIST-1772069812204-1')"
+          data-severity="Medium"
+          data-feature="MC_PRODUCTS_LIST"
+          data-category="DUPLICATE_LOAD">
+        <td class="px-4 py-3 text-center">
+          <span class="inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold
+            bg-orange-50 text-orange-600">
+            9
+          </span>
+        </td>
+        <td class="px-4 py-3 w-28"><div class="flex items-center gap-2">
+    <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+      <div class="h-1.5 rounded-full" style="width:60%;background:#f97316"></div>
+    </div>
+    <span class="text-xs font-mono font-bold" style="color:#f97316">60</span>
+  </div></td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border-amber-300 border">
+            Medium
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          <p class="text-xs font-mono text-indigo-500">MC_PRODUCTS_LIST</p>
+          <p class="text-xs text-gray-500">部品一覧</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-sm">🔄</span>
+          <span class="text-xs text-gray-600 ml-1">画面重複ロード</span>
+        </td>
+        <td class="px-4 py-3 max-w-xs">
+          <p class="text-xs text-gray-800 leading-relaxed">SCREEN_LOAD が 56ms 以内に2回記録されています。resizeContents_end() が複数回呼ばれているか、isValid ガードが正しく機能していない可能性があります。</p>
+          <p class="text-xs text-indigo-400 mt-0.5 truncate">📍 モード:search | URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 }</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-600">
+            中 Medium
+          </span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs text-indigo-500 font-medium whitespace-nowrap">📸 2枚 ▾</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+            Open
+          </span>
+        </td>
+      </tr>
+      <!-- 詳細展開行（v2.0: スクショプレビュー付き） -->
+      <tr id="detail-R07-MC_PRODUCTS_LIST-1772069812204-1"
+          class="hidden bg-indigo-50/30 border-b-2 border-indigo-100"
+          data-severity="Medium"
+          data-feature="MC_PRODUCTS_LIST"
+          data-category="DUPLICATE_LOAD">
+        <td colspan="9" class="px-6 py-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- 左: 課題詳細メタデータ -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📋 課題詳細</p>
+              <div class="bg-white rounded-xl p-3 text-xs space-y-2">
+                <div><span class="text-gray-400 w-16 inline-block">課題ID</span>
+                  <span class="font-mono text-gray-700">R07-MC_PRODUCTS_LIST-1772069812204-1</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">ルール</span>
+                  <span class="font-mono text-gray-700">R07</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">再現性</span>
+                  <span class="text-gray-700">Likely</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">信頼度</span>
+                  <span class="text-gray-700">85%</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">発生回数</span>
+                  <span class="text-gray-700">1回</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">traceId</span>
+                     <span class="font-mono text-xs text-gray-500 break-all">TR-1772064979337-0q4m</span></div>
+              </div>
+            </div>
+
+            <!-- 中: 操作文脈 + ログ根拠 + 修正提案 -->
+            <div class="space-y-3">
+              
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📍 操作文脈</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-indigo-700 font-mono leading-relaxed">モード:search | URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 }</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔍 ログ根拠</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-gray-600 font-mono break-all leading-relaxed">SCREEN_LOAD 2回 | diff=56ms | ts1=2026-02-26T00:16:19.281Z | ts2=2026-02-26T00:16:19.337Z</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔧 修正提案</p>
+              <div class="bg-emerald-50 rounded-xl p-3">
+                <p class="text-xs text-emerald-800 leading-relaxed">resizeContents_end() にisValidフラグによる実行ガードが実装されているか確認してください。TALONのライフサイクル上、resizeContents_end() が複数回呼ばれることがあります。</p>
+              </div>
+            </div>
+
+            <!-- 右: スクショプレビュー（v2.0 新機能） -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                📸 スクリーンショット
+                <span class="text-indigo-400 font-normal ml-1">2枚 — クリックで拡大</span>
+              </p>
+              <div class="flex flex-wrap gap-3">
+    <div class="rounded-xl border-2 border-gray-200 overflow-hidden flex-1 basis-56 min-w-0">
+      <div class="bg-gray-50 text-gray-600 px-3 py-1.5 text-xs font-semibold">🖥 SCREEN_LOAD — 初期表示</div>
+      <div class="bg-gray-50 cursor-pointer" onclick="openImg('../screenshots/MC_PRODUCTS_LIST/2026-02-26T00-16-20-469Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772064979281-wvns.jpg')">
+        <img src="../screenshots/MC_PRODUCTS_LIST/2026-02-26T00-16-20-469Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772064979281-wvns.jpg" alt="🖥 SCREEN_LOAD — 初期表示"
+          class="w-full h-auto max-h-48 object-contain hover:max-h-none transition-all"
+          onerror="this.parentElement.innerHTML='<div class=\'h-20 flex items-center justify-center text-gray-400 text-xs\'>画像未取得</div>'"
+        />
+      </div>
+      <p class="px-2 py-1 text-xs text-gray-400 font-mono truncate">2026-02-26T00-16-20-469Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772064979281-wvns.jpg</p>
+    </div>
+    <div class="rounded-xl border-2 border-gray-200 overflow-hidden flex-1 basis-56 min-w-0">
+      <div class="bg-gray-50 text-gray-600 px-3 py-1.5 text-xs font-semibold">🖥 SCREEN_LOAD — 初期表示</div>
+      <div class="bg-gray-50 cursor-pointer" onclick="openImg('../screenshots/MC_PRODUCTS_LIST/2026-02-26T00-16-20-436Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772064979337-0q4m.jpg')">
+        <img src="../screenshots/MC_PRODUCTS_LIST/2026-02-26T00-16-20-436Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772064979337-0q4m.jpg" alt="🖥 SCREEN_LOAD — 初期表示"
+          class="w-full h-auto max-h-48 object-contain hover:max-h-none transition-all"
+          onerror="this.parentElement.innerHTML='<div class=\'h-20 flex items-center justify-center text-gray-400 text-xs\'>画像未取得</div>'"
+        />
+      </div>
+      <p class="px-2 py-1 text-xs text-gray-400 font-mono truncate">2026-02-26T00-16-20-436Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772064979337-0q4m.jpg</p>
+    </div></div>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody>
+      <!-- 課題行（クリックで詳細展開） -->
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+          onclick="toggleDetail('R07-UNKNOWN-1772069812204-0')"
+          data-severity="Medium"
+          data-feature="UNKNOWN"
+          data-category="DUPLICATE_LOAD">
+        <td class="px-4 py-3 text-center">
+          <span class="inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold
+            bg-orange-50 text-orange-600">
+            10
+          </span>
+        </td>
+        <td class="px-4 py-3 w-28"><div class="flex items-center gap-2">
+    <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+      <div class="h-1.5 rounded-full" style="width:60%;background:#f97316"></div>
+    </div>
+    <span class="text-xs font-mono font-bold" style="color:#f97316">60</span>
+  </div></td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border-amber-300 border">
+            Medium
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          <p class="text-xs font-mono text-indigo-500">UNKNOWN</p>
+          <p class="text-xs text-gray-500">（不明）</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-sm">🔄</span>
+          <span class="text-xs text-gray-600 ml-1">画面重複ロード</span>
+        </td>
+        <td class="px-4 py-3 max-w-xs">
+          <p class="text-xs text-gray-800 leading-relaxed">SCREEN_LOAD が 1ms 以内に2回記録されています。resizeContents_end() が複数回呼ばれているか、isValid ガードが正しく機能していない可能性があります。</p>
+          
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-600">
+            中 Medium
+          </span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs text-gray-300">詳細 ▾</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+            Open
+          </span>
+        </td>
+      </tr>
+      <!-- 詳細展開行（v2.0: スクショプレビュー付き） -->
+      <tr id="detail-R07-UNKNOWN-1772069812204-0"
+          class="hidden bg-indigo-50/30 border-b-2 border-indigo-100"
+          data-severity="Medium"
+          data-feature="UNKNOWN"
+          data-category="DUPLICATE_LOAD">
+        <td colspan="9" class="px-6 py-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- 左: 課題詳細メタデータ -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📋 課題詳細</p>
+              <div class="bg-white rounded-xl p-3 text-xs space-y-2">
+                <div><span class="text-gray-400 w-16 inline-block">課題ID</span>
+                  <span class="font-mono text-gray-700">R07-UNKNOWN-1772069812204-0</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">ルール</span>
+                  <span class="font-mono text-gray-700">R07</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">再現性</span>
+                  <span class="text-gray-700">Likely</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">信頼度</span>
+                  <span class="text-gray-700">85%</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">発生回数</span>
+                  <span class="text-gray-700">1回</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">traceId</span>
+                     <span class="font-mono text-xs text-gray-500 break-all">TR-1772058231064-nyoq</span></div>
+              </div>
+            </div>
+
+            <!-- 中: 操作文脈 + ログ根拠 + 修正提案 -->
+            <div class="space-y-3">
+              
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔍 ログ根拠</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-gray-600 font-mono break-all leading-relaxed">SCREEN_LOAD 2回 | diff=1ms | ts1=2026-02-25T22:23:51.063Z | ts2=2026-02-25T22:23:51.064Z</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔧 修正提案</p>
+              <div class="bg-emerald-50 rounded-xl p-3">
+                <p class="text-xs text-emerald-800 leading-relaxed">resizeContents_end() にisValidフラグによる実行ガードが実装されているか確認してください。TALONのライフサイクル上、resizeContents_end() が複数回呼ばれることがあります。</p>
+              </div>
+            </div>
+
+            <!-- 右: スクショプレビュー（v2.0 新機能） -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                📸 スクリーンショット
+                
+              </p>
+              <p class="text-xs text-gray-400 italic">スクリーンショットなし（操作後に自動取得されます）</p>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody>
+      <!-- 課題行（クリックで詳細展開） -->
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+          onclick="toggleDetail('R07-UNKNOWN-1772069812204-1')"
+          data-severity="Medium"
+          data-feature="UNKNOWN"
+          data-category="DUPLICATE_LOAD">
+        <td class="px-4 py-3 text-center">
+          <span class="inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold
+            bg-gray-100 text-gray-500">
+            11
+          </span>
+        </td>
+        <td class="px-4 py-3 w-28"><div class="flex items-center gap-2">
+    <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+      <div class="h-1.5 rounded-full" style="width:60%;background:#f97316"></div>
+    </div>
+    <span class="text-xs font-mono font-bold" style="color:#f97316">60</span>
+  </div></td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border-amber-300 border">
+            Medium
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          <p class="text-xs font-mono text-indigo-500">UNKNOWN</p>
+          <p class="text-xs text-gray-500">（不明）</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-sm">🔄</span>
+          <span class="text-xs text-gray-600 ml-1">画面重複ロード</span>
+        </td>
+        <td class="px-4 py-3 max-w-xs">
+          <p class="text-xs text-gray-800 leading-relaxed">SCREEN_LOAD が 1ms 以内に2回記録されています。resizeContents_end() が複数回呼ばれているか、isValid ガードが正しく機能していない可能性があります。</p>
+          
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-600">
+            中 Medium
+          </span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs text-gray-300">詳細 ▾</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+            Open
+          </span>
+        </td>
+      </tr>
+      <!-- 詳細展開行（v2.0: スクショプレビュー付き） -->
+      <tr id="detail-R07-UNKNOWN-1772069812204-1"
+          class="hidden bg-indigo-50/30 border-b-2 border-indigo-100"
+          data-severity="Medium"
+          data-feature="UNKNOWN"
+          data-category="DUPLICATE_LOAD">
+        <td colspan="9" class="px-6 py-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- 左: 課題詳細メタデータ -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📋 課題詳細</p>
+              <div class="bg-white rounded-xl p-3 text-xs space-y-2">
+                <div><span class="text-gray-400 w-16 inline-block">課題ID</span>
+                  <span class="font-mono text-gray-700">R07-UNKNOWN-1772069812204-1</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">ルール</span>
+                  <span class="font-mono text-gray-700">R07</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">再現性</span>
+                  <span class="text-gray-700">Likely</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">信頼度</span>
+                  <span class="text-gray-700">85%</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">発生回数</span>
+                  <span class="text-gray-700">1回</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">traceId</span>
+                     <span class="font-mono text-xs text-gray-500 break-all">TR-1772062717505-8vc0</span></div>
+              </div>
+            </div>
+
+            <!-- 中: 操作文脈 + ログ根拠 + 修正提案 -->
+            <div class="space-y-3">
+              
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔍 ログ根拠</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-gray-600 font-mono break-all leading-relaxed">SCREEN_LOAD 2回 | diff=1ms | ts1=2026-02-25T23:38:37.504Z | ts2=2026-02-25T23:38:37.505Z</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔧 修正提案</p>
+              <div class="bg-emerald-50 rounded-xl p-3">
+                <p class="text-xs text-emerald-800 leading-relaxed">resizeContents_end() にisValidフラグによる実行ガードが実装されているか確認してください。TALONのライフサイクル上、resizeContents_end() が複数回呼ばれることがあります。</p>
+              </div>
+            </div>
+
+            <!-- 右: スクショプレビュー（v2.0 新機能） -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                📸 スクリーンショット
+                
+              </p>
+              <p class="text-xs text-gray-400 italic">スクリーンショットなし（操作後に自動取得されます）</p>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody>
+      <!-- 課題行（クリックで詳細展開） -->
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+          onclick="toggleDetail('R07-UNKNOWN-1772069812204-2')"
+          data-severity="Medium"
+          data-feature="UNKNOWN"
+          data-category="DUPLICATE_LOAD">
+        <td class="px-4 py-3 text-center">
+          <span class="inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold
+            bg-gray-100 text-gray-500">
+            12
+          </span>
+        </td>
+        <td class="px-4 py-3 w-28"><div class="flex items-center gap-2">
+    <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+      <div class="h-1.5 rounded-full" style="width:60%;background:#f97316"></div>
+    </div>
+    <span class="text-xs font-mono font-bold" style="color:#f97316">60</span>
+  </div></td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border-amber-300 border">
+            Medium
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          <p class="text-xs font-mono text-indigo-500">UNKNOWN</p>
+          <p class="text-xs text-gray-500">（不明）</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-sm">🔄</span>
+          <span class="text-xs text-gray-600 ml-1">画面重複ロード</span>
+        </td>
+        <td class="px-4 py-3 max-w-xs">
+          <p class="text-xs text-gray-800 leading-relaxed">SCREEN_LOAD が 1ms 以内に2回記録されています。resizeContents_end() が複数回呼ばれているか、isValid ガードが正しく機能していない可能性があります。</p>
+          
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-600">
+            中 Medium
+          </span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs text-gray-300">詳細 ▾</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+            Open
+          </span>
+        </td>
+      </tr>
+      <!-- 詳細展開行（v2.0: スクショプレビュー付き） -->
+      <tr id="detail-R07-UNKNOWN-1772069812204-2"
+          class="hidden bg-indigo-50/30 border-b-2 border-indigo-100"
+          data-severity="Medium"
+          data-feature="UNKNOWN"
+          data-category="DUPLICATE_LOAD">
+        <td colspan="9" class="px-6 py-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- 左: 課題詳細メタデータ -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📋 課題詳細</p>
+              <div class="bg-white rounded-xl p-3 text-xs space-y-2">
+                <div><span class="text-gray-400 w-16 inline-block">課題ID</span>
+                  <span class="font-mono text-gray-700">R07-UNKNOWN-1772069812204-2</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">ルール</span>
+                  <span class="font-mono text-gray-700">R07</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">再現性</span>
+                  <span class="text-gray-700">Likely</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">信頼度</span>
+                  <span class="text-gray-700">85%</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">発生回数</span>
+                  <span class="text-gray-700">1回</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">traceId</span>
+                     <span class="font-mono text-xs text-gray-500 break-all">TR-1772063514594-nxvn</span></div>
+              </div>
+            </div>
+
+            <!-- 中: 操作文脈 + ログ根拠 + 修正提案 -->
+            <div class="space-y-3">
+              
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔍 ログ根拠</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-gray-600 font-mono break-all leading-relaxed">SCREEN_LOAD 2回 | diff=1ms | ts1=2026-02-25T23:51:54.593Z | ts2=2026-02-25T23:51:54.594Z</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔧 修正提案</p>
+              <div class="bg-emerald-50 rounded-xl p-3">
+                <p class="text-xs text-emerald-800 leading-relaxed">resizeContents_end() にisValidフラグによる実行ガードが実装されているか確認してください。TALONのライフサイクル上、resizeContents_end() が複数回呼ばれることがあります。</p>
+              </div>
+            </div>
+
+            <!-- 右: スクショプレビュー（v2.0 新機能） -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                📸 スクリーンショット
+                
+              </p>
+              <p class="text-xs text-gray-400 italic">スクリーンショットなし（操作後に自動取得されます）</p>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody>
+      <!-- 課題行（クリックで詳細展開） -->
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+          onclick="toggleDetail('R06-MC_PRODUCTS_LIST-1772069812203-0')"
+          data-severity="Medium"
+          data-feature="MC_PRODUCTS_LIST"
+          data-category="RAPID_BACK">
+        <td class="px-4 py-3 text-center">
+          <span class="inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold
+            bg-gray-100 text-gray-500">
+            13
+          </span>
+        </td>
+        <td class="px-4 py-3 w-28"><div class="flex items-center gap-2">
+    <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+      <div class="h-1.5 rounded-full" style="width:54%;background:#f59e0b"></div>
+    </div>
+    <span class="text-xs font-mono font-bold" style="color:#f59e0b">54</span>
+  </div></td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border-amber-300 border">
+            Medium
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          <p class="text-xs font-mono text-indigo-500">MC_PRODUCTS_LIST</p>
+          <p class="text-xs text-gray-500">部品一覧</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-sm">⏩</span>
+          <span class="text-xs text-gray-600 ml-1">戻るボタン連打</span>
+        </td>
+        <td class="px-4 py-3 max-w-xs">
+          <p class="text-xs text-gray-800 leading-relaxed">戻る/閉じるボタンが 2ms 以内に3回連続して記録されています。ボタンの重複バインドまたは画面遷移が機能していない可能性があります。</p>
+          <p class="text-xs text-indigo-400 mt-0.5 truncate">📍 モード:search | URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 } | 操作:BACK_BUTTON | 入力:{ elementType=BUTTON, buttonLabel=BACK_BUTTON, formSnapshot=[object Object] }</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-600">
+            中 Medium
+          </span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs text-gray-300">詳細 ▾</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+            Open
+          </span>
+        </td>
+      </tr>
+      <!-- 詳細展開行（v2.0: スクショプレビュー付き） -->
+      <tr id="detail-R06-MC_PRODUCTS_LIST-1772069812203-0"
+          class="hidden bg-indigo-50/30 border-b-2 border-indigo-100"
+          data-severity="Medium"
+          data-feature="MC_PRODUCTS_LIST"
+          data-category="RAPID_BACK">
+        <td colspan="9" class="px-6 py-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- 左: 課題詳細メタデータ -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📋 課題詳細</p>
+              <div class="bg-white rounded-xl p-3 text-xs space-y-2">
+                <div><span class="text-gray-400 w-16 inline-block">課題ID</span>
+                  <span class="font-mono text-gray-700">R06-MC_PRODUCTS_LIST-1772069812203-0</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">ルール</span>
+                  <span class="font-mono text-gray-700">R06</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">再現性</span>
+                  <span class="text-gray-700">Sometimes</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">信頼度</span>
+                  <span class="text-gray-700">80%</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">発生回数</span>
+                  <span class="text-gray-700">1回</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">traceId</span>
+                     <span class="font-mono text-xs text-gray-500 break-all">TR-1772065085421-9mqe</span></div>
+              </div>
+            </div>
+
+            <!-- 中: 操作文脈 + ログ根拠 + 修正提案 -->
+            <div class="space-y-3">
+              
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📍 操作文脈</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-indigo-700 font-mono leading-relaxed">モード:search | URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 } | 操作:BACK_BUTTON | 入力:{ elementType=BUTTON, buttonLabel=BACK_BUTTON, formSnapshot=[object Object] }</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔍 ログ根拠</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-gray-600 font-mono break-all leading-relaxed">BACK系クリック3回 | diff=2ms | elementId=BACK_BUTTON | ts=2026-02-26T00:18:05.421Z</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔧 修正提案</p>
+              <div class="bg-emerald-50 rounded-xl p-3">
+                <p class="text-xs text-emerald-800 leading-relaxed">ボタンクリック後にすぐ画面遷移（ダイアログクローズ）されているか確認してください。TALON の RequestContext.execute(&quot;PF('dlg').hide()&quot;) 等の遷移処理を確認してください。</p>
+              </div>
+            </div>
+
+            <!-- 右: スクショプレビュー（v2.0 新機能） -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                📸 スクリーンショット
+                
+              </p>
+              <p class="text-xs text-gray-400 italic">スクリーンショットなし（操作後に自動取得されます）</p>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody>
+      <!-- 課題行（クリックで詳細展開） -->
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+          onclick="toggleDetail('R11-UNKNOWN-1772069812204-0')"
+          data-severity="Low"
+          data-feature="UNKNOWN"
+          data-category="NO_SCREEN_MODE">
+        <td class="px-4 py-3 text-center">
+          <span class="inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold
+            bg-gray-100 text-gray-500">
+            14
+          </span>
+        </td>
+        <td class="px-4 py-3 w-28"><div class="flex items-center gap-2">
+    <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+      <div class="h-1.5 rounded-full" style="width:52%;background:#f59e0b"></div>
+    </div>
+    <span class="text-xs font-mono font-bold" style="color:#f59e0b">52</span>
+  </div></td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border-gray-300 border">
+            Low
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          <p class="text-xs font-mono text-indigo-500">UNKNOWN</p>
+          <p class="text-xs text-gray-500">（不明）</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-sm">⚙️</span>
+          <span class="text-xs text-gray-600 ml-1">画面モード未設定（v2.0未対応）</span>
+        </td>
+        <td class="px-4 py-3 max-w-xs">
+          <p class="text-xs text-gray-800 leading-relaxed">全ログで context.screenMode が &quot;unknown&quot; のままです。TLogAutoInstrument.init() の第2引数 { screenMode: &quot;...&quot; } が未設定です。</p>
+          
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded text-xs font-medium bg-teal-50 text-teal-600">
+            易 Low
+          </span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs text-gray-300">詳細 ▾</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+            Open
+          </span>
+        </td>
+      </tr>
+      <!-- 詳細展開行（v2.0: スクショプレビュー付き） -->
+      <tr id="detail-R11-UNKNOWN-1772069812204-0"
+          class="hidden bg-indigo-50/30 border-b-2 border-indigo-100"
+          data-severity="Low"
+          data-feature="UNKNOWN"
+          data-category="NO_SCREEN_MODE">
+        <td colspan="9" class="px-6 py-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- 左: 課題詳細メタデータ -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📋 課題詳細</p>
+              <div class="bg-white rounded-xl p-3 text-xs space-y-2">
+                <div><span class="text-gray-400 w-16 inline-block">課題ID</span>
+                  <span class="font-mono text-gray-700">R11-UNKNOWN-1772069812204-0</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">ルール</span>
+                  <span class="font-mono text-gray-700">R11</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">再現性</span>
+                  <span class="text-gray-700">Always</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">信頼度</span>
+                  <span class="text-gray-700">80%</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">発生回数</span>
+                  <span class="text-gray-700">1回</span></div>
+                
+              </div>
+            </div>
+
+            <!-- 中: 操作文脈 + ログ根拠 + 修正提案 -->
+            <div class="space-y-3">
+              
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔍 ログ根拠</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-gray-600 font-mono break-all leading-relaxed">context付きログ 7 件中、screenMode設定なし 100%</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔧 修正提案</p>
+              <div class="bg-emerald-50 rounded-xl p-3">
+                <p class="text-xs text-emerald-800 leading-relaxed">init() の第2引数に { screenMode: &quot;search&quot; } など画面のモードを指定してください。例: TLogAutoInstrument.init(&quot;MC_PRODUCTS_LIST&quot;, { screenMode: &quot;search&quot; })</p>
+              </div>
+            </div>
+
+            <!-- 右: スクショプレビュー（v2.0 新機能） -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                📸 スクリーンショット
+                
+              </p>
+              <p class="text-xs text-gray-400 italic">スクリーンショットなし（操作後に自動取得されます）</p>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody>
+      <!-- 課題行（クリックで詳細展開） -->
+      <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+          onclick="toggleDetail('R10-UNKNOWN-1772069812204-0')"
+          data-severity="Low"
+          data-feature="UNKNOWN"
+          data-category="LOW_LOG_COVERAGE">
+        <td class="px-4 py-3 text-center">
+          <span class="inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-bold
+            bg-gray-100 text-gray-500">
+            15
+          </span>
+        </td>
+        <td class="px-4 py-3 w-28"><div class="flex items-center gap-2">
+    <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+      <div class="h-1.5 rounded-full" style="width:34%;background:#9ca3af"></div>
+    </div>
+    <span class="text-xs font-mono font-bold" style="color:#9ca3af">34</span>
+  </div></td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border-gray-300 border">
+            Low
+          </span>
+        </td>
+        <td class="px-4 py-3">
+          <p class="text-xs font-mono text-indigo-500">UNKNOWN</p>
+          <p class="text-xs text-gray-500">（不明）</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="text-sm">📊</span>
+          <span class="text-xs text-gray-600 ml-1">ログ取得量過少</span>
+        </td>
+        <td class="px-4 py-3 max-w-xs">
+          <p class="text-xs text-gray-800 leading-relaxed">画面ロードは記録されていますが、操作ログ（UI_CLICK）が 0 件しか取得できていません。ロガー設定の確認または操作テストが不足している可能性があります。</p>
+          
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded text-xs font-medium bg-teal-50 text-teal-600">
+            易 Low
+          </span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs text-gray-300">詳細 ▾</span>
+        </td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+            Open
+          </span>
+        </td>
+      </tr>
+      <!-- 詳細展開行（v2.0: スクショプレビュー付き） -->
+      <tr id="detail-R10-UNKNOWN-1772069812204-0"
+          class="hidden bg-indigo-50/30 border-b-2 border-indigo-100"
+          data-severity="Low"
+          data-feature="UNKNOWN"
+          data-category="LOW_LOG_COVERAGE">
+        <td colspan="9" class="px-6 py-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            <!-- 左: 課題詳細メタデータ -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">📋 課題詳細</p>
+              <div class="bg-white rounded-xl p-3 text-xs space-y-2">
+                <div><span class="text-gray-400 w-16 inline-block">課題ID</span>
+                  <span class="font-mono text-gray-700">R10-UNKNOWN-1772069812204-0</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">ルール</span>
+                  <span class="font-mono text-gray-700">R10</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">再現性</span>
+                  <span class="text-gray-700">Unknown</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">信頼度</span>
+                  <span class="text-gray-700">60%</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">発生回数</span>
+                  <span class="text-gray-700">1回</span></div>
+                <div><span class="text-gray-400 w-16 inline-block">traceId</span>
+                     <span class="font-mono text-xs text-gray-500 break-all">TR-1772058231063-y5sd</span></div>
+              </div>
+            </div>
+
+            <!-- 中: 操作文脈 + ログ根拠 + 修正提案 -->
+            <div class="space-y-3">
+              
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔍 ログ根拠</p>
+              <div class="bg-white rounded-xl p-3">
+                <p class="text-xs text-gray-600 font-mono break-all leading-relaxed">SCREEN_LOAD=7件 | UI_CLICK=0件（期待値: 5件以上）</p>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🔧 修正提案</p>
+              <div class="bg-emerald-50 rounded-xl p-3">
+                <p class="text-xs text-emerald-800 leading-relaxed">TLogAutoInstrument.init() が正しく設定されているか確認してください。また実際に画面上のボタンや入力フィールドを操作してからログを確認してください。</p>
+              </div>
+            </div>
+
+            <!-- 右: スクショプレビュー（v2.0 新機能） -->
+            <div class="space-y-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                📸 スクリーンショット
+                
+              </p>
+              <p class="text-xs text-gray-400 italic">スクリーンショットなし（操作後に自動取得されます）</p>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    </tbody>
+      </table>
+    </div>
+  </section>
+    
+  <section class="mb-12">
+    <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+      <span class="w-6 h-6 rounded-md bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">5</span>
+      検出ルール一覧
+      <span class="text-xs font-normal text-gray-400 ml-2">Claude API 不使用・完全ルールベース</span>
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      
+        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-start gap-3">
+          <span class="mono text-xs font-bold text-gray-400 mt-0.5 w-8">R01</span>
+          <span class="text-base w-6 text-center">🔴</span>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-semibold text-gray-800">ERRORログ検出</span>
+              <span class="px-1.5 py-0.5 rounded text-xs bg-red-100 text-red-700">Critical</span>
+            </div>
+            <p class="text-xs text-gray-500">type=ERROR のエントリを直接検出</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-start gap-3">
+          <span class="mono text-xs font-bold text-gray-400 mt-0.5 w-8">R02</span>
+          <span class="text-base w-6 text-center">🟡</span>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-semibold text-gray-800">ロガー初期化ミス</span>
+              <span class="px-1.5 py-0.5 rounded text-xs bg-orange-100 text-orange-700">High</span>
+            </div>
+            <p class="text-xs text-gray-500">featureId=UNKNOWN のログが存在する場合</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-start gap-3">
+          <span class="mono text-xs font-bold text-gray-400 mt-0.5 w-8">R03</span>
+          <span class="text-base w-6 text-center">🔁</span>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-semibold text-gray-800">ボタン重複バインド</span>
+              <span class="px-1.5 py-0.5 rounded text-xs bg-orange-100 text-orange-700">High</span>
+            </div>
+            <p class="text-xs text-gray-500">同一 elementId が 10ms 以内に複数記録</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-start gap-3">
+          <span class="mono text-xs font-bold text-gray-400 mt-0.5 w-8">R04</span>
+          <span class="text-base w-6 text-center">🔍</span>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-semibold text-gray-800">検索結果取得不可</span>
+              <span class="px-1.5 py-0.5 rounded text-xs bg-amber-100 text-amber-700">Medium</span>
+            </div>
+            <p class="text-xs text-gray-500">SEARCH_RESULT の resultCount が「取得不可」</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-start gap-3">
+          <span class="mono text-xs font-bold text-gray-400 mt-0.5 w-8">R05</span>
+          <span class="text-base w-6 text-center">📡</span>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-semibold text-gray-800">ボタン押下後API無応答</span>
+              <span class="px-1.5 py-0.5 rounded text-xs bg-orange-100 text-orange-700">High</span>
+            </div>
+            <p class="text-xs text-gray-500">処理系ボタン後3秒以内に BACKEND ログなし</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-start gap-3">
+          <span class="mono text-xs font-bold text-gray-400 mt-0.5 w-8">R06</span>
+          <span class="text-base w-6 text-center">⏩</span>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-semibold text-gray-800">戻るボタン連打</span>
+              <span class="px-1.5 py-0.5 rounded text-xs bg-amber-100 text-amber-700">Medium</span>
+            </div>
+            <p class="text-xs text-gray-500">100ms 以内に BACK 系ボタンが3回以上</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-start gap-3">
+          <span class="mono text-xs font-bold text-gray-400 mt-0.5 w-8">R07</span>
+          <span class="text-base w-6 text-center">🔄</span>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-semibold text-gray-800">画面重複ロード</span>
+              <span class="px-1.5 py-0.5 rounded text-xs bg-amber-100 text-amber-700">Medium</span>
+            </div>
+            <p class="text-xs text-gray-500">1秒以内に SCREEN_LOAD が2回以上</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-start gap-3">
+          <span class="mono text-xs font-bold text-gray-400 mt-0.5 w-8">R08</span>
+          <span class="text-base w-6 text-center">💥</span>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-semibold text-gray-800">バックエンド処理失敗</span>
+              <span class="px-1.5 py-0.5 rounded text-xs bg-red-100 text-red-700">Critical</span>
+            </div>
+            <p class="text-xs text-gray-500">BACKEND の status !== SUCCESS</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-start gap-3">
+          <span class="mono text-xs font-bold text-gray-400 mt-0.5 w-8">R09</span>
+          <span class="text-base w-6 text-center">📝</span>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-semibold text-gray-800">クリア後フォーム値残存</span>
+              <span class="px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-600">Low</span>
+            </div>
+            <p class="text-xs text-gray-500">クリアボタンの formSnapshot に値が残存</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-start gap-3">
+          <span class="mono text-xs font-bold text-gray-400 mt-0.5 w-8">R10</span>
+          <span class="text-base w-6 text-center">📊</span>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-semibold text-gray-800">ログ取得量過少</span>
+              <span class="px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-600">Low</span>
+            </div>
+            <p class="text-xs text-gray-500">SCREEN_LOAD はあるが UI_CLICK が5件未満</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-start gap-3">
+          <span class="mono text-xs font-bold text-gray-400 mt-0.5 w-8">R11</span>
+          <span class="text-base w-6 text-center">⚙️</span>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-semibold text-gray-800">画面モード未設定</span>
+              <span class="px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-600">Low</span>
+            </div>
+            <p class="text-xs text-gray-500">全ログで context.screenMode が未設定（v2.0以前）</p>
+          </div>
+        </div>
+    </div>
+  </section>
+    
+  <section class="mb-12">
+    <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6">
+      <h3 class="text-sm font-bold text-indigo-800 mb-3">
+        <span class="w-6 h-6 rounded-md bg-indigo-200 text-indigo-700 inline-flex items-center justify-center text-xs font-bold mr-2">6</span>
+        優先度スコア算出式
+      </h3>
+      <p class="mono text-sm text-indigo-700 mb-4">
+        PriorityScore = (重大度 × 40) + (再現性 × 20) + (頻度 × 20) + (信頼度 × 20)
+      </p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-indigo-700">
+        <div>
+          <p class="font-semibold mb-1">重大度（重み）</p>
+          <p>Critical: 1.0</p><p>High: 0.8</p><p>Medium: 0.5</p><p>Low: 0.2</p>
+        </div>
+        <div>
+          <p class="font-semibold mb-1">再現性（重み）</p>
+          <p>Always: 1.0</p><p>Likely: 0.75</p><p>Sometimes: 0.5</p><p>Unknown: 0.3</p>
+        </div>
+        <div>
+          <p class="font-semibold mb-1">頻度（自動算出）</p>
+          <p>3回以上: 1.0</p><p>2回: 0.7</p><p>1回: 0.4</p>
+        </div>
+        <div>
+          <p class="font-semibold mb-1">信頼度（ルール設定）</p>
+          <p>ERRORログ: 0.99</p><p>重複バインド: 0.90</p><p>低カバレッジ: 0.60</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  </div>
+
+  <!-- 画像拡大モーダル（v2.0 新機能） -->
+  <div id="img-modal" class="fixed inset-0 z-50 bg-black bg-opacity-80 hidden items-center justify-center p-4"
+       onclick="closeImg()">
+    <div class="relative max-w-5xl w-full" onclick="event.stopPropagation()">
+      <button onclick="closeImg()" class="absolute -top-10 right-0 text-white text-2xl font-bold hover:text-gray-300">✕</button>
+      <img id="img-modal-src" src="" class="w-full h-auto rounded-xl shadow-2xl max-h-screen object-contain"/>
+    </div>
+  </div>
+
+  <!-- フッター -->
+  <footer class="border-t border-gray-100 bg-white py-5">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between text-xs text-gray-400 flex-wrap gap-2">
+      <p>問題・課題ダッシュボード v2.0 — karkyon/log-server</p>
+      <p>ルールベース自動生成 by GitHub Actions | Claude API 不使用 | 2026/2/26 10:36:52</p>
+    </div>
+  </footer>
+
+  <script>
+    // 課題行クリックで詳細パネル展開・折りたたみ
+    function toggleDetail(issueId) {
+      const row = document.getElementById('detail-' + issueId);
+      if (!row) return;
+      row.classList.toggle('hidden');
+    }
+
+    // フィルター（tbody 単位で処理 — 課題行と詳細行をペアで表示/非表示）
+    function applyFilter() {
+      const sev  = document.getElementById('filter-severity').value;
+      const feat = document.getElementById('filter-feature').value;
+      const cat  = document.getElementById('filter-category').value;
+      let visible = 0;
+
+      document.querySelectorAll('#issues-table tbody').forEach(tb => {
+        const rows    = tb.querySelectorAll('tr');
+        const mainRow = rows[0]; // 課題行
+        if (!mainRow) return;
+
+        const match = (!sev  || mainRow.dataset.severity === sev)
+                   && (!feat || mainRow.dataset.feature  === feat)
+                   && (!cat  || mainRow.dataset.category === cat);
+
+        rows.forEach(r => r.style.display = match ? '' : 'none');
+        if (match) visible++;
+      });
+
+      document.getElementById('filter-count').textContent =
+        (sev || feat || cat) ? visible + ' 件表示中' : '';
+    }
+
+    function resetFilter() {
+      document.getElementById('filter-severity').value = '';
+      document.getElementById('filter-feature').value  = '';
+      document.getElementById('filter-category').value = '';
+      applyFilter();
+    }
+
+    // 画像拡大モーダル
+    function openImg(src) {
+      const modal = document.getElementById('img-modal');
+      document.getElementById('img-modal-src').src = src;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+    function closeImg() {
+      const modal = document.getElementById('img-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeImg(); });
+  </script>
+
+</body>
+</html>
