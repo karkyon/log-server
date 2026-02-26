@@ -1034,7 +1034,7 @@ function renderScript(fids, allLogs, allShots, issuesData) {
     .replace(/（/g,'(')
     .replace(/）/g,')');
 
-  return '<script>\n'+cleanJs+'\n<\\/script>';
+  return '<script>\n'+cleanJs+'\n</scr'+'ipt>';
 }
 
 // ─────────────────────────────────────────────────────────────
