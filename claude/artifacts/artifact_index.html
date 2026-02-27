@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artifact Index v3 — karkyon/log-server</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  * { font-family: 'Noto Sans JP', sans-serif; box-sizing: border-box; }
+  code, .mono { font-family: 'JetBrains Mono', monospace; }
+  body { background: #f1f5f9; color: #0f172a; }
+
+  .hdr { background: linear-gradient(135deg, #0f2444 0%, #1e3a5f 55%, #0369a1 100%); }
+
+  /* 会話カラー */
+  .ca { --c:#3b82f6; --bg:#eff6ff; --t:#1d4ed8; --b:#bfdbfe; }
+  .cb { --c:#10b981; --bg:#ecfdf5; --t:#065f46; --b:#a7f3d0; }
+  .cc { --c:#8b5cf6; --bg:#f5f3ff; --t:#5b21b6; --b:#ddd6fe; }
+  .cd { --c:#f59e0b; --bg:#fff7ed; --t:#92400e; --b:#fed7aa; }
+  .ce { --c:#ef4444; --bg:#fef2f2; --t:#991b1b; --b:#fecaca; }
+  .cf { --c:#14b8a6; --bg:#f0fdfa; --t:#134e4a; --b:#99f6e4; }
+
+  .ctag {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--bg); color: var(--t); border: 1px solid var(--b);
+    padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* ファイル種別 */
+  .bh { background:#dbeafe;color:#1e40af; }
+  .bj { background:#fef3c7;color:#78350f; }
+  .bm { background:#d1fae5;color:#065f46; }
+  .by { background:#ede9fe;color:#4c1d95; }
+  .bx { background:#fce7f3;color:#9d174d; }  /* jsx */
+  .bk { background:#f1f5f9;color:#475569;border:1px solid #cbd5e1; }  /* bak */
+
+  .badge {
+    display: inline-block; padding: 1px 7px; border-radius: 4px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.4px;
+  }
+
+  .file-row { border-bottom: 1px solid #f1f5f9; transition: background 0.1s; }
+  .file-row:hover { background: #f8fafc; }
+  .file-row:last-child { border-bottom: none; }
+
+  /* セクション区切り */
+  .sec-row td {
+    padding: 6px 16px;
+    background: var(--bg);
+    border-left: 4px solid var(--c);
+    font-size: 11px; font-weight: 700; color: var(--t);
+  }
+
+  thead th {
+    position: sticky; top: var(--fbar-h, 42px); z-index: 10;
+    background: #fff; border-bottom: 2px solid #e2e8f0;
+  }
+
+  .fpath {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    color: #0369a1; background: #e0f2fe; padding: 1px 5px; border-radius: 3px;
+    display: inline-block; margin-top: 2px;
+  }
+
+  .chain { font-size: 10px; color: #64748b; }
+  .chain-ok { font-size: 10px; color: #10b981; font-weight: 600; }
+  .chain-arr { color: #0ea5e9; }
+
+  .fbar {
+    position: sticky; top: 0; z-index: 20;
+    background: #fff; border-bottom: 1px solid #e2e8f0; shadow: sm;
+    padding: 6px 20px;
+  }
+  .fbtn {
+    padding: 3px 11px; border-radius: 6px; border: 1px solid #e2e8f0;
+    font-size: 10px; font-weight: 500; cursor: pointer; background: #fff; color: #64748b;
+    transition: all 0.12s;
+  }
+  .fbtn:hover { opacity: 0.85; }
+  .fbtn.on { color: #fff; border-color: transparent; }
+  .all.on  { background: #0f172a; }
+  .ca.on   { background: #3b82f6; }
+  .cb.on   { background: #10b981; }
+  .cc.on   { background: #8b5cf6; }
+  .cd.on   { background: #f59e0b; }
+  .ce.on   { background: #ef4444; }
+  .cf.on   { background: #14b8a6; }
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div class="hdr text-white px-8 py-5 shadow-xl">
+  <div class="max-w-screen-xl mx-auto flex items-end justify-between gap-4">
+    <div>
+      <p class="text-sky-400 text-xs font-semibold tracking-widest uppercase mb-1">
+        karkyon / log-server / claude / artifacts /
+      </p>
+      <h1 class="text-2xl font-bold">Artifact Index <span class="text-sky-300 text-base font-normal">v3 — GitHubスクショ照合版</span></h1>
+      <p class="text-sky-300 text-xs mt-1">全ファイルをGitHubダイアログのスクショで確認・整理</p>
+    </div>
+    <div class="text-right text-sky-200 text-xs leading-6">
+      <div>会話フォルダ <span class="text-white font-bold text-base">6</span></div>
+      <div>ファイル総数 <span class="text-white font-bold text-base" id="total">37</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- フィルター -->
+<div class="fbar">
+  <div class="max-w-screen-xl mx-auto flex items-center gap-2 flex-wrap">
+    <span class="text-xs font-semibold text-slate-400 mr-1">会話：</span>
+    <button class="fbtn all on" onclick="flt(this,'all')">すべて</button>
+    <button class="fbtn ca" onclick="flt(this,'a')">🔵 技術スタック移行検討</button>
+    <button class="fbtn cb" onclick="flt(this,'b')">🟢 テストケースの作成</button>
+    <button class="fbtn cc" onclick="flt(this,'c')">🟣 TALONテストログ自動分類</button>
+    <button class="fbtn cd" onclick="flt(this,'d')">🟡 ファイル変更前後コード比較</button>
+    <button class="fbtn ce" onclick="flt(this,'e')">🔴 console.log収集実装</button>
+    <button class="fbtn cf" onclick="flt(this,'f')">🩵 バグ修正・優先順位確認</button>
+    <span class="ml-auto text-xs text-slate-400" id="cnt">全 37 件</span>
+  </div>
+</div>
+
+<!-- テーブル -->
+<div class="max-w-screen-xl mx-auto px-8 py-5">
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="w-full text-xs" id="t">
+      <thead>
+        <tr class="text-left text-slate-500 uppercase tracking-wider text-xs">
+          <th class="px-3 py-3 w-8">#</th>
+          <th class="px-3 py-3 min-w-52">ファイル名</th>
+          <th class="px-3 py-3 w-14">種別</th>
+          <th class="px-3 py-3 min-w-36">会話フォルダ</th>
+          <th class="px-3 py-3 min-w-48">ファイルの説明</th>
+          <th class="px-3 py-3 min-w-44">生成きっかけ</th>
+          <th class="px-3 py-3 min-w-36">後継 / 関係</th>
+        </tr>
+      </thead>
+      <tbody id="tb">
+
+<!-- ===== A: マシニング管理システムの技術スタック移行検討 ===== -->
+<tr class="sec-row ca" data-c="a"><td colspan="7">🔵 マシニング管理システムの技術スタック移行検討 （4ファイル）</td></tr>
+
+<tr class="file-row" data-c="a"><td class="px-3 py-2.5 text-slate-300 mono">01</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">01_技術スタック選定書.html</div><span class="fpath">マシニング管理システムの技術スタック移行検討/</span></td>
+<td class="px-3 py-2.5"><span class="badge bh">HTML</span></td>
+<td class="px-3 py-2.5"><span class="ctag ca">🔵 技術スタック移行</span></td>
+<td class="px-3 py-2.5 text-slate-600">Next.js+NestJS vs Spring Boot vs Quarkusの3案比較。採用根拠・アーキテクチャ図・移行ロードマップ・リスク対策。</td>
+<td class="px-3 py-2.5 text-slate-500">ユーザーが案A（Next.js+NestJS）を選択し「4ドキュメントを最初から作成して」と依頼。1/4番目。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 最終版</span></td></tr>
+
+<tr class="file-row" data-c="a"><td class="px-3 py-2.5 text-slate-300 mono">02</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">02_要件定義書_機能仕様書.html</div><span class="fpath">マシニング管理システムの技術スタック移行検討/</span></td>
+<td class="px-3 py-2.5"><span class="badge bh">HTML</span></td>
+<td class="px-3 py-2.5"><span class="ctag ca">🔵 技術スタック移行</span></td>
+<td class="px-3 py-2.5 text-slate-600">22機能の詳細仕様。RBACロール設計・段取シート帳票仕様・外部連携・非機能要件・API設計方針・データ移行方針。</td>
+<td class="px-3 py-2.5 text-slate-500">01の直後に連続生成。2/4番目。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 最終版</span></td></tr>
+
+<tr class="file-row" data-c="a"><td class="px-3 py-2.5 text-slate-300 mono">03</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">03_画面遷移図.html</div><span class="fpath">マシニング管理システムの技術スタック移行検討/</span></td>
+<td class="px-3 py-2.5"><span class="badge bh">HTML</span></td>
+<td class="px-3 py-2.5"><span class="ctag ca">🔵 技術スタック移行</span></td>
+<td class="px-3 py-2.5 text-slate-600">8フローのスイムレーン図。全25画面のURLルーティング設計・TALON比較付きインタラクティブHTML。</td>
+<td class="px-3 py-2.5 text-slate-500">3/4番目。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 最終版</span></td></tr>
+
+<tr class="file-row" data-c="a"><td class="px-3 py-2.5 text-slate-300 mono">04</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">04_ワイヤーフレーム.html</div><span class="fpath">マシニング管理システムの技術スタック移行検討/</span></td>
+<td class="px-3 py-2.5"><span class="badge bh">HTML</span></td>
+<td class="px-3 py-2.5"><span class="ctag ca">🔵 技術スタック移行</span></td>
+<td class="px-3 py-2.5 text-slate-600">主要5画面の詳細UI。マシニング情報管理（4ブロック）・段取シート・操作ログ・ユーザー管理。「続ける」後に完全版再作成。</td>
+<td class="px-3 py-2.5 text-slate-500">4/4番目。ファイル不完全で完全版として作り直し。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 最終版</span></td></tr>
+
+<!-- ===== B: テストケースの作成 ===== -->
+<tr class="sec-row cb" data-c="b"><td colspan="7">🟢 テストケースの作成 （3ファイル）</td></tr>
+
+<tr class="file-row" data-c="b"><td class="px-3 py-2.5 text-slate-300 mono">05</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">MC_PRODUCTS_LIST_logger_v1.3.js</div><span class="fpath">テストケースの作成/</span></td>
+<td class="px-3 py-2.5"><span class="badge bj">JS</span></td>
+<td class="px-3 py-2.5"><span class="ctag cb">🟢 テストケース作成</span></td>
+<td class="px-3 py-2.5 text-slate-600">TLog+自動計装 v1.3。html2canvas読み込み・takeScreenshot・TLogAutoInstrument。検索結果件数ログ追加・閲覧/編集ボタンのスクショ即時撮影（100ms）。MC_PRODUCTS_LIST画面固有実装込み。</td>
+<td class="px-3 py-2.5 text-slate-500">テストケース作成会話でテスト実施用として生成。v1.3が当時の最新版。</td>
+<td class="px-3 py-2.5"><span class="chain-arr">→</span> <span class="chain">talon_testcase_logger v1.4→v2.0→v2.1へ進化</span></td></tr>
+
+<tr class="file-row" data-c="b"><td class="px-3 py-2.5 text-slate-300 mono">06</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">MC_PRODUCTS_LIST_manual.html</div><span class="fpath">テストケースの作成/</span></td>
+<td class="px-3 py-2.5"><span class="badge bh">HTML</span></td>
+<td class="px-3 py-2.5"><span class="ctag cb">🟢 テストケース作成</span></td>
+<td class="px-3 py-2.5 text-slate-600">マシニング部品一覧の機能仕様書・操作マニュアル・テスト実行履歴のデモ版。BUG-001（クリア4重複発火）を発見・記載。ログデータから手動生成の実証版。</td>
+<td class="px-3 py-2.5 text-slate-500">「自動生成できるか？」との問いにClaudeが「今すぐ実証します」と即実装。</td>
+<td class="px-3 py-2.5"><span class="chain-arr">→</span> <span class="chain">MC_PRODUCTS_LIST_spec_preview.html（次会話・自動生成版）</span></td></tr>
+
+<tr class="file-row" data-c="b"><td class="px-3 py-2.5 text-slate-300 mono">07</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">takeScreenshot_v1.4.js</div><span class="fpath">テストケースの作成/</span></td>
+<td class="px-3 py-2.5"><span class="badge bj">JS</span></td>
+<td class="px-3 py-2.5"><span class="ctag cb">🟢 テストケース作成</span></td>
+<td class="px-3 py-2.5 text-slate-600">takeScreenshot関数のv1.4単体。html2canvas未ロード時に500ms×最大20回（10秒）リトライする機能を追加。初期表示時のスクショ取得失敗問題を解消。_capture関数分離。</td>
+<td class="px-3 py-2.5 text-slate-500">「スクリーンショット非同期タイミング問題」の診断結果として単独ファイルで提供。</td>
+<td class="px-3 py-2.5"><span class="chain-arr">→</span> <span class="chain">talon_testcase_logger v2.0に統合</span></td></tr>
+
+<!-- ===== C: TALONテストログの機能別自動分類と資料生成 ===== -->
+<tr class="sec-row cc" data-c="c"><td colspan="7">🟣 TALONテストログの機能別自動分類と資料生成 （10ファイル + mntフォルダ）</td></tr>
+
+<tr class="file-row" data-c="c"><td class="px-3 py-2.5 text-slate-300 mono">08</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">MC_PRODUCTS_LIST_spec_preview.html</div><span class="fpath">TALONテストログの機能別自動分類と資料生成/</span></td>
+<td class="px-3 py-2.5"><span class="badge bh">HTML</span></td>
+<td class="px-3 py-2.5"><span class="ctag cc">🟣 TALON自動分類</span></td>
+<td class="px-3 py-2.5 text-slate-600">自動生成実証版。マシニング部品一覧の機能仕様書プレビュー。初期状態・ボタン仕様・遷移先・操作フロー・スクショ埋め込みを含む白基調モダンHTML。最終成果物の雛形。</td>
+<td class="px-3 py-2.5 text-slate-500">1画面テスト後GitHubへPush。「スクショ付き機能仕様書をHTMLで作成したい」との依頼でデモ生成。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 最終成果物雛形</span></td></tr>
+
+<tr class="file-row" data-c="c"><td class="px-3 py-2.5 text-slate-300 mono">09</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">MC_USER_AUTH_snippet.js</div><span class="fpath">TALONテストログの機能別自動分類と資料生成/</span></td>
+<td class="px-3 py-2.5"><span class="badge bj">JS</span></td>
+<td class="px-3 py-2.5"><span class="ctag cc">🟣 TALON自動分類</span></td>
+<td class="px-3 py-2.5 text-slate-600">MC_OPERATOR_AUTHENTICATION画面への追加コード（8行）。resizeContents_end()末尾に追記するTLog.screenLoad()とTLogAutoInstrument.init()のスニペット。</td>
+<td class="px-3 py-2.5 text-slate-500">各画面への埋め込みサンプルとして、ユーザ認証画面用に生成。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ スニペット（完結）</span></td></tr>
+
+<tr class="file-row" data-c="c"><td class="px-3 py-2.5 text-slate-300 mono">10</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">analyze-issues.yml</div><span class="fpath">TALONテストログの機能別自動分類と資料生成/</span></td>
+<td class="px-3 py-2.5"><span class="badge by">YML</span></td>
+<td class="px-3 py-2.5"><span class="ctag cc">🟣 TALON自動分類</span></td>
+<td class="px-3 py-2.5 text-slate-600">GitHub ActionsワークフロームへのPushトリガーでanalyze-logs.js実行・スクショdocsコピー・generate-dashboard.js実行・自動コミット。Claude API不使用。</td>
+<td class="px-3 py-2.5 text-slate-500">generate-dashboard.jsと同時生成。.github/workflows/として配置。</td>
+<td class="px-3 py-2.5"><span class="chain-arr">→</span> <span class="chain">ファイル変更前後コード比較確認会話でv2.1（完全版）として再確認</span></td></tr>
+
+<tr class="file-row" data-c="c"><td class="px-3 py-2.5 text-slate-300 mono">11</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">analyze-logs.js</div><span class="fpath">TALONテストログの機能別自動分類と資料生成/</span></td>
+<td class="px-3 py-2.5"><span class="badge bj">JS</span></td>
+<td class="px-3 py-2.5"><span class="ctag cc">🟣 TALON自動分類</span></td>
+<td class="px-3 py-2.5 text-slate-600">v2.0（713行）。R01〜R11の11個別検出関数。buildTraceScreenshotMap()・buildContextSummary()・calcPriorityScore()。19画面SCREEN_NAME_MAP登録済み。analyze-issues.ymlから呼ばれる必須ファイル。</td>
+<td class="px-3 py-2.5 text-slate-500">後でanalyze-issues.ymlが呼ぶことが判明したが「ファイルが完全欠落」していたため別会話（D）で緊急作成後、この会話で改めて記録。</td>
+<td class="px-3 py-2.5"><span class="chain-arr">→</span> <span class="chain">ファイル変更前後コード比較確認/analyze-logs.jsが実際の最終版</span></td></tr>
+
+<tr class="file-row" data-c="c"><td class="px-3 py-2.5 text-slate-300 mono">12</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">generate-dashboard.js</div><span class="fpath">TALONテストログの機能別自動分類と資料生成/</span></td>
+<td class="px-3 py-2.5"><span class="badge bj">JS</span></td>
+<td class="px-3 py-2.5"><span class="ctag cc">🟣 TALON自動分類</span></td>
+<td class="px-3 py-2.5 text-slate-600">v2.0（684行）。Section1〜6全あり。R11対応・スクショプレビューモーダル・フィルター・操作文脈表示・課題詳細展開。analyze-logs.jsの出力からHTMLダッシュボードを生成。</td>
+<td class="px-3 py-2.5 text-slate-500">talon_testcase_logger v2.0・analyze-logs.js v2.0と「全Phase一気に実装」として生成。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 最終版（v2.0）</span></td></tr>
+
+<tr class="file-row" data-c="c"><td class="px-3 py-2.5 text-slate-300 mono">13</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">generate-docs.yml</div><span class="fpath">TALONテストログの機能別自動分類と資料生成/</span></td>
+<td class="px-3 py-2.5"><span class="badge by">YML</span></td>
+<td class="px-3 py-2.5"><span class="ctag cc">🟣 TALON自動分類</span></td>
+<td class="px-3 py-2.5 text-slate-600">Claude API使用の機能仕様書自動生成ワークフロー。⚠️Push時自動実行は無効（手動workflow_dispatchのみ）。featureIdを入力してgenerate.jsを呼び出す。</td>
+<td class="px-3 py-2.5 text-slate-500">「機能仕様書のPush時自動生成はClaudeAPIが使われてしまう→無効化して手動のみに」との要望で最終版生成。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 最終版（手動のみ）</span></td></tr>
+
+<tr class="file-row" data-c="c"><td class="px-3 py-2.5 text-slate-300 mono">14</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">generate-index.js</div><span class="fpath">TALONテストログの機能別自動分類と資料生成/</span></td>
+<td class="px-3 py-2.5"><span class="badge bj">JS</span></td>
+<td class="px-3 py-2.5"><span class="ctag cc">🟣 TALON自動分類</span></td>
+<td class="px-3 py-2.5 text-slate-600">docs/index.html（生成済み仕様書の一覧ページ）を生成するスクリプト。docs/配下のサブディレクトリ（featureId）を走査してHTML一覧を生成。generate.js実行後に呼ばれる。</td>
+<td class="px-3 py-2.5 text-slate-500">generate.js・generate-docs.ymlとセットで生成。scripts/generate-index.jsとして配置。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 最終版</span></td></tr>
+
+<tr class="file-row" data-c="c"><td class="px-3 py-2.5 text-slate-300 mono">15</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">generate.js</div><span class="fpath">TALONテストログの機能別自動分類と資料生成/</span></td>
+<td class="px-3 py-2.5"><span class="badge bj">JS</span></td>
+<td class="px-3 py-2.5"><span class="ctag cc">🟣 TALON自動分類</span></td>
+<td class="px-3 py-2.5 text-slate-600">Claude APIを呼び出してjsonl+スクショから仕様書HTMLを自動生成するNode.jsスクリプト。ANTHROPIC_API_KEY使用。スクショをbase64でAPIへ送信しHTML生成。</td>
+<td class="px-3 py-2.5 text-slate-500">方式B（Actions+Claude API）採用後、最初のAPI呼び出しスクリプトとして生成。</td>
+<td class="px-3 py-2.5"><span class="chain-arr">→</span> <span class="chain">generate-review.jsへ発展・拡張</span></td></tr>
+
+<tr class="file-row" data-c="c"><td class="px-3 py-2.5 text-slate-300 mono">16</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">issues_dashboard_preview.html</div><span class="fpath">TALONテストログの機能別自動分類と資料生成/</span></td>
+<td class="px-3 py-2.5"><span class="badge bh">HTML</span></td>
+<td class="px-3 py-2.5"><span class="ctag cc">🟣 TALON自動分類</span></td>
+<td class="px-3 py-2.5 text-slate-600">ルールベース課題ダッシュボードのプレビュー版（初版）。analyze-logs.jsが出力するissues.jsonをもとに問題・課題を可視化するHTMLダッシュボードのデモ。</td>
+<td class="px-3 py-2.5 text-slate-500">「Phase1〜3を全て一気に実装」の中でgenerate-dashboard.jsのデモとして先に出力されたプレビューHTML。</td>
+<td class="px-3 py-2.5"><span class="chain-arr">→</span> <span class="chain">issues_dashboard_v2_fixed.html（v2確定版）</span></td></tr>
+
+<tr class="file-row" data-c="c"><td class="px-3 py-2.5 text-slate-300 mono">17</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">issues_dashboard_v2_fixed.html</div><span class="fpath">TALONテストログの機能別自動分類と資料生成/</span></td>
+<td class="px-3 py-2.5"><span class="badge bh">HTML</span></td>
+<td class="px-3 py-2.5"><span class="ctag cc">🟣 TALON自動分類</span></td>
+<td class="px-3 py-2.5 text-slate-600">課題ダッシュボードv2確定版（2%の大きいファイル）。実際のログデータから生成されたMC_PRODUCTS_LIST・MC_OPERATOR_AUTHENTICATIONの課題一覧。行展開・スクショプレビュー・フィルター付き。</td>
+<td class="px-3 py-2.5 text-slate-500">GitHub Actionsが実際に動作して自動生成されたHTML。実データ入り確定版。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 実データ確定版</span></td></tr>
+
+<tr class="file-row" data-c="c"><td class="px-3 py-2.5 text-slate-300 mono">18</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">issues_dashboard_v2_preview.html</div><span class="fpath">TALONテストログの機能別自動分類と資料生成/</span></td>
+<td class="px-3 py-2.5"><span class="badge bh">HTML</span></td>
+<td class="px-3 py-2.5"><span class="ctag cc">🟣 TALON自動分類</span></td>
+<td class="px-3 py-2.5 text-slate-600">課題ダッシュボードv2のプレビュー版。issues_dashboard_v2_fixed.htmlの前段階として生成されたUI確認用。</td>
+<td class="px-3 py-2.5 text-slate-500">v2の動作確認用プレビューとして提供。</td>
+<td class="px-3 py-2.5"><span class="chain-arr">→</span> <span class="chain">issues_dashboard_v2_fixed.html（確定版）</span></td></tr>
+
+<!-- ===== D: ファイル変更前後のコード比較確認 ===== -->
+<tr class="sec-row cd" data-c="d"><td colspan="7">🟡 ファイル変更前後のコード比較確認 （4ファイル）</td></tr>
+
+<tr class="file-row" data-c="d"><td class="px-3 py-2.5 text-slate-300 mono">19</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">analyze-issues.yml</div><span class="fpath">ファイル変更前後のコード比較確認/</span></td>
+<td class="px-3 py-2.5"><span class="badge by">YML</span></td>
+<td class="px-3 py-2.5"><span class="ctag cd">🟡 コード比較確認</span></td>
+<td class="px-3 py-2.5 text-slate-600">前会話版（会話C）の省略確認・完全版として再提供。56行。pushトリガー・node実行・スクショdocsコピー・自動コミット。108行→55行の最適化も確認済み。</td>
+<td class="px-3 py-2.5 text-slate-500">「変更前より大幅コード量減少」指摘を受け、省略なし完全版として再確認・提供。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 最終版（56行）</span></td></tr>
+
+<tr class="file-row" data-c="d"><td class="px-3 py-2.5 text-slate-300 mono">20</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">analyze-logs.js</div><span class="fpath">ファイル変更前後のコード比較確認/</span></td>
+<td class="px-3 py-2.5"><span class="badge bj">JS</span></td>
+<td class="px-3 py-2.5"><span class="ctag cd">🟡 コード比較確認</span></td>
+<td class="px-3 py-2.5 text-slate-600">v2.0（713行）。analyze-issues.ymlが呼び出す必須スクリプトが「完全欠落」していたことを発見・緊急作成。11個別検出関数R01〜R11・buildTraceScreenshotMap・buildContextSummary・calcPriorityScore。動作確認済み（R03/R10検出確認）。</td>
+<td class="px-3 py-2.5 text-slate-500">「5ファイルを適用しても動作しない」問題の根本原因。analyze-logs.jsが全く存在しなかったことをプロジェクトナレッジ検索で発見し緊急作成。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 最終版（v2.0・713行）</span></td></tr>
+
+<tr class="file-row" data-c="d"><td class="px-3 py-2.5 text-slate-300 mono">21</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">generate-review.js</div><span class="fpath">ファイル変更前後のコード比較確認/</span></td>
+<td class="px-3 py-2.5"><span class="badge bj">JS</span></td>
+<td class="px-3 py-2.5"><span class="ctag cd">🟡 コード比較確認</span></td>
+<td class="px-3 py-2.5 text-slate-600">アクションレビューHTML自動生成スクリプト初版。省略3箇所（renderScreenPage画面概要カード・サムネイルthumb-action・課題備考列）を復元した修正版。画面ページ・フローページ・課題一覧を含む多機能版。</td>
+<td class="px-3 py-2.5 text-slate-500">Actions手動実行成功・自動Push起動しない問題の調査中に省略3箇所＋ワークフロー名不一致を同時発見し修正。</td>
+<td class="px-3 py-2.5"><span class="chain-arr">→</span> <span class="chain">ブラウザconsole.log収集実装/generate-review.js（v3系・大幅拡張）</span></td></tr>
+
+<tr class="file-row" data-c="d"><td class="px-3 py-2.5 text-slate-300 mono">22</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">generate-review.yml</div><span class="fpath">ファイル変更前後のコード比較確認/</span></td>
+<td class="px-3 py-2.5"><span class="badge by">YML</span></td>
+<td class="px-3 py-2.5"><span class="ctag cd">🟡 コード比較確認</span></td>
+<td class="px-3 py-2.5 text-slate-600">ワークフロー名不一致修正版。3系統トリガー（push/workflow_dispatch/workflow_run）対応。workflow_runの参照名を「Analyze Issues & Publish Dashboard」に修正。</td>
+<td class="px-3 py-2.5 text-slate-500">「push後に自動生成されない」原因がworkflow_run参照名の不一致だったことを発見・修正。</td>
+<td class="px-3 py-2.5"><span class="chain-arr">→</span> <span class="chain">ブラウザconsole.log収集実装/generate-review.yml（最新版）</span></td></tr>
+
+<!-- ===== E: ブラウザconsole.logのログ収集実装 ===== -->
+<tr class="sec-row ce" data-c="e"><td colspan="7">🔴 ブラウザconsole.logのログ収集実装 （5ファイル）</td></tr>
+
+<tr class="file-row" data-c="e"><td class="px-3 py-2.5 text-slate-300 mono">23</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">generate-review.js</div><span class="fpath">ブラウザconsole.logのログ収集実装/</span></td>
+<td class="px-3 py-2.5"><span class="badge bj">JS</span></td>
+<td class="px-3 py-2.5"><span class="ctag ce">🔴 console.log収集</span></td>
+<td class="px-3 py-2.5 text-slate-600">大幅拡張版（v3系・2%）。蛇行タイムライン（tl-serpentine）・dynamicTL_COLS・作業パターン登録/編集/削除モーダル・課題一覧ページ・画面フィルター修正・console.log収集機能統合。&lt;/script&gt;閉じタグバグ修正済み。</td>
+<td class="px-3 py-2.5 text-slate-500">「タイムライン横長」「フィルター効かない」「選択seq削除不可」「作業パターン編集ボタン無反応」等の多数バグを一括修正する過程で大幅拡張。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 最終版（v3系）</span><br><span class="chain">バックアップ: generate-review.v3.0.bak.js</span></td></tr>
+
+<tr class="file-row" data-c="e"><td class="px-3 py-2.5 text-slate-300 mono">24</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">generate-review.v3.0.bak.js</div><span class="fpath">ブラウザconsole.logのログ収集実装/</span></td>
+<td class="px-3 py-2.5"><span class="badge bk">BAK</span></td>
+<td class="px-3 py-2.5"><span class="ctag ce">🔴 console.log収集</span></td>
+<td class="px-3 py-2.5 text-slate-600">generate-review.jsのv3.0バックアップ（2%）。loadConsoleLogs()関数・buildSequences()のconsoleLogs引数追加など、console.log統合の変更履歴保存用。</td>
+<td class="px-3 py-2.5 text-slate-500">コード修正作業中のバックアップとして保存。</td>
+<td class="px-3 py-2.5"><span class="chain">バックアップ（参照用）</span></td></tr>
+
+<tr class="file-row" data-c="e"><td class="px-3 py-2.5 text-slate-300 mono">25</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">generate-review.yml</div><span class="fpath">ブラウザconsole.logのログ収集実装/</span></td>
+<td class="px-3 py-2.5"><span class="badge by">YML</span></td>
+<td class="px-3 py-2.5"><span class="ctag ce">🔴 console.log収集</span></td>
+<td class="px-3 py-2.5 text-slate-600">generate-review.ymlの最新版。console.log収集実装に対応した最終調整版。</td>
+<td class="px-3 py-2.5 text-slate-500">generate-review.jsの大幅拡張に合わせてワークフローも更新。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 最終版</span></td></tr>
+
+<tr class="file-row" data-c="e"><td class="px-3 py-2.5 text-slate-300 mono">26</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">server.js</div><span class="fpath">ブラウザconsole.logのログ収集実装/</span></td>
+<td class="px-3 py-2.5"><span class="badge bj">JS</span></td>
+<td class="px-3 py-2.5"><span class="ctag ce">🔴 console.log収集</span></td>
+<td class="px-3 py-2.5 text-slate-600">v2.2。/consolelog（POST: .console.jsonl保存）・/consolelogs/:featureId（GET: 取得）エンドポイント追加。.console.jsonlを通常.jsonlと分離保存。/featuresから.console.jsonlを除外。</td>
+<td class="px-3 py-2.5 text-slate-500">ブラウザのconsole.error（adjustFixedList4onLoadImage未定義等）をサーバへ送信・記録する要件から追加。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 最終版（v2.2）</span></td></tr>
+
+<tr class="file-row" data-c="e"><td class="px-3 py-2.5 text-slate-300 mono">27</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">talon_testcase_logger.js</div><span class="fpath">ブラウザconsole.logのログ収集実装/</span></td>
+<td class="px-3 py-2.5"><span class="badge bj">JS</span></td>
+<td class="px-3 py-2.5"><span class="ctag ce">🔴 console.log収集</span></td>
+<td class="px-3 py-2.5 text-slate-600">v2.1（417行）。TLog全API・onerror自動キャッチ・Before/Afterスクショ・TLogAutoInstrument全機能・attachRowButtonLog。console.log/error/warn/infoをサーバへ転送する_setupConsoleCapture追加。</td>
+<td class="px-3 py-2.5 text-slate-500">console.log収集実装会話でconsole転送機能を追加。v1.3→v1.4→v2.0→v2.1の最終版。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 最終版（v2.1・417行）</span></td></tr>
+
+<!-- ===== F: プロジェクトファイルのバグ修正と優先順位の確認 ===== -->
+<tr class="sec-row cf" data-c="f"><td colspan="7">🩵 プロジェクトファイルのバグ修正と優先順位の確認 （6ファイル）</td></tr>
+
+<tr class="file-row" data-c="f"><td class="px-3 py-2.5 text-slate-300 mono">28</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">TLog_handoff_20260227.html</div><span class="fpath">プロジェクトファイルのバグ修正と優先順位の確認/</span></td>
+<td class="px-3 py-2.5"><span class="badge bh">HTML</span></td>
+<td class="px-3 py-2.5"><span class="ctag cf">🩵 バグ修正・優先順位</span></td>
+<td class="px-3 py-2.5 text-slate-600">週間利用制限75%到達直前に生成した包括的引き継ぎ資料。console.logログ収集の現状・IGNORE_ID_PATTERNS修正内容・次会話でやるべき2ステップをまとめたHTML。</td>
+<td class="px-3 py-2.5 text-slate-500">「ここまでの経過を整理し次の会話に引き継ぐ資料を作成して」との依頼で最後に生成。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 引き継ぎ資料（完結）</span></td></tr>
+
+<tr class="file-row" data-c="f"><td class="px-3 py-2.5 text-slate-300 mono">29</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">issues_table.jsx</div><span class="fpath">プロジェクトファイルのバグ修正と優先順位の確認/</span></td>
+<td class="px-3 py-2.5"><span class="badge bx">JSX</span></td>
+<td class="px-3 py-2.5"><span class="ctag cf">🩵 バグ修正・優先順位</span></td>
+<td class="px-3 py-2.5 text-slate-600">Reactコンポーネント。generate-review.jsの残課題I-01〜I-08を管理するインタラクティブ課題テーブル。行クリックで詳細・対象関数・修正方針を展開。ステータスボタンで「未対応→対応中→完了」切り替え。</td>
+<td class="px-3 py-2.5 text-slate-500">「残りの課題もすべて整理して表形式にアーティファクトに出力して」との依頼で生成。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 課題管理ツール（完結）</span></td></tr>
+
+<tr class="file-row" data-c="f"><td class="px-3 py-2.5 text-slate-300 mono">30</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">patch_01_timeline_CORRECT.md</div><span class="fpath">プロジェクトファイルのバグ修正と優先順位の確認/</span></td>
+<td class="px-3 py-2.5"><span class="badge bm">MD</span></td>
+<td class="px-3 py-2.5"><span class="ctag cf">🩵 バグ修正・優先順位</span></td>
+<td class="px-3 py-2.5 text-slate-600">蛇行タイムライン修正パッチ（正しい版）。tl-container（overflow-x削除・tl-serpentineに変更）とrenderTlCards（蛇行ループ構築）の2箇所を修正。patch_01_timeline_serpentine.mdの前回修正が「完全に誤った箇所」だったことを認め正解を提供。</td>
+<td class="px-3 py-2.5 text-slate-500">「全く直っていない！あほなんか」との指摘後、前回パッチが間違った箇所（renderFlowPage）を修正していたことを謝罪し正しい箇所を修正。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ 正式パッチ（完結）</span></td></tr>
+
+<tr class="file-row" data-c="f"><td class="px-3 py-2.5 text-slate-300 mono">31</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">patch_01_timeline_serpentine.md</div><span class="fpath">プロジェクトファイルのバグ修正と優先順位の確認/</span></td>
+<td class="px-3 py-2.5"><span class="badge bm">MD</span></td>
+<td class="px-3 py-2.5"><span class="ctag cf">🩵 バグ修正・優先順位</span></td>
+<td class="px-3 py-2.5 text-slate-600">蛇行タイムライン修正パッチ（初版・誤り版）。seq1→seq6→折り返しの蛇行ロジックを実装する内容だったが「誤った箇所（renderFlowPage）」を修正していたため全く効果なし。</td>
+<td class="px-3 py-2.5 text-slate-500">「適用後→問題だらけ！全く直っていない」と指摘され、次のpatch_01_timeline_CORRECT.mdで正しい箇所を修正した。</td>
+<td class="px-3 py-2.5"><span class="chain-arr">→</span> <span class="chain">patch_01_timeline_CORRECT.md（正解版）に差し替え</span><br><span style="color:#ef4444;font-size:10px;">⚠️ 誤ったパッチ</span></td></tr>
+
+<tr class="file-row" data-c="f"><td class="px-3 py-2.5 text-slate-300 mono">32</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">patch_01b_dynamic_cols.md</div><span class="fpath">プロジェクトファイルのバグ修正と優先順位の確認/</span></td>
+<td class="px-3 py-2.5"><span class="badge bm">MD</span></td>
+<td class="px-3 py-2.5"><span class="ctag cf">🩵 バグ修正・優先順位</span></td>
+<td class="px-3 py-2.5 text-slate-600">動的TL_COLS計算パッチ。TL_COLS=6固定を削除しMath.floor(containerW/150)で動的計算。最低2列保証・150msデバウンスリサイズ対応。前提: patch_01_timeline_CORRECT適用済み。</td>
+<td class="px-3 py-2.5 text-slate-500">「全画面では右半分が空きすぎる・スクリーン幅に自動対応できないか」との指摘で生成。残課題テーブル（issues_table.jsx）と同時に出力。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ パッチ完結</span></td></tr>
+
+<tr class="file-row" data-c="f"><td class="px-3 py-2.5 text-slate-300 mono">33</td>
+<td class="px-3 py-2.5"><div class="font-semibold mono text-slate-800">patch_I04_I05_console_error_capture.md</div><span class="fpath">プロジェクトファイルのバグ修正と優先順位の確認/</span></td>
+<td class="px-3 py-2.5"><span class="badge bm">MD</span></td>
+<td class="px-3 py-2.5"><span class="ctag cf">🩵 バグ修正・優先順位</span></td>
+<td class="px-3 py-2.5 text-slate-600">talon_testcase_logger.jsへの課題I-04/I-05対応パッチ。window.onerror→.console.jsonlへの転送（I-04）・window.addEventListener('error',fn,true)でリソースエラー捕捉（I-05）の実装手順書。</td>
+<td class="px-3 py-2.5 text-slate-500">issues_table.jsxで管理していたI-04/I-05（JSエラー・html2canvas 404エラーが記録されない）の修正パッチとして生成。</td>
+<td class="px-3 py-2.5"><span class="chain-ok">✅ パッチ完結</span></td></tr>
+
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- バージョン系譜サマリー -->
+  <div class="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+      <h3 class="text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider">📈 generate-review.js 系譜</h3>
+      <div class="text-xs text-slate-600 space-y-1">
+        <div><span class="mono text-slate-400">generate.js</span> → C会話・Claude API呼び出し初版</div>
+        <div><span class="mono text-slate-400">g-review.js①</span> → D会話・省略3箇所復元</div>
+        <div><span class="mono text-slate-400">g-review.js②</span> → E会話・蛇行TL/作業パターン/console統合</div>
+        <div><span class="mono text-slate-400">v3.0.bak.js</span> → バックアップ</div>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+      <h3 class="text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider">📈 talon_testcase_logger.js 系譜</h3>
+      <div class="text-xs text-slate-600 space-y-1">
+        <div><span class="mono text-slate-400">v1.3</span> → B会話・MC_PRODUCTS_LIST_logger_v1.3.js</div>
+        <div><span class="mono text-slate-400">v1.4</span> → B会話・takeScreenshot_v1.4.js（リトライ追加）</div>
+        <div><span class="mono text-slate-400">v2.0/2.1</span> → C/D会話・URLパラメータ・JS例外・417行完全版</div>
+        <div><span class="mono text-slate-400">v2.1最終</span> → E会話・console転送機能追加</div>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+      <h3 class="text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider">📈 ダッシュボードHTML 系譜</h3>
+      <div class="text-xs text-slate-600 space-y-1">
+        <div><span class="mono text-slate-400">issues_dashboard_preview</span> → C会話・初版デモ</div>
+        <div><span class="mono text-slate-400">issues_dashboard_v2_preview</span> → C会話・v2プレビュー</div>
+        <div><span class="mono text-slate-400">issues_dashboard_v2_fixed</span> → C会話・実データ確定版</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4 text-center text-xs text-slate-400 pb-6">
+    GitHub「Add content from GitHub」ダイアログのスクショ（6枚）と照合して整理 — 2026-02-27
+  </div>
+</div>
+
+<script>
+// フィルターバー高さをCSS変数に反映してtheadのsticky topを正確に合わせる
+function syncFbarH() {
+  const h = document.querySelector('.fbar').offsetHeight;
+  document.documentElement.style.setProperty('--fbar-h', h + 'px');
+}
+syncFbarH();
+window.addEventListener('resize', syncFbarH);
+
+const rows = [...document.querySelectorAll('#tb tr.file-row')];
+function flt(btn, conv) {
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  let n = 0;
+  rows.forEach(r => {
+    const show = conv === 'all' || r.dataset.c === conv;
+    r.style.display = show ? '' : 'none';
+    if (show) n++;
+  });
+  document.querySelectorAll('#tb tr.sec-row').forEach(r => {
+    r.style.display = (conv === 'all' || r.dataset.c === conv) ? '' : 'none';
+  });
+  document.getElementById('cnt').textContent = (conv === 'all' ? '全 ' : '') + n + ' 件';
+}
+</script>
+</body>
+</html>
