@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>プロジェクト現状整理レポート | log-server / TALON開発支援</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  .gradient-header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%); }
+  .card { background: white; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,.1); }
+  .tab-btn.active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700; }
+  .tab-btn { cursor: pointer; padding: 10px 18px; border-bottom: 3px solid transparent; color: #64748b; transition: all .2s; }
+  .tab-btn:hover { color: #2563eb; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .timeline-item::before { content: ''; position: absolute; left: -28px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: #2563eb; border: 2px solid white; box-shadow: 0 0 0 2px #2563eb; }
+  .timeline-line { border-left: 2px solid #cbd5e1; }
+  code { font-family: 'Consolas', 'Courier New', monospace; }
+  .badge { display: inline-block; border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+  .status-done { background: #d1fae5; color: #065f46; }
+  .status-wip  { background: #fef3c7; color: #92400e; }
+  .status-todo { background: #fee2e2; color: #991b1b; }
+  .status-pending { background: #e0e7ff; color: #3730a3; }
+  .priority-high { background: #fee2e2; color: #b91c1c; }
+  .priority-med  { background: #fef3c7; color: #b45309; }
+  .priority-low  { background: #dcfce7; color: #15803d; }
+  .file-type-html { background: #dbeafe; color: #1d4ed8; }
+  .file-type-js   { background: #fef9c3; color: #854d0e; }
+  .file-type-yml  { background: #f3e8ff; color: #6b21a8; }
+  .file-type-md   { background: #f0fdf4; color: #166534; }
+  tr:hover td { background: #f8fafc !important; }
+  .section-divider { border-top: 2px solid #e2e8f0; margin: 24px 0; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+<!-- ヘッダー -->
+<div class="gradient-header text-white px-6 py-8">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex items-center gap-3 mb-2">
+      <span class="text-3xl">🔧</span>
+      <div>
+        <h1 class="text-2xl font-bold">プロジェクト現状整理レポート</h1>
+        <p class="text-blue-200 text-sm mt-1">karkyon / log-server ｜ TALON マシニング管理システム開発支援</p>
+      </div>
+    </div>
+    <div class="flex gap-6 mt-4 text-sm text-blue-200">
+      <span>📅 作成日: 2026-02-27</span>
+      <span>💬 会話数: 7会話</span>
+      <span>📦 アーティファクト: 27件+</span>
+      <span>📁 プロジェクトファイル確認: 2件</span>
+    </div>
+  </div>
+</div>
+
+<!-- タブナビ -->
+<div class="max-w-6xl mx-auto px-4 mt-6">
+  <div class="card mb-6">
+    <div class="flex border-b border-slate-200 overflow-x-auto">
+      <button class="tab-btn active" onclick="showTab('overview')">📋 概要・全体像</button>
+      <button class="tab-btn" onclick="showTab('conversations')">💬 会話履歴</button>
+      <button class="tab-btn" onclick="showTab('artifacts')">📦 アーティファクト一覧</button>
+      <button class="tab-btn" onclick="showTab('system')">⚙️ システム構成</button>
+      <button class="tab-btn" onclick="showTab('issues')">🐛 課題・未解決</button>
+      <button class="tab-btn" onclick="showTab('nextsteps')">🚀 次のステップ</button>
+    </div>
+
+    <!-- ===== 概要タブ ===== -->
+    <div id="tab-overview" class="tab-content active p-6">
+      <h2 class="text-lg font-bold mb-4 text-slate-700">📋 プロジェクト全体像</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div class="text-2xl font-bold text-blue-700">TALON</div>
+          <div class="text-sm text-blue-600 mt-1">ローコード開発プラットフォーム</div>
+          <div class="text-xs text-slate-500 mt-2">マシニング管理システム (22機能・19画面)</div>
+        </div>
+        <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+          <div class="text-2xl font-bold text-green-700">log-server</div>
+          <div class="text-sm text-green-600 mt-1">Node.js ログ収集・分析基盤</div>
+          <div class="text-xs text-slate-500 mt-2">GitHub Actions 自動ダッシュボード生成</div>
+        </div>
+        <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
+          <div class="text-2xl font-bold text-purple-700">将来構想</div>
+          <div class="text-sm text-purple-600 mt-1">Next.js + NestJS への移行</div>
+          <div class="text-xs text-slate-500 mt-2">技術スタック選定書・仕様書 作成済み</div>
+        </div>
+      </div>
+
+      <h3 class="font-bold text-slate-700 mb-3">🎯 プロジェクトの目的と現状</h3>
+      <div class="bg-slate-50 rounded-xl p-4 mb-4 text-sm leading-relaxed">
+        <p class="mb-2">TALONというローコード開発プラットフォーム上でマシニング加工管理システムを開発中。<strong>19画面すべての形は出来ているが</strong>、処理が実行できない・一部機能が正しくない・不具合多数という状態。</p>
+        <p class="mb-2">Client側JSを多用したことによる複雑化、REST APIのタイミング問題、帳票出力・ログ収集・画面遷移・権限設定など多くの問題を抱えている。</p>
+        <p>これらを解決するため、<strong>①ログ収集モジュール（TLog）の実装</strong>・<strong>②GitHub Actionsによる自動課題ダッシュボード生成</strong>・<strong>③将来の移行に向けた技術仕様書作成</strong>を並行して進めている。</p>
+      </div>
+
+      <h3 class="font-bold text-slate-700 mb-3">📊 開発進捗サマリー</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <table class="text-sm w-full border-collapse">
+          <thead><tr class="bg-slate-100"><th class="px-3 py-2 text-left border border-slate-200">コンポーネント</th><th class="px-3 py-2 text-left border border-slate-200">状態</th><th class="px-3 py-2 border border-slate-200">備考</th></tr></thead>
+          <tbody>
+            <tr><td class="px-3 py-2 border border-slate-200 font-mono text-xs">talon_testcase_logger.js</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-wip">対応中</span></td><td class="px-3 py-2 border border-slate-200 text-xs">v2.3 IGNORE_IDパターン修正待ち</td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 font-mono text-xs">server.js</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">完了</span></td><td class="px-3 py-2 border border-slate-200 text-xs">v2.2 featureId別保存対応済</td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 font-mono text-xs">analyze-logs.js</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">完了</span></td><td class="px-3 py-2 border border-slate-200 text-xs">v2.0 R01〜R11 11検出ルール</td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 font-mono text-xs">generate-dashboard.js</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">完了</span></td><td class="px-3 py-2 border border-slate-200 text-xs">v2.0 Section1〜6 スクショ付き</td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 font-mono text-xs">generate-review.js</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">完了</span></td><td class="px-3 py-2 border border-slate-200 text-xs">v3.1 &lt;/script&gt;閉じBUG修正済</td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 font-mono text-xs">analyze-issues.yml</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">完了</span></td><td class="px-3 py-2 border border-slate-200 text-xs">pushトリガー対応</td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 font-mono text-xs">generate-review.yml</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">完了</span></td><td class="px-3 py-2 border border-slate-200 text-xs">v3.1 ワークフロー名修正済</td></tr>
+          </tbody>
+        </table>
+        <table class="text-sm w-full border-collapse">
+          <thead><tr class="bg-slate-100"><th class="px-3 py-2 text-left border border-slate-200">将来構想ドキュメント</th><th class="px-3 py-2 border border-slate-200">状態</th></tr></thead>
+          <tbody>
+            <tr><td class="px-3 py-2 border border-slate-200">01 技術スタック選定書</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">完成</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200">02 要件定義書・機能仕様書</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">完成</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200">03 画面遷移図</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">完成</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200">04 ワイヤーフレーム</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">完成</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">機能仕様書 自動生成</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-pending">ペンディング</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">EU向け操作マニュアル自動生成</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-pending">ペンディング</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== 会話履歴タブ ===== -->
+    <div id="tab-conversations" class="tab-content p-6">
+      <h2 class="text-lg font-bold mb-4 text-slate-700">💬 会話履歴一覧（7会話）</h2>
+      <div class="space-y-4">
+
+        <div class="border border-blue-200 rounded-xl overflow-hidden">
+          <div class="bg-blue-600 text-white px-4 py-3 flex justify-between items-center">
+            <span class="font-bold">🔵 会話A: マシニング管理システムの技術スタック移行検討</span>
+            <span class="text-sm opacity-80">2024-02-24</span>
+          </div>
+          <div class="p-4 text-sm">
+            <div class="flex gap-2 mb-2 flex-wrap">
+              <span class="badge status-done">完了</span>
+              <span class="badge" style="background:#dbeafe;color:#1d4ed8">技術設計</span>
+            </div>
+            <p class="text-slate-600 mb-2">TALONの限界（帳票・ログ・権限・画面遷移）を整理し、<strong>Next.js + NestJS</strong>への移行を検討。4種類のドキュメントを作成。</p>
+            <div class="bg-slate-50 rounded p-3 text-xs font-mono">
+              📄 01_技術スタック選定書.html<br>
+              📄 02_要件定義書_機能仕様書.html<br>
+              📄 03_画面遷移図.html<br>
+              📄 04_ワイヤーフレーム.html
+            </div>
+          </div>
+        </div>
+
+        <div class="border border-green-200 rounded-xl overflow-hidden">
+          <div class="bg-green-600 text-white px-4 py-3 flex justify-between items-center">
+            <span class="font-bold">🟢 会話B: テストケースの作成</span>
+            <span class="text-sm opacity-80">2024-02-25</span>
+          </div>
+          <div class="p-4 text-sm">
+            <div class="flex gap-2 mb-2 flex-wrap">
+              <span class="badge status-done">完了</span>
+              <span class="badge" style="background:#dcfce7;color:#166534">テスト</span>
+            </div>
+            <p class="text-slate-600 mb-2">画面ごとのテストケース整理フォーマット検討。TLogを使ったログ収集→自動ドキュメント生成の実証。BUG-001（クリア4重複発火）を発見。</p>
+            <div class="bg-slate-50 rounded p-3 text-xs font-mono">
+              📄 mc_products_list_manual.html（操作マニュアルデモ）
+            </div>
+          </div>
+        </div>
+
+        <div class="border border-purple-200 rounded-xl overflow-hidden">
+          <div class="bg-purple-600 text-white px-4 py-3 flex justify-between items-center">
+            <span class="font-bold">🟣 会話C: TALONテストログの機能別自動分類と資料生成</span>
+            <span class="text-sm opacity-80">2024-02-25</span>
+          </div>
+          <div class="p-4 text-sm">
+            <div class="flex gap-2 mb-2 flex-wrap">
+              <span class="badge status-done">完了</span>
+              <span class="badge" style="background:#f3e8ff;color:#6b21a8">自動分類</span>
+            </div>
+            <p class="text-slate-600 mb-2">featureIdによる機能別ログ分類（logs/features/XXXXX.jsonl）・スクショ別ディレクトリ化を実装。GitHub Actions自動ダッシュボード生成の骨格構築。</p>
+            <div class="bg-orange-50 border border-orange-200 rounded p-2 text-xs text-orange-700 mb-2">⚠️ GitHub直接フェッチ問題でコード比較困難→次会話へ引き継ぎ</div>
+            <div class="bg-slate-50 rounded p-3 text-xs font-mono">
+              📄 server.js v2.1 / talon_testcase_logger.js v2.1<br>
+              📄 analyze-issues.yml / generate-dashboard.js v2.0<br>
+              📄 issues_dashboard_preview.html / issues_dashboard_v2_fixed.html（実データ）
+            </div>
+          </div>
+        </div>
+
+        <div class="border border-yellow-200 rounded-xl overflow-hidden">
+          <div class="bg-yellow-500 text-white px-4 py-3 flex justify-between items-center">
+            <span class="font-bold">🟡 会話D: ファイル変更前後のコード比較確認</span>
+            <span class="text-sm opacity-80">2024-02-26</span>
+          </div>
+          <div class="p-4 text-sm">
+            <div class="flex gap-2 mb-2 flex-wrap">
+              <span class="badge status-done">完了</span>
+              <span class="badge" style="background:#fef9c3;color:#854d0e">コード検証</span>
+            </div>
+            <p class="text-slate-600 mb-2">前会話で作成した5ファイルを点検。<strong>analyze-logs.js の完全欠落</strong>を発見・緊急作成（713行）。generate-review.jsの省略3箇所を復元。ワークフロー名不一致を修正。</p>
+            <div class="bg-red-50 border border-red-200 rounded p-2 text-xs text-red-700 mb-2">🚨 重大発見: analyze-logs.js がプロジェクトナレッジに全く存在しなかった</div>
+            <div class="bg-slate-50 rounded p-3 text-xs font-mono">
+              📄 analyze-logs.js v2.0（713行・緊急新規作成）<br>
+              📄 generate-review.js（省略箇所復元版）<br>
+              📄 generate-review.yml（ワークフロー名修正）
+            </div>
+          </div>
+        </div>
+
+        <div class="border border-red-200 rounded-xl overflow-hidden">
+          <div class="bg-red-600 text-white px-4 py-3 flex justify-between items-center">
+            <span class="font-bold">🔴 会話E: ブラウザconsole.logのログ収集実装</span>
+            <span class="text-sm opacity-80">2024-02-26</span>
+          </div>
+          <div class="p-4 text-sm">
+            <div class="flex gap-2 mb-2 flex-wrap">
+              <span class="badge status-wip">対応中</span>
+              <span class="badge" style="background:#fee2e2;color:#991b1b">コンソール収集</span>
+            </div>
+            <p class="text-slate-600 mb-2">console.log/warn/errorをサーバへ転送する機能を追加。/consolelog エンドポイント追加（server.js v2.2）。MC_PRODUCTS_LIST.console.jsonl で動作確認。</p>
+            <p class="text-slate-600 mb-2">generate-review.js の&lt;/script&gt;タグ閉じBUGを発見・修正（v3.1）。generate-review.yml v3.1でworkflow_run名不一致も修正。</p>
+            <div class="bg-slate-50 rounded p-3 text-xs font-mono">
+              📄 server.js v2.2 / talon_testcase_logger.js v2.3<br>
+              📄 generate-review.js v3.1（スクリプト閉じBUG修正）<br>
+              📄 generate-review.yml v3.1
+            </div>
+          </div>
+        </div>
+
+        <div class="border border-orange-200 rounded-xl overflow-hidden">
+          <div class="bg-orange-500 text-white px-4 py-3 flex justify-between items-center">
+            <span class="font-bold">🟠 会話F: プロジェクトファイルのバグ修正と優先順位の確認</span>
+            <span class="text-sm opacity-80">2024-02-26〜27</span>
+          </div>
+          <div class="p-4 text-sm">
+            <div class="flex gap-2 mb-2 flex-wrap">
+              <span class="badge status-wip">作業中</span>
+              <span class="badge" style="background:#ffedd5;color:#c2410c">バグ修正</span>
+            </div>
+            <p class="text-slate-600 mb-2">generate-review.js の複数バグ（タイムライン横伸び・フィルター不動作・削除ボタン・編集ボタン無反応・localStorage問題）を診断・修正。</p>
+            <p class="text-slate-600 mb-2">最後の応答が途中で切れ（会話量上限到達）、TLog_handoff_20260227.html として引き継ぎ資料を生成。</p>
+            <div class="bg-slate-50 rounded p-3 text-xs font-mono">
+              📄 TLog_handoff_20260227.html（最終引き継ぎ）← プロジェクトファイルに存在<br>
+              📄 issues_dashboard_v2_fixed.html（実データ確定版）← プロジェクトファイルに存在
+            </div>
+          </div>
+        </div>
+
+        <div class="border border-slate-200 rounded-xl overflow-hidden">
+          <div class="bg-slate-600 text-white px-4 py-3">
+            <span class="font-bold">⚪ 会話G: 現状整理（本会話）</span>
+          </div>
+          <div class="p-4 text-sm">
+            <span class="badge status-wip">進行中</span>
+            <p class="text-slate-600 mt-2">全会話・アーティファクト・プロジェクトファイルを確認し現状整理レポートを作成中。</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== アーティファクト一覧タブ ===== -->
+    <div id="tab-artifacts" class="tab-content p-6">
+      <h2 class="text-lg font-bold mb-4 text-slate-700">📦 アーティファクト一覧</h2>
+      <p class="text-sm text-slate-500 mb-4">artifact_index.html（プロジェクトナレッジ）の情報をもとに整理。</p>
+
+      <div class="overflow-x-auto">
+        <table class="text-xs w-full border-collapse">
+          <thead>
+            <tr class="bg-slate-100">
+              <th class="px-3 py-2 border border-slate-200 text-left">#</th>
+              <th class="px-3 py-2 border border-slate-200 text-left min-w-52">ファイル名</th>
+              <th class="px-3 py-2 border border-slate-200 text-left">種別</th>
+              <th class="px-3 py-2 border border-slate-200 text-left">会話</th>
+              <th class="px-3 py-2 border border-slate-200 text-left min-w-60">説明</th>
+              <th class="px-3 py-2 border border-slate-200 text-left">状態</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="bg-blue-50"><td colspan="6" class="px-3 py-2 font-bold text-blue-800 border border-slate-200">🔵 A: マシニング管理システムの技術スタック移行検討</td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">01</td><td class="px-3 py-2 border border-slate-200 font-mono">01_技術スタック選定書.html</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-html">HTML</span></td><td class="px-3 py-2 border border-slate-200">A</td><td class="px-3 py-2 border border-slate-200">3案比較・採用根拠・ロードマップ</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">✅ 最終版</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">02</td><td class="px-3 py-2 border border-slate-200 font-mono">02_要件定義書_機能仕様書.html</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-html">HTML</span></td><td class="px-3 py-2 border border-slate-200">A</td><td class="px-3 py-2 border border-slate-200">22機能・RBACロール・帳票仕様</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">✅ 最終版</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">03</td><td class="px-3 py-2 border border-slate-200 font-mono">03_画面遷移図.html</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-html">HTML</span></td><td class="px-3 py-2 border border-slate-200">A</td><td class="px-3 py-2 border border-slate-200">8フロー・25画面URLルーティング</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">✅ 最終版</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">04</td><td class="px-3 py-2 border border-slate-200 font-mono">04_ワイヤーフレーム.html</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-html">HTML</span></td><td class="px-3 py-2 border border-slate-200">A</td><td class="px-3 py-2 border border-slate-200">主要5画面詳細UI</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">✅ 最終版</span></td></tr>
+
+            <tr class="bg-green-50"><td colspan="6" class="px-3 py-2 font-bold text-green-800 border border-slate-200">🟢 B: テストケースの作成</td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">05</td><td class="px-3 py-2 border border-slate-200 font-mono">mc_products_list_manual.html</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-html">HTML</span></td><td class="px-3 py-2 border border-slate-200">B</td><td class="px-3 py-2 border border-slate-200">操作マニュアル自動生成デモ</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">✅ デモ版</span></td></tr>
+
+            <tr class="bg-purple-50"><td colspan="6" class="px-3 py-2 font-bold text-purple-800 border border-slate-200">🟣 C: TALONテストログの機能別自動分類と資料生成</td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">06</td><td class="px-3 py-2 border border-slate-200 font-mono">talon_testcase_logger.js v2.1</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-js">JS</span></td><td class="px-3 py-2 border border-slate-200">C</td><td class="px-3 py-2 border border-slate-200">featureId別ログ分類対応</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-wip">→v2.3へ</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">07</td><td class="px-3 py-2 border border-slate-200 font-mono">server.js v2.1</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-js">JS</span></td><td class="px-3 py-2 border border-slate-200">C</td><td class="px-3 py-2 border border-slate-200">featureId別ログ保存</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-wip">→v2.2へ</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">08</td><td class="px-3 py-2 border border-slate-200 font-mono">analyze-issues.yml</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-yml">YML</span></td><td class="px-3 py-2 border border-slate-200">C</td><td class="px-3 py-2 border border-slate-200">pushトリガー・自動解析</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">✅ 完了</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">09</td><td class="px-3 py-2 border border-slate-200 font-mono">generate-dashboard.js v2.0</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-js">JS</span></td><td class="px-3 py-2 border border-slate-200">C</td><td class="px-3 py-2 border border-slate-200">課題ダッシュボードHTML生成（684行）</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">✅ 完了</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">10</td><td class="px-3 py-2 border border-slate-200 font-mono">MC_USER_AUTH_snippet.js</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-js">JS</span></td><td class="px-3 py-2 border border-slate-200">C</td><td class="px-3 py-2 border border-slate-200">認証画面向けTLog初期化スニペット</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">✅ 完了</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">11</td><td class="px-3 py-2 border border-slate-200 font-mono">issues_dashboard_preview.html</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-html">HTML</span></td><td class="px-3 py-2 border border-slate-200">C</td><td class="px-3 py-2 border border-slate-200">ダッシュボード初版プレビュー</td><td class="px-3 py-2 border border-slate-200"><span class="badge" style="background:#f1f5f9;color:#64748b">→v2へ</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">12</td><td class="px-3 py-2 border border-slate-200 font-mono">issues_dashboard_v2_fixed.html</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-html">HTML</span></td><td class="px-3 py-2 border border-slate-200">C</td><td class="px-3 py-2 border border-slate-200">実データ入り確定版（65KB）</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">✅ 実データ確定版</span></td></tr>
+
+            <tr class="bg-yellow-50"><td colspan="6" class="px-3 py-2 font-bold text-yellow-800 border border-slate-200">🟡 D: ファイル変更前後のコード比較確認</td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">13</td><td class="px-3 py-2 border border-slate-200 font-mono">analyze-logs.js v2.0</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-js">JS</span></td><td class="px-3 py-2 border border-slate-200">D</td><td class="px-3 py-2 border border-slate-200">R01〜R11 11ルール検出（713行）緊急新規作成</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">✅ 最終版</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">14</td><td class="px-3 py-2 border border-slate-200 font-mono">generate-review.js (D版)</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-js">JS</span></td><td class="px-3 py-2 border border-slate-200">D</td><td class="px-3 py-2 border border-slate-200">省略3箇所復元版</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-wip">→E版v3.1へ</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">15</td><td class="px-3 py-2 border border-slate-200 font-mono">generate-review.yml (D版)</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-yml">YML</span></td><td class="px-3 py-2 border border-slate-200">D</td><td class="px-3 py-2 border border-slate-200">workflow_run参照名修正</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-wip">→E版v3.1へ</span></td></tr>
+
+            <tr class="bg-red-50"><td colspan="6" class="px-3 py-2 font-bold text-red-800 border border-slate-200">🔴 E: ブラウザconsole.logのログ収集実装</td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">16</td><td class="px-3 py-2 border border-slate-200 font-mono">server.js v2.2</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-js">JS</span></td><td class="px-3 py-2 border border-slate-200">E</td><td class="px-3 py-2 border border-slate-200">/consolelog エンドポイント追加</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">✅ 最終版</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">17</td><td class="px-3 py-2 border border-slate-200 font-mono">talon_testcase_logger.js v2.3</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-js">JS</span></td><td class="px-3 py-2 border border-slate-200">E</td><td class="px-3 py-2 border border-slate-200">console傍受・IGNORE_IDパターン修正待ち</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-wip">要修正</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">18</td><td class="px-3 py-2 border border-slate-200 font-mono">generate-review.js v3.1</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-js">JS</span></td><td class="px-3 py-2 border border-slate-200">E</td><td class="px-3 py-2 border border-slate-200">&lt;/script&gt;閉じBUG修正・コンソールタブ追加</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">✅ 最終版</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">19</td><td class="px-3 py-2 border border-slate-200 font-mono">generate-review.yml v3.1</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-yml">YML</span></td><td class="px-3 py-2 border border-slate-200">E</td><td class="px-3 py-2 border border-slate-200">3系統トリガー・ワークフロー名修正</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">✅ 最終版</span></td></tr>
+
+            <tr class="bg-orange-50"><td colspan="6" class="px-3 py-2 font-bold text-orange-800 border border-slate-200">🟠 F: プロジェクトファイルのバグ修正と優先順位の確認</td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">20</td><td class="px-3 py-2 border border-slate-200 font-mono">issues_dashboard_v2_fixed.html</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-html">HTML</span></td><td class="px-3 py-2 border border-slate-200">F</td><td class="px-3 py-2 border border-slate-200">実データ課題ダッシュボード（プロジェクトファイルに配置）</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">✅ 確認済</span></td></tr>
+            <tr><td class="px-3 py-2 border border-slate-200 text-slate-400">21</td><td class="px-3 py-2 border border-slate-200 font-mono">TLog_handoff_20260227.html</td><td class="px-3 py-2 border border-slate-200"><span class="badge file-type-html">HTML</span></td><td class="px-3 py-2 border border-slate-200">F</td><td class="px-3 py-2 border border-slate-200">最終引き継ぎ資料（プロジェクトファイルに配置）</td><td class="px-3 py-2 border border-slate-200"><span class="badge status-done">✅ 確認済</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== システム構成タブ ===== -->
+    <div id="tab-system" class="tab-content p-6">
+      <h2 class="text-lg font-bold mb-4 text-slate-700">⚙️ システム構成・ファイル配置</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+          <h3 class="font-bold text-slate-700 mb-2">サーバー側（Ubuntu: 192.168.1.11）</h3>
+          <div class="bg-slate-900 text-green-400 rounded-xl p-4 font-mono text-xs leading-relaxed">
+            ~/projects/log-server/<br>
+            ├── server.js &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; v2.2 Port:3099<br>
+            ├── scripts/<br>
+            │&nbsp;&nbsp;&nbsp;├── analyze-logs.js &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; v2.0 (713行)<br>
+            │&nbsp;&nbsp;&nbsp;├── generate-dashboard.js &nbsp; v2.0<br>
+            │&nbsp;&nbsp;&nbsp;└── generate-review.js &nbsp;&nbsp;&nbsp;&nbsp; v3.1<br>
+            ├── .github/workflows/<br>
+            │&nbsp;&nbsp;&nbsp;├── analyze-issues.yml<br>
+            │&nbsp;&nbsp;&nbsp;└── generate-review.yml &nbsp;&nbsp;&nbsp; v3.1<br>
+            ├── logs/<br>
+            │&nbsp;&nbsp;&nbsp;├── features/<br>
+            │&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── MC_PRODUCTS_LIST.jsonl<br>
+            │&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── MC_PRODUCTS_LIST.console.jsonl<br>
+            │&nbsp;&nbsp;&nbsp;└── screenshots/<br>
+            │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── MC_PRODUCTS_LIST/<br>
+            └── docs/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GitHub Pages
+          </div>
+        </div>
+        <div>
+          <h3 class="font-bold text-slate-700 mb-2">クライアント側（TALON: 192.168.1.207）</h3>
+          <div class="bg-slate-900 text-blue-300 rounded-xl p-4 font-mono text-xs leading-relaxed">
+            talon_testcase_logger.js &nbsp; v2.3<br>
+            <br>
+            各画面の初期化コード:<br>
+            TLog.screenLoad('SCREEN_ID', '画面名');<br>
+            TLogAutoInstrument.init('SCREEN_ID', {<br>
+            &nbsp;&nbsp;screenMode: 'auth' // オプション<br>
+            });<br>
+            <br>
+            実装済み画面:<br>
+            ✅ MC_PRODUCTS_LIST（部品一覧）<br>
+            ✅ MC_OPERATOR_AUTHENTICATION（認証）<br>
+            🔲 残り17画面 → 未実装
+          </div>
+          <div class="mt-3">
+            <h3 class="font-bold text-slate-700 mb-2">GitHub Pages URL</h3>
+            <div class="bg-blue-50 rounded-xl p-3 font-mono text-xs text-blue-700">
+              https://karkyon.github.io/log-server/<br>
+              &nbsp;&nbsp;├── issues/ &nbsp;&nbsp;&nbsp; 課題ダッシュボード<br>
+              &nbsp;&nbsp;└── review/ &nbsp;&nbsp;&nbsp; アクションレビュー
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="font-bold text-slate-700 mb-3">🔄 自動化フロー</h3>
+      <div class="flex flex-wrap items-center gap-2 text-sm">
+        <div class="bg-blue-100 text-blue-800 rounded-lg px-3 py-2 font-mono text-xs">TALON画面操作</div>
+        <span class="text-slate-400">→</span>
+        <div class="bg-green-100 text-green-800 rounded-lg px-3 py-2 font-mono text-xs">TLog.clickWithShot()</div>
+        <span class="text-slate-400">→</span>
+        <div class="bg-purple-100 text-purple-800 rounded-lg px-3 py-2 font-mono text-xs">server.js:3099</div>
+        <span class="text-slate-400">→</span>
+        <div class="bg-yellow-100 text-yellow-800 rounded-lg px-3 py-2 font-mono text-xs">logs/features/XXXX.jsonl</div>
+        <span class="text-slate-400">→</span>
+        <div class="bg-red-100 text-red-800 rounded-lg px-3 py-2 font-mono text-xs">git push</div>
+        <span class="text-slate-400">→</span>
+        <div class="bg-orange-100 text-orange-800 rounded-lg px-3 py-2 font-mono text-xs">GitHub Actions</div>
+        <span class="text-slate-400">→</span>
+        <div class="bg-slate-100 text-slate-800 rounded-lg px-3 py-2 font-mono text-xs">GitHub Pages (HTML)</div>
+      </div>
+    </div>
+
+    <!-- ===== 課題・未解決タブ ===== -->
+    <div id="tab-issues" class="tab-content p-6">
+      <h2 class="text-lg font-bold mb-4 text-slate-700">🐛 課題・未解決事項</h2>
+
+      <h3 class="font-bold text-slate-600 mb-3">📌 即対応が必要な課題</h3>
+      <div class="space-y-3 mb-6">
+
+        <div class="border-l-4 border-red-500 bg-red-50 rounded-r-xl p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="badge priority-high">高 優先</span>
+            <span class="font-bold text-sm">I-01: IGNORE_IDパターン不一致</span>
+          </div>
+          <p class="text-xs text-slate-600 mb-2">ボタンID <code class="bg-white px-1 rounded">1_閲覧_0</code>〜<code class="bg-white px-1 rounded">1_編集_6</code> がTLogAutoInstrumentで除外されず全記録されている。<code class="bg-white px-1 rounded">TLN_</code>プレフィックスなしのパターンを追加する必要がある。</p>
+          <div class="bg-white rounded p-2 font-mono text-xs">
+            追加: /^1_閲覧_/, /^1_編集_/
+          </div>
+        </div>
+
+        <div class="border-l-4 border-red-500 bg-red-50 rounded-r-xl p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="badge priority-high">高 優先</span>
+            <span class="font-bold text-sm">I-02: console傍受の無限ループリスク</span>
+          </div>
+          <p class="text-xs text-slate-600">console[level]のオーバーライド中にfetch失敗→console.errorが再帰する可能性。ガード条件の追加が必要。</p>
+        </div>
+
+        <div class="border-l-4 border-orange-400 bg-orange-50 rounded-r-xl p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="badge priority-med">中 優先</span>
+            <span class="font-bold text-sm">I-03: generate-review.js のバグ群（会話F作業中断）</span>
+          </div>
+          <p class="text-xs text-slate-600 mb-2">以下が作業中のまま途中で会話が切断された：</p>
+          <ul class="text-xs text-slate-600 list-disc list-inside space-y-1">
+            <li>タイムラインが横に伸びすぎ→蛇行レイアウト未実装</li>
+            <li>フィルターボタンが効かない（IDミスマッチ）</li>
+            <li>削除ボタン・編集ボタンが反応なし</li>
+            <li>localStorage のキーが古い（wpt_v31）</li>
+          </ul>
+        </div>
+
+        <div class="border-l-4 border-yellow-400 bg-yellow-50 rounded-r-xl p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="badge priority-med">中 優先</span>
+            <span class="font-bold text-sm">I-04: /consolelog の500エラー（断続的）</span>
+          </div>
+          <p class="text-xs text-slate-600">MC_PRODUCTS_LIST.console.jsonlに内容は入っているが、以前500エラーが発生していた。現在は解消済みの可能性あり。要確認。</p>
+          <div class="bg-white rounded p-2 font-mono text-xs mt-2">
+            確認: ls ~/projects/log-server/logs/features/<br>
+            cat MC_PRODUCTS_LIST.console.jsonl | tail -5
+          </div>
+        </div>
+
+        <div class="border-l-4 border-blue-400 bg-blue-50 rounded-r-xl p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="badge" style="background:#dbeafe;color:#1d4ed8">情報</span>
+            <span class="font-bold text-sm">I-05: 残り17画面への TLog 未実装</span>
+          </div>
+          <p class="text-xs text-slate-600">現在ログ収集が実装済みなのは <code class="bg-white px-1 rounded">MC_PRODUCTS_LIST</code> と <code class="bg-white px-1 rounded">MC_OPERATOR_AUTHENTICATION</code> のみ。残り17画面への展開が必要。</p>
+        </div>
+      </div>
+
+      <h3 class="font-bold text-slate-600 mb-3">⏸ ペンディング（将来対応）</h3>
+      <div class="space-y-2">
+        <div class="border border-slate-200 rounded-xl p-3 text-sm flex justify-between items-center">
+          <span>機能仕様書の自動生成（Claude API経由）</span>
+          <span class="badge status-pending">ペンディング</span>
+        </div>
+        <div class="border border-slate-200 rounded-xl p-3 text-sm flex justify-between items-center">
+          <span>EU向け操作マニュアルの自動生成</span>
+          <span class="badge status-pending">ペンディング</span>
+        </div>
+        <div class="border border-slate-200 rounded-xl p-3 text-sm flex justify-between items-center">
+          <span>Next.js + NestJS への移行実装（技術仕様書は完成）</span>
+          <span class="badge status-pending">ペンディング</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 次のステップタブ ===== -->
+    <div id="tab-nextsteps" class="tab-content p-6">
+      <h2 class="text-lg font-bold mb-4 text-slate-700">🚀 次のステップ（優先順）</h2>
+
+      <div class="space-y-4">
+
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-lg">1️⃣</span>
+            <span class="font-bold text-red-800">generate-review.js のバグ修正を完了させる</span>
+            <span class="badge priority-high">高 優先</span>
+          </div>
+          <p class="text-sm text-slate-600 mb-3">会話Fが途中で切断されたため、以下の修正が未完了：</p>
+          <ul class="text-sm text-slate-600 list-disc list-inside space-y-1">
+            <li>タイムライン蛇行レイアウト（overflow-x:auto + min-width:max-content → 蛇行配置）</li>
+            <li>フィルターボタンID修正（tl-filter-btnsとrenderTlFilterBtnsの不一致）</li>
+            <li>削除・編集ボタンのlocalStorageキー修正（wpt_v31 → 最新キー）</li>
+          </ul>
+          <div class="mt-3 bg-white rounded p-2 font-mono text-xs text-slate-600">
+            参考: TLog_handoff_20260227.html に詳細な引き継ぎ資料あり（プロジェクトファイル）
+          </div>
+        </div>
+
+        <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-lg">2️⃣</span>
+            <span class="font-bold text-orange-800">talon_testcase_logger.js v2.3 の修正適用</span>
+            <span class="badge priority-med">中 優先</span>
+          </div>
+          <ul class="text-sm text-slate-600 list-disc list-inside space-y-1">
+            <li>IGNORE_ID_PATTERNSに <code class="bg-white px-1 rounded">/^1_閲覧_/</code>, <code class="bg-white px-1 rounded">/^1_編集_/</code> を追加</li>
+            <li>console傍受の無限ループ防止ガード追加</li>
+            <li>実際のTALON環境でテスト確認</li>
+          </ul>
+        </div>
+
+        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-lg">3️⃣</span>
+            <span class="font-bold text-yellow-800">残り17画面への TLog 展開</span>
+            <span class="badge priority-med">中 優先</span>
+          </div>
+          <p class="text-sm text-slate-600">各画面の <code class="bg-white px-1 rounded">resizeContents_end()</code> に TLog.screenLoad + TLogAutoInstrument.init を追加。featureIdは機能名（例: MC_MACHINING_MGMT）に設定。</p>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-lg">4️⃣</span>
+            <span class="font-bold text-blue-800">GitHub Actionsの動作確認</span>
+          </div>
+          <p class="text-sm text-slate-600 mb-2">logs/features/*.jsonl が push された際に analyze-issues → generate-dashboard → generate-review の連鎖が正常に動作するか確認。</p>
+          <div class="bg-white rounded p-2 font-mono text-xs">
+            確認URL: https://karkyon.github.io/log-server/review/
+          </div>
+        </div>
+
+        <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-lg">5️⃣</span>
+            <span class="font-bold text-purple-800">将来: 自動ドキュメント生成（Claude API）</span>
+            <span class="badge status-pending">ペンディング</span>
+          </div>
+          <p class="text-sm text-slate-600">ログが十分に蓄積されたタイミングで Claude API を使って機能仕様書・EU向けマニュアルを自動生成。</p>
+        </div>
+
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="bg-slate-50 rounded-xl p-4 text-sm">
+        <p class="font-bold text-slate-700 mb-2">📎 引き継ぎ資料の場所</p>
+        <ul class="list-disc list-inside space-y-1 text-slate-600">
+          <li><strong>TLog_handoff_20260227.html</strong> — 直前の詳細な作業引き継ぎ（プロジェクトファイル）</li>
+          <li><strong>issues_dashboard_v2_fixed.html</strong> — 実データ入り課題ダッシュボード（プロジェクトファイル）</li>
+          <li><strong>artifact_index.html</strong> — 全アーティファクトのインデックス（プロジェクトナレッジ）</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-8 mt-4 text-center text-xs text-slate-400">
+  Generated by Claude | 2026-02-27 | karkyon/log-server
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+</body>
+</html>
