@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// scripts/generate-review.js  v3.1
+// scripts/generate-review.js  v3.2
 // ============================================================
 // 変更履歴:
 //   v3.0 - .console除外 / consoleLogs統合 / タイムライン / 作業パターン
@@ -308,7 +308,7 @@ function renderDashboard(fids, allLogs, allShots, issuesData) {
 </tr>`;
   }).join('');
   return `
-<div id="dashboard">
+<div id="dashboard" class="page">
   <div style="margin-bottom:24px;">
     <h1 style="font-size:22px;font-weight:700;color:#0f172a;">レビュー進捗ダッシュボード</h1>
     <p style="font-size:13px;color:#64748b;margin-top:4px;" id="dash-date"></p>
@@ -1235,7 +1235,7 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '  var el=document.getElementById("tl-filter-btns"); if(!el) return;',
     '  el.innerHTML=Object.keys(TL_COLORS).map(function(fid){',
     '    var col=TL_COLORS[fid];',
-    '    return \'<button onclick="tlFilterFid(\\\'"+this.dataset.fid+"\\\')"\'+',
+    '    return \'<button data-fid="\'+fid+\'" onclick="tlFilterFid(this.dataset.fid)"\'+',
     '      \' style="font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;\'+',
     '      \'border:1px solid \'+col+\';background:white;color:\'+col+\';"> \'+fid.replace("MC_","")+" </button>";',
     '  }).join("");',
@@ -1465,9 +1465,9 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '      ngS+',
     '      \'  </div>\'+',
     '      \'  <div style="display:flex;gap:8px;flex-shrink:0;">\'+',
-    '      \'    <button data-id="\'+p.id+\'" data-action="edit"\'+',
+    '      \'    <button data-id="\'+p.id+\'" onclick="openPatternModal(this.dataset.id)"\'+',
     '      \'      style="font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid #94a3b8;background:white;cursor:pointer;">\u270f\ufe0f \u7de8\u96c6</button>\'+',
-    '      \'    <button data-id="\'+p.id+\'" data-action="delete"\'+',
+    '      \'    <button data-id="\'+p.id+\'" onclick="deletePattern(this.dataset.id)"\'+',
     '      \'      style="font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid #fecaca;background:#fff5f5;color:#dc2626;cursor:pointer;">\ud83d\uddd1 \u524a\u9664</button>\'+',
     '      \'  </div>\'+',
     '      \'</div></div>\';',
