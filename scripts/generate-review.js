@@ -527,20 +527,28 @@ function renderFlowPage(featureId, seqs) {
     const isOkTrans = nextSeq && !nextSeq.autoNG;
     const lbl2cls   = isOkTrans ? 'flow-arrow-label ok' : 'flow-arrow-label';
 
-    // ノードHTML（flow-node + flow-box）
+    // ノードHTML（flow-node + flow-box）— FLW-02: サムネイル追加, TIM-04: BOX中心に線が来るよう構造整理
+    const sht = s.shots && s.shots[0];
+    const thumbInBox = sht
+      ? '<div class="flow-box-thumb"><img src="' + esc(sht) + '" loading="lazy" alt="seq' + s.seqNo + '"></div>'
+      : '<div class="flow-box-thumb"><span class="flow-box-thumb-none">📷</span></div>';
+
     const nodeHtml =
       '<div class="flow-node">' +
         '<div class="' + cls + (s.autoNG ? ' is-ng' : '') + '" ' +
           'id="fbox-' + esk + '" ' +
           'onclick="showPage(\'' + efid + '\');setTimeout(function(){scrollToActionLog(\'' + efid + '\',' + s.seqNo + ');},300);">' +
-          '<div class="flow-box-screen-id">' + esc(s.screenId) + '</div>' +
-          '<div class="flow-box-label">' + esc((s.summary || '').slice(0, 16)) + '</div>' +
-          '<div class="flow-box-sub">' + esc((s.opContent || '').slice(0, 16)) + '</div>' +
-          '<div class="flow-node-verdict" id="fv-' + esk + '">' +
-            (s.autoNG
-              ? '<span style="color:#dc2626;font-size:10px;font-weight:700;">❌ NG</span>'
-              : '<span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span>'
-            ) +
+          thumbInBox +
+          '<div class="flow-box-content">' +
+            '<div class="flow-box-screen-id">' + esc(s.screenId) + '</div>' +
+            '<div class="flow-box-label">' + esc((s.summary || '').slice(0, 16)) + '</div>' +
+            '<div class="flow-box-sub">' + esc((s.opContent || '').slice(0, 16)) + '</div>' +
+            '<div class="flow-node-verdict" id="fv-' + esk + '">' +
+              (s.autoNG
+                ? '<span style="color:#dc2626;font-size:10px;font-weight:700;">❌ NG</span>'
+                : '<span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span>'
+              ) +
+            '</div>' +
           '</div>' +
         '</div>' +
         '<div class="flow-node-seq">seq ' + s.seqNo + '</div>' +
@@ -907,24 +915,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cl-time{color:#475569;font-size:10px;flex-shrink:0;margin-top:1px;}
 .cl-msg{color:#e2e8f0;word-break:break-all;flex:1;}
 .cl-stack{margin-top:4px;padding:4px 8px;background:rgba(0,0,0,.3);border-radius:4px;font-size:10px;color:#94a3b8;width:100%;word-break:break-all;}
-.flow-canvas{padding:16px 24px 24px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:24px;}
+.flow-canvas{padding:16px 24px 32px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:24px;}
 .flow-row{display:flex;align-items:center;gap:0;flex-wrap:nowrap;}
 .flow-row.rtl{flex-direction:row-reverse;}
-.flow-row.rtl .flow-arrow-line::after{right:auto;left:-1px;border-left:none;border-right-color:#94a3b8;}
 .flow-uturn{display:flex;align-items:center;height:32px;margin:0 4px;}
 .flow-uturn.uturn-right{justify-content:flex-end;padding-right:28px;}
 .flow-uturn.uturn-left{justify-content:flex-start;padding-left:28px;}
-.flow-uturn-line{width:36px;height:32px;border:2px dashed #94a3b8;border-top:none;}
+.flow-uturn-line{width:36px;height:32px;border:2px dashed #475569;border-top:none;}
 .flow-uturn.uturn-right .flow-uturn-line{border-radius:0 0 10px 0;border-left:none;}
 .flow-uturn.uturn-left .flow-uturn-line{border-radius:0 0 0 10px;border-right:none;}
-.flow-box{border:2px solid #3b82f6;border-radius:10px;padding:10px 14px;background:white;cursor:pointer;text-align:center;min-width:100px;max-width:130px;}
-.flow-box:hover{box-shadow:0 4px 12px rgba(59,130,246,.3);}
+.flow-node{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;}
+.flow-node-seq{font-size:10px;color:#94a3b8;font-weight:600;}
+.flow-box{border:2px solid #3b82f6;border-radius:10px;background:white;cursor:pointer;text-align:center;width:120px;overflow:hidden;transition:box-shadow .18s,transform .18s;}
+.flow-box:hover{box-shadow:0 4px 14px rgba(59,130,246,.35);transform:translateY(-1px);}
 .flow-box.start{border-color:#16a34a;background:#f0fdf4;}
 .flow-box.end{border-color:#ef4444;background:#fff5f5;}
-.flow-seq{font-size:10px;color:#94a3b8;font-weight:700;margin-bottom:3px;}
-.flow-screen{font-size:10px;font-weight:700;color:#334155;margin-bottom:2px;}
-.flow-label{font-size:11px;color:#64748b;word-break:break-all;}
-.flow-arrow{display:flex;align-items:center;}
+.flow-box.is-ng{border-color:#ef4444!important;background:#fff5f5!important;}
+.flow-box-thumb{width:100%;height:60px;background:#f1f5f9;border-bottom:1px solid #e2e8f0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.flow-box-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.flow-box-thumb-none{font-size:18px;color:#cbd5e1;}
+.flow-box-content{padding:6px 6px 7px;}
+.flow-box-screen-id{font-size:9px;font-family:'JetBrains Mono',monospace;color:#94a3b8;letter-spacing:.4px;margin-bottom:2px;}
+.flow-box-label{font-size:11px;font-weight:700;color:#1e293b;line-height:1.3;}
+.flow-box-sub{font-size:9px;color:#64748b;margin-top:2px;line-height:1.3;}
+.flow-node-verdict{font-size:10px;margin-top:3px;min-height:16px;}
+.flow-arrow{display:flex;align-items:center;flex-shrink:0;width:60px;position:relative;}
+.flow-arrow-line{width:100%;height:3px;background:#475569;position:relative;}
+.flow-arrow-line::after{content:'';position:absolute;right:-1px;top:50%;transform:translateY(-50%);border:7px solid transparent;border-left-color:#475569;border-right:none;}
+.flow-row.rtl .flow-arrow-line::after{right:auto;left:-1px;border-left:none;border-right-color:#475569;}
+.flow-arrow-label{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:9px;color:#2563eb;font-weight:600;background:white;border:1px solid #bfdbfe;border-radius:4px;padding:2px 5px;white-space:nowrap;max-width:100px;overflow:hidden;text-overflow:ellipsis;pointer-events:none;z-index:1;}
+.flow-arrow-label.ok{color:#16a34a;border-color:#bbf7d0;background:#f0fdf4;}
+.flow-arrow-label.ng{color:#dc2626;border-color:#fecaca;background:#fff5f5;}
+.flow-legend{display:flex;gap:20px;flex-wrap:wrap;margin-top:14px;font-size:11px;color:#64748b;}
+.flow-legend-item{display:flex;align-items:center;gap:6px;}
+.flow-legend-box{width:20px;height:14px;border-radius:3px;border:2px solid;}
 .thumb-grid{display:flex;flex-wrap:wrap;gap:12px;}
 .thumb-card{border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;cursor:pointer;width:160px;}
 .thumb-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);}
