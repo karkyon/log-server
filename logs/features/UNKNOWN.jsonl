@@ -1,0 +1,6 @@
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772152550491-cvuj","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-27T00:35:50.491Z","context":{},"_savedAt":"2026-02-27T00:35:50.628Z"}
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772152550525-b3ew","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-27T00:35:50.525Z","context":{},"_savedAt":"2026-02-27T00:35:50.647Z"}
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772153362272-o6ho","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-27T00:49:22.272Z","context":{},"_savedAt":"2026-02-27T00:49:22.407Z"}
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772153362275-o34o","screenId":"MC_PRODUCTS_LIST","screenName":"マシニング部品一覧","ts":"2026-02-27T00:49:22.275Z","context":{},"_savedAt":"2026-02-27T00:49:22.409Z"}
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772153381089-r4ch","screenId":"MC_OPERATOR_AUTHENTICATION","screenName":"ユーザ認証","ts":"2026-02-27T00:49:41.089Z","context":{},"_savedAt":"2026-02-27T00:49:41.217Z"}
+{"type":"SCREEN_LOAD","featureId":"UNKNOWN","traceId":"TR-1772153438712-mbv4","screenId":"MC_MACHINING","screenName":"マシニング情報管理画面","ts":"2026-02-27T00:50:38.712Z","context":{},"_savedAt":"2026-02-27T00:50:38.849Z"}
