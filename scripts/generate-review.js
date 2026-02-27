@@ -696,7 +696,7 @@ function renderTimelinePage() {
         <div id="tl-sel-summary" style="font-size:12px;color:#475569;flex:1;"></div>
         <button onclick="clearTlSelection()"
           style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid #94a3b8;background:white;cursor:pointer;">選択解除</button>
-        <button onclick="openPatternModal()"
+    '      \'    <button data-id="\'+p.id+\'" data-action="edit"\'+',
           style="font-size:12px;font-weight:700;padding:6px 16px;border-radius:8px;border:none;background:#3b82f6;color:white;cursor:pointer;">
           📌 作業パターンとして登録
         </button>
@@ -714,7 +714,7 @@ function renderWorkPatternsPage() {
   <div style="margin-bottom:20px;">
     <div style="display:flex;align-items:center;gap:12px;">
       <h1 style="font-size:21px;font-weight:700;color:#0f172a;">📌 作業パターン</h1>
-      <button onclick="openPatternModal()"
+    '      \'    <button data-id="\'+p.id+\'" data-action="edit"\'+',
         style="font-size:12px;font-weight:700;padding:6px 16px;border-radius:8px;border:none;background:#3b82f6;color:white;cursor:pointer;margin-left:auto;">
         ＋ 新規パターン登録
       </button>
@@ -752,8 +752,15 @@ function renderWorkPatternsPage() {
         <label style="font-size:12px;font-weight:700;color:#64748b;display:block;margin-bottom:5px;">画面モード</label>
         <select id="wpt-mode" style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:8px 12px;font-size:13px;">
           <option value="">選択してください</option>
-          <option value="閲覧">閲覧</option><option value="編集">編集</option>
-          <option value="新規">新規</option><option value="混在">混在（複数画面）</option><option value="その他">その他</option>
+          <option value="閲覧">閲覧</option>
+          <option value="編集">編集</option>
+          <option value="新規">新規</option>
+          <option value="認証">🔐 認証</option>
+          <option value="帳票出力">🖨 帳票出力</option>
+          <option value="認証">🔐 認証</option>
+          <option value="帳票出力">🖨 帳票出力</option>
+          <option value="混在">混在（複数画面）</option>
+          <option value="その他">その他</option>
         </select>
       </div>
       <div>
@@ -1160,18 +1167,55 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '  var pc={"\u9ad8":0,"\u4e2d":1,"\u4f4e":2};',
     '  rows.sort(function(a,b){ return (pc[a.ifp]||1)-(pc[b.ifp]||1); });',
     '  var h=\'<div class="card"><table class="spec-table"><thead><tr>\'+',
-    '    \'<th>seq</th><th>\u753b\u9762</th><th>\u6982\u8981</th><th>\u7a2e\u5225</th><th>\u512a\u5148\u5ea6</th><th>\u72b6\u614b</th><th>\u5185\u5bb9</th><th>\u5099\u8003</th></tr></thead><tbody>\';',
+    '    \'<th>seq</th><th>\u753b\u9762</th><th>\u6982\u8981</th><th>\u7a2e\u5225</th><th>\u512a\u5148\u5ea6</th><th>\u72b6\u614b</th><th>\u5185\u5bb9</th><th>\u5099\u8003</th><th style="text-align:center;width:52px;">\u7de8\u96c6</th></tr></thead><tbody>\';',
     '  rows.forEach(function(r){',
     '    var c=r.ifp==="\u9ad8"?"#dc2626":r.ifp==="\u4e2d"?"#d97706":"#16a34a";',
     '    h+=\'<tr><td>\'+r.seqNo+\'</td><td style="font-size:11px;">\'+escH(r.fid)+\'</td>\'+',
     '      \'<td>\'+escH(r.summary.slice(0,30))+\'</td><td>\'+escH(r.ift)+\'</td>\'+',
     '      \'<td style="color:\'+c+\';font-weight:700;">\'+escH(r.ifp)+\'</td>\'+',
     '      \'<td>\'+escH(r.ifs)+\'</td><td>\'+escH(r.ifc.slice(0,60))+\'</td>\'+',
-    '      \'<td style="font-size:11px;color:#64748b;">\'+escH(r.ifm)+\'</td></tr>\';',
+    '      \'<td style="font-size:11px;color:#64748b;">\'+escH(r.ifm)+\'</td>\'+',
+    '      \'<td style="text-align:center;"><button data-iss-k="\'+r.k+\'" data-action="iss-edit" style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid #94a3b8;background:white;cursor:pointer;">\u270f\ufe0f</button></td></tr>\';',
     '  });',
     '  area.innerHTML=h+"</tbody></table></div>";',
+    '  var _ta=document.getElementById("iss-table-area");',
+    '  if(_ta&&!_ta._d){ _ta._d=true; _ta.addEventListener("click",function(e){',
+    '    var b=e.target.closest("button[data-action=\'iss-edit\']"); if(b) openIssueEditModal(b.dataset.issK); }); }',
     '}',
     'document.addEventListener("DOMContentLoaded",renderIssueTable);',
+    'var _issK=null;',
+    'function openIssueEditModal(k){',
+    '  _issK=k; var memo=(_lm()[k]||{}); var m=document.getElementById("iss-edit-modal"); if(!m) return;',
+    '  var meta=META[k]||{};',
+    '  document.getElementById("iem-title").value=memo.title||(meta.summary||k);',
+    '  document.getElementById("iem-type").value=memo.type||(lsg(k).ift||"\u4e0d\u5177\u5408");',
+    '  document.getElementById("iem-status").value=memo.status||(lsg(k).ifs||"\u672a\u5bfe\u5fdc");',
+    '  document.getElementById("iem-prio").value=memo.prio||(lsg(k).ifp||"\u4e2d");',
+    '  document.getElementById("iem-desc").value=memo.desc||(lsg(k).ifc||"");',
+    '  m.style.display="flex";',
+    '}',
+    'function closeIssueEditModal(){ var m=document.getElementById("iss-edit-modal"); if(m) m.style.display="none"; _issK=null; }',
+    'function _lm(){ try{return JSON.parse(localStorage.getItem("tlog_iss_memo")||"{}");}catch(e){return {};} }',
+    'function _sm(o){ try{localStorage.setItem("tlog_iss_memo",JSON.stringify(o));}catch(e){} }',
+    'function saveIssueEdit(){',
+    '  if(!_issK) return;',
+    '  var o=_lm(); var s=lsg(_issK);',
+    '  o[_issK]={ title:document.getElementById("iem-title").value, type:document.getElementById("iem-type").value,',
+    '    status:document.getElementById("iem-status").value, prio:document.getElementById("iem-prio").value,',
+    '    desc:document.getElementById("iem-desc").value, updatedAt:new Date().toISOString() };',
+    '  s.ift=o[_issK].type; s.ifs=o[_issK].status; s.ifp=o[_issK].prio; s.ifc=o[_issK].desc;',
+    '  ssg(_issK,s); _sm(o); closeIssueEditModal(); renderIssueTable();',
+    '}',
+    'function initPatternArea(){',
+    '  var a=document.getElementById("pattern-list-area");',
+    '  if(!a||a._d) return; a._d=true;',
+    '  a.addEventListener("click",function(e){',
+    '    var b=e.target.closest("button[data-action]"); if(!b) return;',
+    '    if(b.dataset.action==="edit")   openPatternModal(b.dataset.id);',
+    '    if(b.dataset.action==="delete") deletePattern(b.dataset.id);',
+    '  });',
+    '}',
+    'document.addEventListener("DOMContentLoaded",initPatternArea);',
     '',
     '// ── ユーティリティ ────────────────────────────────────────',
     'function escH(s){',
@@ -1191,7 +1235,7 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '  var el=document.getElementById("tl-filter-btns"); if(!el) return;',
     '  el.innerHTML=Object.keys(TL_COLORS).map(function(fid){',
     '    var col=TL_COLORS[fid];',
-    '    return \'<button onclick="tlFilterFid(\\\'"+fid+"\\\')"\'+',
+    '    return \'<button onclick="tlFilterFid(\\\'"+this.dataset.fid+"\\\')"\'+',
     '      \' style="font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;\'+',
     '      \'border:1px solid \'+col+\';background:white;color:\'+col+\';"> \'+fid.replace("MC_","")+" </button>";',
     '  }).join("");',
@@ -1421,9 +1465,9 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '      ngS+',
     '      \'  </div>\'+',
     '      \'  <div style="display:flex;gap:8px;flex-shrink:0;">\'+',
-    '      \'    <button onclick="openPatternModal(\\\'"+p.id+"\\\')"\'+',
+    '      \'    <button data-id="\'+p.id+\'" data-action="edit"\'+',
     '      \'      style="font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid #94a3b8;background:white;cursor:pointer;">\u270f\ufe0f \u7de8\u96c6</button>\'+',
-    '      \'    <button onclick="deletePattern(\\\'"+p.id+"\\\')"\'+',
+    '      \'    <button data-id="\'+p.id+\'" data-action="delete"\'+',
     '      \'      style="font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid #fecaca;background:#fff5f5;color:#dc2626;cursor:pointer;">\ud83d\uddd1 \u524a\u9664</button>\'+',
     '      \'  </div>\'+',
     '      \'</div></div>\';',

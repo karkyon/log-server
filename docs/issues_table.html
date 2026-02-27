@@ -2,485 +2,430 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>課題管理テーブル | generate-review.js 残課題 I-01〜I-08</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>generate-review.js 課題管理 & 引き継ぎ資料 v3.2</title>
 <style>
-  body { font-family: 'Segoe UI', 'Hiragino Sans', 'Yu Gothic', sans-serif; }
-  .mono { font-family: 'Consolas', 'Courier New', monospace; }
-  .status-btn { cursor: pointer; transition: all .15s; }
-  .status-btn:hover { opacity: .8; transform: scale(1.05); }
-  @media print {
-    .no-print { display: none !important; }
-    body { background: white; }
-  }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI','Hiragino Sans',sans-serif;font-size:13px;background:#f5f7fa;color:#1e293b;}
+.header{background:linear-gradient(135deg,#1e3a5f,#2563eb);color:white;padding:20px 28px;}
+.header h1{font-size:20px;font-weight:700;margin-bottom:4px;}
+.header .meta{font-size:11px;opacity:.75;}
+.container{max-width:1200px;margin:0 auto;padding:20px 16px;}
+
+/* サマリーカード */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.s-card{background:white;border-radius:10px;padding:16px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.s-card .num{font-size:32px;font-weight:800;line-height:1;}
+.s-card .lbl{font-size:11px;color:#64748b;margin-top:4px;}
+.s-card.done .num{color:#16a34a;}
+.s-card.wip .num{color:#2563eb;}
+.s-card.todo .num{color:#dc2626;}
+.s-card.total .num{color:#0f172a;}
+
+/* セクション */
+.section{background:white;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:16px;overflow:hidden;}
+.sec-hd{padding:10px 16px;font-weight:700;font-size:13px;display:flex;align-items:center;gap:8px;}
+.sec-hd.blue{background:#1d4ed8;color:white;}
+.sec-hd.green{background:#166534;color:white;}
+.sec-hd.orange{background:#c2410c;color:white;}
+.sec-hd.gray{background:#374151;color:white;}
+.sec-body{padding:14px 16px;}
+
+/* 課題テーブル */
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{background:#f1f5f9;padding:8px 10px;text-align:left;border:1px solid #e2e8f0;font-weight:600;color:#475569;white-space:nowrap;}
+td{padding:7px 10px;border:1px solid #e2e8f0;vertical-align:top;}
+tr.done-row td{background:#f0fdf4;}
+tr.wip-row td{background:#eff6ff;}
+tr.todo-row td{background:#fff;}
+
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;}
+.b-done{background:#bbf7d0;color:#166534;}
+.b-wip{background:#bfdbfe;color:#1d4ed8;}
+.b-todo{background:#fee2e2;color:#991b1b;}
+.b-skip{background:#fef9c3;color:#854d0e;}
+.b-high{background:#fee2e2;color:#991b1b;}
+.b-mid{background:#fef3c7;color:#92400e;}
+.b-low{background:#f0fdf4;color:#166534;}
+
+code{background:#f1f5f9;border-radius:4px;padding:1px 5px;font-family:monospace;font-size:11px;}
+.code-block{background:#1e293b;color:#e2e8f0;border-radius:6px;padding:12px 14px;font-family:monospace;font-size:12px;overflow-x:auto;line-height:1.6;margin:6px 0;}
+.alert{border-left:4px solid #ef4444;background:#fef2f2;padding:8px 12px;border-radius:0 6px 6px 0;margin:6px 0;font-size:12px;}
+.alert.ok{border-color:#22c55e;background:#f0fdf4;}
+.alert.info{border-color:#3b82f6;background:#eff6ff;}
+.alert.warn{border-color:#f59e0b;background:#fffbeb;}
+.next-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.step{display:flex;gap:10px;align-items:flex-start;padding:10px;background:#f8fafc;border-radius:8px;margin-bottom:8px;}
+.step-num{width:24px;height:24px;border-radius:50%;background:#2563eb;color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.step-body{flex:1;}
+.step-title{font-weight:700;font-size:12px;color:#0f172a;margin-bottom:2px;}
+.step-desc{font-size:11px;color:#475569;line-height:1.5;}
 </style>
 </head>
-<body class="bg-slate-100 min-h-screen">
+<body>
 
-<!-- ヘッダー -->
-<div class="bg-gradient-to-r from-slate-900 to-slate-700 text-white px-6 py-5">
-  <div class="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-3">
-    <div>
-      <div class="flex items-center gap-3">
-        <span class="text-2xl">🐛</span>
-        <div>
-          <h1 class="text-xl font-bold">課題管理テーブル</h1>
-          <p class="text-slate-400 text-xs mt-0.5">generate-review.js 残課題 I-01〜I-08 ／ 会話F：プロジェクトファイルのバグ修正と優先順位の確認</p>
-        </div>
-      </div>
-    </div>
-    <div class="flex gap-3 no-print">
-      <button onclick="window.print()" class="bg-slate-600 hover:bg-slate-500 text-white text-sm px-4 py-2 rounded-lg transition">🖨 印刷</button>
-      <button onclick="exportCSV()" class="bg-blue-600 hover:bg-blue-500 text-white text-sm px-4 py-2 rounded-lg transition">📥 CSV出力</button>
-    </div>
-  </div>
+<div class="header">
+  <h1>📋 generate-review.js 課題管理 & 引き継ぎ資料</h1>
+  <div class="meta">v3.2 適用後 ／ 更新日: 2026-02-27 ／ 対象ファイル: scripts/generate-review.js → docs/review/index.html</div>
 </div>
 
-<!-- サマリーカード -->
-<div class="max-w-7xl mx-auto px-4 mt-6">
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-    <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-      <div class="text-2xl font-bold text-slate-800" id="cnt-total">8</div>
-      <div class="text-xs text-slate-500 mt-1">全課題数</div>
-    </div>
-    <div class="bg-red-50 rounded-xl p-4 shadow-sm border border-red-100">
-      <div class="text-2xl font-bold text-red-600" id="cnt-high">0</div>
-      <div class="text-xs text-red-500 mt-1">🔴 高 優先度</div>
-    </div>
-    <div class="bg-yellow-50 rounded-xl p-4 shadow-sm border border-yellow-100">
-      <div class="text-2xl font-bold text-yellow-600" id="cnt-med">0</div>
-      <div class="text-xs text-yellow-600 mt-1">🟡 中 優先度</div>
-    </div>
-    <div class="bg-green-50 rounded-xl p-4 shadow-sm border border-green-100">
-      <div class="text-2xl font-bold text-green-600" id="cnt-done">0</div>
-      <div class="text-xs text-green-600 mt-1">✅ 対応済</div>
-    </div>
+<div class="container">
+
+  <!-- サマリー -->
+  <div class="summary-grid">
+    <div class="s-card total"><div class="num">8</div><div class="lbl">全課題</div></div>
+    <div class="s-card done"><div class="num">5</div><div class="lbl">対応完了</div></div>
+    <div class="s-card wip"><div class="num">0</div><div class="lbl">対応中</div></div>
+    <div class="s-card todo"><div class="num">3</div><div class="lbl">未対応</div></div>
   </div>
 
-  <!-- フィルター -->
-  <div class="bg-white rounded-xl shadow-sm border border-slate-100 px-4 py-3 mb-4 flex flex-wrap gap-3 items-center no-print">
-    <span class="text-sm font-semibold text-slate-600">🔍 フィルター：</span>
-    <select id="f-priority" onchange="applyFilter()" class="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
-      <option value="">優先度: すべて</option>
-      <option value="高">🔴 高</option>
-      <option value="中">🟡 中</option>
-      <option value="低">🟢 低</option>
-    </select>
-    <select id="f-status" onchange="applyFilter()" class="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
-      <option value="">状態: すべて</option>
-      <option value="未対応">未対応</option>
-      <option value="対応中">対応中</option>
-      <option value="パッチあり">パッチあり</option>
-      <option value="完了">完了</option>
-    </select>
-    <select id="f-category" onchange="applyFilter()" class="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white">
-      <option value="">カテゴリ: すべて</option>
-      <option value="タイムライン">タイムライン</option>
-      <option value="作業パターン">作業パターン</option>
-      <option value="画面フィルター">画面フィルター</option>
-      <option value="コンソールログ">コンソールログ</option>
-      <option value="課題一覧">課題一覧</option>
-      <option value="データ保存">データ保存</option>
-    </select>
-    <button onclick="resetFilter()" class="text-sm text-slate-500 hover:text-slate-700 border border-slate-200 rounded-lg px-3 py-1.5 bg-white transition">リセット</button>
-    <span id="filter-result" class="text-xs text-slate-400 ml-auto"></span>
-  </div>
-
-  <!-- テーブル -->
-  <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden mb-8">
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm" id="main-table">
+  <!-- 課題一覧 -->
+  <div class="section">
+    <div class="sec-hd blue">📌 課題一覧（全8件）</div>
+    <div class="sec-body" style="padding:0;">
+      <table>
         <thead>
-          <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wide">
-            <th class="px-4 py-3 text-left w-16">ID</th>
-            <th class="px-4 py-3 text-left w-24">優先度</th>
-            <th class="px-4 py-3 text-left w-28">カテゴリ</th>
-            <th class="px-4 py-3 text-left">課題タイトル</th>
-            <th class="px-4 py-3 text-left w-44">対象ファイル / 関数</th>
-            <th class="px-4 py-3 text-left w-28">状態</th>
-            <th class="px-4 py-3 text-center w-20 no-print">詳細</th>
+          <tr>
+            <th style="width:48px;">ID</th>
+            <th style="width:90px;">カテゴリ</th>
+            <th>課題タイトル</th>
+            <th style="width:56px;">優先度</th>
+            <th style="width:110px;">対象関数</th>
+            <th style="width:72px;">ステータス</th>
+            <th>今回の対応内容</th>
           </tr>
         </thead>
-        <tbody id="table-body">
-          <!-- JS で描画 -->
+        <tbody>
+          <!-- I-01 -->
+          <tr class="todo-row">
+            <td><code>I-01</code></td>
+            <td>タイムライン</td>
+            <td><strong>TL_COLSを動的計算</strong><br><span style="font-size:11px;color:#64748b;">TL_COLS=6固定で広い画面で空きすぎ</span></td>
+            <td><span class="badge b-high">高</span></td>
+            <td><code>renderTlCards()</code></td>
+            <td><span class="badge b-todo">未対応</span></td>
+            <td style="font-size:11px;color:#64748b;">次フェーズで対応予定</td>
+          </tr>
+          <!-- I-02 -->
+          <tr class="done-row">
+            <td><code>I-02</code></td>
+            <td>作業パターン</td>
+            <td><strong>編集・削除ボタン反応なし</strong><br><span style="font-size:11px;color:#64748b;">onclick エスケープ崩壊 → ボタン無反応</span></td>
+            <td><span class="badge b-high">高</span></td>
+            <td><code>renderPatternList()</code></td>
+            <td><span class="badge b-done">✅ 完了</span></td>
+            <td style="font-size:11px;">
+              <code>onclick="openPatternModal(...)"</code> を<br>
+              <code>data-id + data-action</code> 属性 + <code>initPatternArea()</code> イベント委譲に変更
+            </td>
+          </tr>
+          <!-- I-03 -->
+          <tr class="done-row">
+            <td><code>I-03</code></td>
+            <td>画面フィルター</td>
+            <td><strong>フィルターボタン SyntaxError 全滅</strong><br><span style="font-size:11px;color:#64748b;">fid にダブルクォート混入 → SyntaxError</span></td>
+            <td><span class="badge b-high">高</span></td>
+            <td><code>renderTlFilterBtns()</code></td>
+            <td><span class="badge b-skip">✅ 既対応</span></td>
+            <td style="font-size:11px;">
+              v3.1 時点で <code>this.dataset.fid</code> に変更済み（今回確認のみ）
+            </td>
+          </tr>
+          <!-- I-04 -->
+          <tr class="done-row">
+            <td><code>I-04</code></td>
+            <td>コンソールログ</td>
+            <td><strong>JSエラーが .jsonl に記録されない</strong><br><span style="font-size:11px;color:#64748b;">window.onerror 未設定</span></td>
+            <td><span class="badge b-mid">中</span></td>
+            <td><code>init()</code></td>
+            <td><span class="badge b-done">✅ 完了</span></td>
+            <td style="font-size:11px;">talon_testcase_logger.js v2.3 で対応済み</td>
+          </tr>
+          <!-- I-05 -->
+          <tr class="done-row">
+            <td><code>I-05</code></td>
+            <td>コンソールログ</td>
+            <td><strong>html2canvas 404エラーが記録されない</strong><br><span style="font-size:11px;color:#64748b;">リソースエラー捕捉なし</span></td>
+            <td><span class="badge b-mid">中</span></td>
+            <td><code>init()</code></td>
+            <td><span class="badge b-done">✅ 完了</span></td>
+            <td style="font-size:11px;">talon_testcase_logger.js v2.3 で対応済み</td>
+          </tr>
+          <!-- I-06 -->
+          <tr class="done-row">
+            <td><code>I-06</code></td>
+            <td>課題一覧</td>
+            <td><strong>課題一覧から各課題を編集できない</strong><br><span style="font-size:11px;color:#64748b;">閲覧のみ・編集UIなし</span></td>
+            <td><span class="badge b-low">低</span></td>
+            <td><code>renderIssueTable()</code></td>
+            <td><span class="badge b-done">✅ 完了</span></td>
+            <td style="font-size:11px;">
+              ✏️ 編集列 + <code>openIssueEditModal()</code> 実装<br>
+              <code>saveIssueEdit()</code> → localStorage 保存<br>
+              課題編集モーダルHTML追加
+            </td>
+          </tr>
+          <!-- I-07 -->
+          <tr class="todo-row">
+            <td><code>I-07</code></td>
+            <td>データ保存</td>
+            <td><strong>localStorage 制約をユーザーに周知</strong><br><span style="font-size:11px;color:#64748b;">別PC/シークレットでデータ消える</span></td>
+            <td><span class="badge b-low">低</span></td>
+            <td><code>renderWorkPatternsPage()</code></td>
+            <td><span class="badge b-todo">未対応</span></td>
+            <td style="font-size:11px;color:#64748b;">警告バナー追加予定</td>
+          </tr>
+          <!-- I-08 -->
+          <tr class="done-row">
+            <td><code>I-08</code></td>
+            <td>作業パターン</td>
+            <td><strong>画面モードに「認証」「帳票出力」が不足</strong><br><span style="font-size:11px;color:#64748b;">select に選択肢なし</span></td>
+            <td><span class="badge b-low">低</span></td>
+            <td><code>renderWorkPatternsPage()</code></td>
+            <td><span class="badge b-done">✅ 完了</span></td>
+            <td style="font-size:11px;">
+              <code>&lt;option value="認証"&gt;🔐 認証&lt;/option&gt;</code><br>
+              <code>&lt;option value="帳票出力"&gt;🖨 帳票出力&lt;/option&gt;</code> 追加
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <p class="text-xs text-slate-400 text-center mb-8">行をクリック or「▼ 詳細」ボタンで詳細・修正方針を展開 ／ 状態バッジをクリックで更新</p>
-</div>
+  <!-- 今回の作業ログ -->
+  <div class="section">
+    <div class="sec-hd green">🔧 今回の作業ログ（2026-02-27）</div>
+    <div class="sec-body">
 
-<script>
-const issues = [
-  {
-    id: "I-01",
-    category: "タイムライン",
-    title: "TL_COLS をスクリーン幅で動的計算",
-    detail: "TL_COLS=6 固定のため広い画面で右側が空きすぎる。container.offsetWidth から自動計算 + window resize で再描画が必要。",
-    file: "generate-review.js",
-    func: "renderTlCards()",
-    fix: "Math.floor(containerW / 150) で動的計算し、window.addEventListener('resize', debounce(re-render, 150)) を追加。",
-    note: "patch_01b_dynamic_cols.md（アーティファクト No.32）にパッチコード済み。",
-    priority: "高",
-    status: "パッチあり",
-    patch: "patch_01b_dynamic_cols.md",
-  },
-  {
-    id: "I-02",
-    category: "作業パターン",
-    title: "編集・削除ボタンが反応なし",
-    detail: "renderPatternList() が生成するHTML の onclick 属性内でダブルクォートのエスケープが壊れており SyntaxError が発生している。",
-    file: "generate-review.js",
-    func: "renderPatternList() ← renderScript()",
-    fix: "onclick=\"openPatternModal(\\\\\\\"…\\\\\\\")\" のエスケープを廃止し、data-id 属性 + delegated addEventListener に変更する。",
-    note: "I-03 と根本原因が同一（ダブルクォート→シングルクォートに変更）。まとめて Patch 02 で対処予定。",
-    priority: "高",
-    status: "未対応",
-    patch: null,
-  },
-  {
-    id: "I-03",
-    category: "画面フィルター",
-    title: "フィルターボタンが SyntaxError で全滅",
-    detail: "tlFilterFid() 呼び出し時の引数文字列にダブルクォートが混入して SyntaxError が発生し、フィルター操作が一切効かない。",
-    file: "generate-review.js",
-    func: "renderTlFilterBtns() ← renderScript()",
-    fix: "onclick=\"tlFilterFid(\\\"…\\\")\" → onclick=\"tlFilterFid('…')\" に変更、または data-fid 属性 + delegated event listener 化。",
-    note: "I-02 と根本原因が同一。Patch 02 でまとめて対処予定。",
-    priority: "高",
-    status: "未対応",
-    patch: null,
-  },
-  {
-    id: "I-04",
-    category: "コンソールログ",
-    title: "JS エラー・警告が .console.jsonl に記録されない",
-    detail: "window.onerror は /log エンドポイントにしか送っていない。adjustFixedList4onLoadImage ReferenceError など重要エラーが .console.jsonl に届かず、レビューツールのコンソールタブに表示されない。",
-    file: "talon_testcase_logger.js",
-    func: "_setupConsoleCapture() 内",
-    fix: "_setupConsoleCapture() の末尾に window.onerror オーバーライドを追加し CONSOLE_SERVER（/consolelog）へ送信する。",
-    note: "patch_I04_I05_console_error_capture.md（アーティファクト No.33）に実装コード済み。",
-    priority: "中",
-    status: "パッチあり",
-    patch: "patch_I04_I05_console_error_capture.md",
-  },
-  {
-    id: "I-05",
-    category: "コンソールログ",
-    title: "html2canvas 404 / リソースエラーが記録されない",
-    detail: "リソース読み込みエラー（Network Error）は console.error オーバーライドでは捕捉できない。CDN の html2canvas や画像の 404 が完全に素通りしている。",
-    file: "talon_testcase_logger.js",
-    func: "_setupConsoleCapture() 内",
-    fix: "window.addEventListener('error', fn, true) でキャプチャフェーズのリソースエラーを捕捉し CONSOLE_SERVER へ送信する。",
-    note: "I-04 と同パッチ（patch_I04_I05_console_error_capture.md）に実装コード済み。",
-    priority: "中",
-    status: "パッチあり",
-    patch: "patch_I04_I05_console_error_capture.md",
-  },
-  {
-    id: "I-06",
-    category: "課題一覧",
-    title: "課題一覧から各課題を編集できない",
-    detail: "renderIssueTable() が生成する HTML 内に編集ボタン・モーダルが存在しない。閲覧のみで、種別・優先度・状態・内容・備考を変更する手段がない。",
-    file: "generate-review.js",
-    func: "renderIssueTable() ← renderScript()",
-    fix: "各行末に ✏️ 編集ボタンを追加し、openIssueEdit(key) → 課題編集モーダル（HTML + JS）を実装する。",
-    note: "優先度低。作業パターン・フィルター（I-02/I-03）修正後に対応推奨。",
-    priority: "低",
-    status: "未対応",
-    patch: null,
-  },
-  {
-    id: "I-07",
-    category: "データ保存",
-    title: "localStorage の制約がユーザーに伝わっていない",
-    detail: "作業パターン・判定データはブラウザの localStorage に保存される。別 PC / 別ブラウザ / シークレットモードでは共有されず、データが消える。現状は何も注記がない。",
-    file: "generate-review.js（UI表示）",
-    func: "renderWorkPatternsPage()",
-    fix: "ページ上部に「⚠️ データはこのブラウザにのみ保存されます。別 PC や他のブラウザとは共有されません。」の警告バナーを追加する。",
-    note: "コード量少・影響小。1行追記で完了。",
-    priority: "低",
-    status: "未対応",
-    patch: null,
-  },
-  {
-    id: "I-08",
-    category: "作業パターン",
-    title: "画面モードに「認証」「帳票出力」が不足",
-    detail: "作業パターン登録モーダルの「画面モード」select に 閲覧 / 編集 / 新規 / 混在 / その他 しかない。認証画面・帳票出力画面に対応するモードがなく、正確な分類ができない。",
-    file: "generate-review.js",
-    func: "renderWorkPatternsPage() の option 要素",
-    fix: "<option value=\"認証\">🔐 認証</option> と <option value=\"帳票出力\">🖨 帳票出力</option> を select 要素に追加する。",
-    note: "コード量少・1行追記で完了。",
-    priority: "低",
-    status: "未対応",
-    patch: null,
-  },
-];
+      <div class="alert ok">
+        <strong>generate-review.js v3.1 → v3.2 適用完了</strong><br>
+        構文チェック通過 / docs/review/index.html 再生成 (277.2 KB)
+      </div>
 
-// ステータス保存（sessionStorage で簡易管理）
-const STATUS_KEY = 'issue_statuses';
-function loadStatuses() {
-  try { return JSON.parse(sessionStorage.getItem(STATUS_KEY)) || {}; } catch { return {}; }
-}
-function saveStatuses(obj) {
-  try { sessionStorage.setItem(STATUS_KEY, JSON.stringify(obj)); } catch {}
-}
+      <div style="margin-top:12px;">
+        <table>
+          <tr><th>適用順</th><th>手法</th><th>対象</th><th>結果</th></tr>
+          <tr>
+            <td>1</td>
+            <td>node stdin</td>
+            <td>I-08 認証・帳票出力 option 追加</td>
+            <td><span class="badge b-done">OK</span></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>node stdin</td>
+            <td>I-06 委譲 + I-02 initPatternArea()</td>
+            <td><span class="badge b-done">OK</span></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>node stdin</td>
+            <td>I-06 openIssueEditModal / saveIssueEdit / closeIssueEditModal</td>
+            <td><span class="badge b-done">OK</span></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>python3 stdin</td>
+            <td>I-02 編集ボタン onclick → data-action=edit</td>
+            <td><span class="badge b-done">OK</span></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>python3 stdin</td>
+            <td>I-02 削除ボタン onclick → data-action=delete</td>
+            <td><span class="badge b-done">OK</span></td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>python3 stdin</td>
+            <td>I-06 thead に編集列追加</td>
+            <td><span class="badge b-done">OK</span></td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>python3 stdin</td>
+            <td>I-06 各行末尾に編集ボタン td 追加</td>
+            <td><span class="badge b-done">OK</span></td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>python3 stdin</td>
+            <td>L1183 クォート衝突修正（SyntaxError 解消）</td>
+            <td><span class="badge b-done">OK</span></td>
+          </tr>
+          <tr>
+            <td>-</td>
+            <td>確認のみ</td>
+            <td>I-03 this.dataset.fid → v3.1 で既対応済み</td>
+            <td><span class="badge b-skip">SKIP</span></td>
+          </tr>
+        </table>
+      </div>
 
-const STATUSES = ['未対応', 'パッチあり', '対応中', '完了'];
+      <div class="alert warn" style="margin-top:10px;">
+        <strong>⚠️ 注意: Python パッチが I-02 編集ボタンを 3箇所置換</strong><br>
+        L699 / L717 は renderWorkPatternsPage() 内のHTMLテンプレートの通常ボタン（新規登録・モーダル呼び出し）→ <strong>誤置換の可能性あり</strong><br>
+        → ブラウザで「作業パターン」ページの「+ 新規パターン登録」ボタンと「編集」ボタンの動作を必ず確認すること
+      </div>
 
-function statusBadge(st) {
-  const map = {
-    '未対応':   'bg-red-100 text-red-700 border border-red-200',
-    'パッチあり':'bg-blue-100 text-blue-700 border border-blue-200',
-    '対応中':   'bg-yellow-100 text-yellow-700 border border-yellow-200',
-    '完了':     'bg-green-100 text-green-700 border border-green-200',
-  };
-  return map[st] || 'bg-slate-100 text-slate-600';
-}
+    </div>
+  </div>
 
-function priorityBadge(p) {
-  if (p === '高') return 'bg-red-100 text-red-700 border border-red-200';
-  if (p === '中') return 'bg-yellow-100 text-yellow-700 border border-yellow-200';
-  return 'bg-green-100 text-green-700 border border-green-200';
-}
+  <!-- 現在のファイル状態 -->
+  <div class="section">
+    <div class="sec-hd gray">📁 現在のファイル状態</div>
+    <div class="sec-body">
+      <table>
+        <tr><th>ファイル</th><th>バージョン</th><th>状態</th><th>備考</th></tr>
+        <tr>
+          <td><code>scripts/generate-review.js</code></td>
+          <td>v3.2（実態）<br><small>※ヘッダー表記はv3.1のまま</small></td>
+          <td><span class="badge b-done">最新</span></td>
+          <td>I-02/03/06/08 修正適用済み</td>
+        </tr>
+        <tr>
+          <td><code>scripts/generate-review.v3.1.bak.js</code></td>
+          <td>v3.1</td>
+          <td><span class="badge b-skip">バックアップ</span></td>
+          <td>ロールバック用</td>
+        </tr>
+        <tr>
+          <td><code>docs/review/index.html</code></td>
+          <td>v3.2 生成物</td>
+          <td><span class="badge b-done">再生成済み</span></td>
+          <td>277.2 KB</td>
+        </tr>
+        <tr>
+          <td><code>talon_testcase_logger.js</code></td>
+          <td>v2.3</td>
+          <td><span class="badge b-done">適用済み</span></td>
+          <td>I-04/05 対応済み</td>
+        </tr>
+        <tr>
+          <td><code>server.js</code></td>
+          <td>v2.2</td>
+          <td><span class="badge b-done">稼働中</span></td>
+          <td>port 3099</td>
+        </tr>
+      </table>
+    </div>
+  </div>
 
-function priorityIcon(p) {
-  if (p === '高') return '🔴';
-  if (p === '中') return '🟡';
-  return '🟢';
-}
+  <!-- 次の会話での作業手順 -->
+  <div class="section">
+    <div class="sec-hd orange">⏭ 次の会話での作業手順（優先順）</div>
+    <div class="sec-body">
 
-function categoryIcon(c) {
-  const m = { 'タイムライン':'⏱', '作業パターン':'📋', '画面フィルター':'🔍', 'コンソールログ':'📟', '課題一覧':'📑', 'データ保存':'💾' };
-  return m[c] || '📌';
-}
-
-function cycleStatus(id) {
-  const statuses = loadStatuses();
-  const issue = issues.find(i => i.id === id);
-  const cur = statuses[id] || issue.status;
-  const idx = STATUSES.indexOf(cur);
-  const next = STATUSES[(idx + 1) % STATUSES.length];
-  statuses[id] = next;
-  saveStatuses(statuses);
-  render();
-  updateSummary();
-}
-
-function toggleDetail(id) {
-  const row = document.getElementById('detail-' + id);
-  if (!row) return;
-  const isOpen = row.style.display === 'table-row';
-  row.style.display = isOpen ? 'none' : 'table-row';
-  const btn = document.getElementById('toggle-btn-' + id);
-  if (btn) btn.textContent = isOpen ? '▼ 詳細' : '▲ 閉じる';
-}
-
-function applyFilter() {
-  const fp = document.getElementById('f-priority').value;
-  const fs = document.getElementById('f-status').value;
-  const fc = document.getElementById('f-category').value;
-  const statuses = loadStatuses();
-
-  let shown = 0;
-  issues.forEach(issue => {
-    const curStatus = statuses[issue.id] || issue.status;
-    const row = document.getElementById('row-' + issue.id);
-    const det = document.getElementById('detail-' + issue.id);
-    if (!row) return;
-    const match =
-      (!fp || issue.priority === fp) &&
-      (!fs || curStatus === fs) &&
-      (!fc || issue.category === fc);
-    row.style.display = match ? '' : 'none';
-    if (det) det.style.display = 'none';
-    if (match) shown++;
-  });
-
-  document.getElementById('filter-result').textContent = `${shown} 件表示中`;
-}
-
-function resetFilter() {
-  document.getElementById('f-priority').value = '';
-  document.getElementById('f-status').value = '';
-  document.getElementById('f-category').value = '';
-  applyFilter();
-}
-
-function updateSummary() {
-  const statuses = loadStatuses();
-  let high = 0, med = 0, done = 0;
-  issues.forEach(i => {
-    if (i.priority === '高') high++;
-    if (i.priority === '中') med++;
-    const s = statuses[i.id] || i.status;
-    if (s === '完了') done++;
-  });
-  document.getElementById('cnt-high').textContent = high;
-  document.getElementById('cnt-med').textContent = med;
-  document.getElementById('cnt-done').textContent = done;
-}
-
-function render() {
-  const statuses = loadStatuses();
-  const tbody = document.getElementById('table-body');
-  tbody.innerHTML = '';
-
-  issues.forEach(issue => {
-    const curStatus = statuses[issue.id] || issue.status;
-
-    // メイン行
-    const tr = document.createElement('tr');
-    tr.id = 'row-' + issue.id;
-    tr.className = 'border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors';
-    tr.onclick = (e) => {
-      if (e.target.closest('.status-btn') || e.target.closest('.no-click')) return;
-      toggleDetail(issue.id);
-    };
-
-    tr.innerHTML = `
-      <td class="px-4 py-3">
-        <span class="mono font-bold text-slate-700 text-sm">${issue.id}</span>
-      </td>
-      <td class="px-4 py-3">
-        <span class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${priorityBadge(issue.priority)}">
-          ${priorityIcon(issue.priority)} ${issue.priority}
-        </span>
-      </td>
-      <td class="px-4 py-3">
-        <span class="text-xs text-slate-600">${categoryIcon(issue.category)} ${issue.category}</span>
-      </td>
-      <td class="px-4 py-3">
-        <p class="text-sm font-semibold text-slate-800 leading-snug">${issue.title}</p>
-        <p class="text-xs text-slate-500 mt-0.5 line-clamp-1">${issue.detail.slice(0, 60)}…</p>
-      </td>
-      <td class="px-4 py-3">
-        <p class="mono text-xs text-blue-700 font-semibold">${issue.file}</p>
-        <p class="mono text-xs text-slate-400 mt-0.5">${issue.func}</p>
-      </td>
-      <td class="px-4 py-3 no-click">
-        <button class="status-btn inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full ${statusBadge(curStatus)}"
-                onclick="event.stopPropagation(); cycleStatus('${issue.id}')"
-                title="クリックで次の状態へ">
-          ${curStatus} ↻
-        </button>
-      </td>
-      <td class="px-4 py-3 text-center no-print">
-        <button id="toggle-btn-${issue.id}"
-                class="text-xs text-slate-400 hover:text-blue-600 border border-slate-200 rounded-lg px-2 py-1 transition"
-                onclick="event.stopPropagation(); toggleDetail('${issue.id}')">▼ 詳細</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-
-    // 詳細行
-    const det = document.createElement('tr');
-    det.id = 'detail-' + issue.id;
-    det.style.display = 'none';
-    det.className = 'bg-indigo-50/40 border-b-2 border-indigo-100';
-
-    det.innerHTML = `
-      <td colspan="7" class="px-6 py-5">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-          <!-- 課題詳細 -->
-          <div class="space-y-3">
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">📋 課題詳細</p>
-            <div class="bg-white rounded-xl p-4 space-y-2.5 text-xs shadow-sm">
-              <div class="flex gap-2">
-                <span class="text-slate-400 w-20 shrink-0">課題ID</span>
-                <span class="mono font-bold text-slate-700">${issue.id}</span>
-              </div>
-              <div class="flex gap-2">
-                <span class="text-slate-400 w-20 shrink-0">カテゴリ</span>
-                <span class="text-slate-700">${categoryIcon(issue.category)} ${issue.category}</span>
-              </div>
-              <div class="flex gap-2">
-                <span class="text-slate-400 w-20 shrink-0">優先度</span>
-                <span class="font-semibold">${priorityIcon(issue.priority)} ${issue.priority}</span>
-              </div>
-              <div class="flex gap-2">
-                <span class="text-slate-400 w-20 shrink-0">対象ファイル</span>
-                <span class="mono text-blue-700 font-semibold">${issue.file}</span>
-              </div>
-              <div class="flex gap-2">
-                <span class="text-slate-400 w-20 shrink-0">対象関数</span>
-                <span class="mono text-slate-600 text-xs">${issue.func}</span>
-              </div>
-              ${issue.patch ? `
-              <div class="flex gap-2">
-                <span class="text-slate-400 w-20 shrink-0">パッチ資料</span>
-                <span class="text-green-700 font-semibold">📄 ${issue.patch}</span>
-              </div>` : ''}
-            </div>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">🔍 ブラウザ動作確認（最優先）</div>
+          <div class="step-desc">
+            docs/review/index.html をブラウザで開き以下を確認:<br>
+            ① 「作業パターン」ページ → 登録済みパターンの ✏️編集 / 🗑削除 ボタンが反応するか（I-02）<br>
+            ② 「タイムライン」ページ → 画面フィルターボタンが SyntaxError なく動作するか（I-03）<br>
+            ③ 「課題一覧」ページ → ✏️ 列が表示され、クリックで編集モーダルが開くか（I-06）<br>
+            ④ 作業パターン登録モーダルの「画面モード」select に「🔐 認証」「🖨 帳票出力」があるか（I-08）<br>
+            <strong>⚠️ 特に「+ 新規パターン登録」ボタンの動作も確認（誤置換の可能性あり）</strong>
           </div>
-
-          <!-- 症状・修正方針 -->
-          <div class="space-y-3">
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">🔍 症状・詳細</p>
-            <div class="bg-white rounded-xl p-4 text-xs text-slate-700 leading-relaxed shadow-sm">
-              ${issue.detail}
-            </div>
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">🔧 修正方針</p>
-            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-xs text-emerald-800 leading-relaxed shadow-sm">
-              ${issue.fix}
-            </div>
-          </div>
-
-          <!-- 備考・状態変更 -->
-          <div class="space-y-3">
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">📝 備考・メモ</p>
-            <div class="bg-white rounded-xl p-4 text-xs text-slate-600 leading-relaxed shadow-sm">
-              ${issue.note}
-            </div>
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">🔄 状態を変更</p>
-            <div class="bg-white rounded-xl p-4 shadow-sm flex flex-wrap gap-2">
-              ${STATUSES.map(s => `
-                <button onclick="event.stopPropagation(); forceStatus('${issue.id}','${s}')"
-                  class="text-xs px-3 py-1.5 rounded-full border font-semibold transition hover:opacity-80 ${statusBadge(s)} ${(statuses[issue.id] || issue.status) === s ? 'ring-2 ring-offset-1 ring-blue-400' : ''}">
-                  ${s}
-                </button>
-              `).join('')}
-            </div>
-          </div>
-
         </div>
-      </td>
-    `;
-    tbody.appendChild(det);
-  });
+      </div>
 
-  applyFilter();
-  updateSummary();
-}
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">🐛 L699/L717 誤置換の修正（必要なら）</div>
+          <div class="step-desc">
+            Python パッチが <code>openPatternModal</code> を含む L699/L717 も置換してしまった可能性がある。<br>
+            「新規パターン登録」ボタンが動作しない場合は以下で確認:<br>
+            <code>sed -n '697,720p' ~/projects/log-server/scripts/generate-review.js</code><br>
+            <code>openPatternModal()</code> の呼び出しが <code>data-action="edit"</code> に変わっていたら元に戻す。
+          </div>
+        </div>
+      </div>
 
-function forceStatus(id, status) {
-  const statuses = loadStatuses();
-  statuses[id] = status;
-  saveStatuses(statuses);
-  render();
-}
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">📌 I-07: localStorage 警告バナー追加</div>
+          <div class="step-desc">
+            <code>renderWorkPatternsPage()</code> のページ上部に警告を追加:<br>
+            <code>&lt;div&gt;⚠️ データはこのブラウザにのみ保存されます（別PC・シークレットモードでは消えます）&lt;/div&gt;</code>
+          </div>
+        </div>
+      </div>
 
-function exportCSV() {
-  const statuses = loadStatuses();
-  const header = ['ID', '優先度', 'カテゴリ', 'タイトル', '対象ファイル', '対象関数', '状態', 'パッチ資料'];
-  const rows = issues.map(i => [
-    i.id, i.priority, i.category, i.title, i.file, i.func,
-    statuses[i.id] || i.status,
-    i.patch || ''
-  ]);
-  const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'issues_table.csv';
-  a.click();
-}
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">📌 I-01: TL_COLS 動的計算</div>
+          <div class="step-desc">
+            <code>renderTlCards()</code> の <code>TL_COLS=6</code> を<br>
+            <code>Math.max(3, Math.floor(container.offsetWidth / 150))</code> に変更<br>
+            + <code>window.addEventListener('resize', renderTlCards)</code> 追加
+          </div>
+        </div>
+      </div>
 
-render();
-</script>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">🚀 talon_testcase_logger.js 未適用修正の確認</div>
+          <div class="step-desc">
+            TLog_handoff_20260227.html 記載の未適用項目:<br>
+            ① <code>IGNORE_ID_PATTERNS</code> に <code>/^1_閲覧_/</code>, <code>/^1_編集_/</code> 追加<br>
+            ② console[level] オーバーライド先頭に無限ループ防止コード追加<br>
+            → サーバー側 <code>tail -5 logs/features/MC_PRODUCTS_LIST.console.jsonl</code> で /consolelog 500 が継続しているか確認してから着手
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-title">📤 GitHub コミット</div>
+          <div class="step-desc">
+            全確認が完了したら:<br>
+            <code>git add scripts/generate-review.js docs/review/index.html</code><br>
+            <code>git commit -m "fix: I-02/03/06/08 generate-review.js v3.2"</code><br>
+            <code>git push origin main</code>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 検証コマンド -->
+  <div class="section">
+    <div class="sec-hd gray">⌨️ よく使う確認コマンド</div>
+    <div class="sec-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <p style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;">L699/L717 誤置換確認</p>
+          <div class="code-block">sed -n '696,720p' \
+  ~/projects/log-server/scripts/generate-review.js</div>
+
+          <p style="font-size:11px;font-weight:700;color:#64748b;margin:10px 0 6px;">構文チェック & 再生成</p>
+          <div class="code-block">node --check scripts/generate-review.js \
+  && node scripts/generate-review.js</div>
+        </div>
+        <div>
+          <p style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;">ロールバック</p>
+          <div class="code-block">cp scripts/generate-review.v3.1.bak.js \
+   scripts/generate-review.js
+node scripts/generate-review.js</div>
+
+          <p style="font-size:11px;font-weight:700;color:#64748b;margin:10px 0 6px;">consolelog 確認</p>
+          <div class="code-block">tail -5 logs/features/\
+MC_PRODUCTS_LIST.console.jsonl
+curl http://192.168.1.11:3099/ping</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
 </body>
 </html>
