@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TLog 作業引き継ぎ資料 2026-02-27</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', 'Hiragino Sans', sans-serif; font-size: 14px; background: #f5f7fa; color: #2d3748; }
+  .header { background: linear-gradient(135deg, #1a365d, #2b6cb0); color: white; padding: 24px 32px; }
+  .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .header .meta { font-size: 12px; opacity: 0.8; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+  .section { background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-bottom: 20px; overflow: hidden; }
+  .section-header { background: #2b6cb0; color: white; padding: 10px 18px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .section-header.green  { background: #276749; }
+  .section-header.orange { background: #c05621; }
+  .section-header.red    { background: #9b2c2c; }
+  .section-header.purple { background: #553c9a; }
+  .section-body { padding: 16px 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #edf2f7; padding: 8px 10px; text-align: left; border: 1px solid #e2e8f0; font-weight: 600; white-space: nowrap; }
+  td { padding: 7px 10px; border: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) td { background: #f7fafc; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+  .badge.done   { background: #c6f6d5; color: #276749; }
+  .badge.wip    { background: #fefcbf; color: #744210; }
+  .badge.todo   { background: #fed7d7; color: #9b2c2c; }
+  .badge.info   { background: #bee3f8; color: #2c5282; }
+  pre, code { font-family: 'Consolas', 'Courier New', monospace; font-size: 12px; }
+  .code-block { background: #1a202c; color: #e2e8f0; border-radius: 6px; padding: 12px 16px; margin: 8px 0; overflow-x: auto; }
+  .code-block code { color: #e2e8f0; }
+  .inline-code { background: #edf2f7; border-radius: 3px; padding: 1px 5px; font-family: monospace; font-size: 12px; }
+  .alert { border-left: 4px solid #e53e3e; background: #fff5f5; padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 8px 0; }
+  .alert.warn { border-color: #d69e2e; background: #fffff0; }
+  .alert.info { border-color: #3182ce; background: #ebf8ff; }
+  .alert.ok   { border-color: #38a169; background: #f0fff4; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  ul { padding-left: 18px; }
+  li { margin: 4px 0; line-height: 1.6; }
+  .tag { display: inline-block; background: #edf2f7; border-radius: 4px; padding: 1px 6px; font-size: 11px; margin: 1px; }
+  .issue-id { font-weight: 700; color: #9b2c2c; font-family: monospace; }
+  .file-path { color: #2b6cb0; font-family: monospace; font-size: 12px; }
+  .highlight { background: #fefcbf; padding: 1px 3px; }
+  h3 { font-size: 13px; font-weight: 700; margin: 12px 0 6px; color: #2d3748; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📋 TLog 作業引き継ぎ資料</h1>
+  <div class="meta">作成日時: 2026-02-27 ｜ 対象: talon_testcase_logger.js v2.3 ／ server.js v2.2</div>
+</div>
+
+<div class="container">
+
+  <!-- ① プロジェクト構成 -->
+  <div class="section">
+    <div class="section-header">① プロジェクト構成・ファイル配置</div>
+    <div class="section-body">
+      <div class="grid2">
+        <div>
+          <h3>サーバー側（Ubuntu: 192.168.1.11）</h3>
+          <table>
+            <tr><th>ファイル</th><th>役割</th></tr>
+            <tr><td class="file-path">~/projects/log-server/server.js</td><td>Node.js ログ受信サーバ v2.2<br>ポート 3099</td></tr>
+            <tr><td class="file-path">logs/features/&lt;featureId&gt;.jsonl</td><td>操作ログ（UI_CLICK, SCREEN_LOAD等）</td></tr>
+            <tr><td class="file-path">logs/features/&lt;featureId&gt;.console.jsonl</td><td>コンソールログ（v2.2追加）</td></tr>
+            <tr><td class="file-path">logs/screenshots/&lt;featureId&gt;/</td><td>スクリーンショット（JPG）</td></tr>
+          </table>
+        </div>
+        <div>
+          <h3>クライアント側（TALON: 192.168.1.207）</h3>
+          <table>
+            <tr><th>ファイル</th><th>役割</th></tr>
+            <tr><td class="file-path">talon_testcase_logger.js</td><td>ロガー本体 v2.3<br>各画面のJSから読み込み</td></tr>
+            <tr><td colspan="2" style="font-size:12px;color:#718096">初期化コード（各画面）:<br>
+              <code>TLog.screenLoad('SCREEN_ID', '画面名');</code><br>
+              <code>TLogAutoInstrument.init('SCREEN_ID', { screenMode: 'auth' });</code>
+            </td></tr>
+          </table>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <h3>server.js エンドポイント一覧</h3>
+        <table>
+          <tr><th>メソッド</th><th>パス</th><th>用途</th><th>状態</th></tr>
+          <tr><td>POST</td><td class="inline-code">/log</td><td>操作ログ受信 → .jsonl 保存</td><td><span class="badge done">正常</span></td></tr>
+          <tr><td>POST</td><td class="inline-code">/screenshot</td><td>スクリーンショット受信・保存</td><td><span class="badge done">正常</span></td></tr>
+          <tr><td>POST</td><td class="inline-code">/consolelog</td><td>コンソールログ受信 → .console.jsonl 保存</td><td><span class="badge wip">要確認</span></td></tr>
+          <tr><td>GET</td><td class="inline-code">/consolelogs/:featureId</td><td>コンソールログ取得API</td><td><span class="badge done">実装済</span></td></tr>
+          <tr><td>GET</td><td class="inline-code">/features</td><td>記録済み機能ID一覧</td><td><span class="badge done">正常</span></td></tr>
+          <tr><td>GET</td><td class="inline-code">/logs/:featureId</td><td>機能ログ取得</td><td><span class="badge done">正常</span></td></tr>
+          <tr><td>GET</td><td class="inline-code">/clean</td><td>全ログ削除（開発用）</td><td><span class="badge info">開発用</span></td></tr>
+          <tr><td>GET</td><td class="inline-code">/ping</td><td>死活確認</td><td><span class="badge done">正常</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② バージョン履歴と現状 -->
+  <div class="section">
+    <div class="section-header green">② バージョン履歴と現在の適用状態</div>
+    <div class="section-body">
+      <table>
+        <tr><th>バージョン</th><th>主な変更内容</th><th>適用状態</th></tr>
+        <tr><td>v2.0</td><td>URLパラメータ・前画面・JS例外・Before/After スクショ等追加</td><td><span class="badge done">適用済</span></td></tr>
+        <tr><td>v2.1</td><td>_capture()でfeatureIdをPOST bodyに含める / SHOTエントリ二重記録排除</td><td><span class="badge done">適用済</span></td></tr>
+        <tr><td>v2.2</td><td>TLogAutoInstrument に console キャプチャ機能追加 / _lastTraceId による操作相関</td><td><span class="badge done">適用済</span></td></tr>
+        <tr><td><strong>v2.3</strong></td><td>
+          [I-04] window.onerror → /consolelog にも送信<br>
+          [I-05] addEventListener('error', fn, true) でリソースエラー捕捉<br>
+          [改善] シリアライザを Error/Element/循環参照対応強化
+        </td><td><span class="badge done">適用済</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ③ 現在発生中の問題 -->
+  <div class="section">
+    <div class="section-header red">③ 現在発生中の問題と調査状況</div>
+    <div class="section-body">
+
+      <h3>問題A：/consolelog が 500 を返す</h3>
+      <div class="alert">
+        <strong>症状:</strong> ブラウザコンソールに <code>192.168.1.11:3099/consolelog Failed to load resource: 500</code> が多数出力される
+      </div>
+      <table style="margin:8px 0;">
+        <tr><th>観点</th><th>内容</th></tr>
+        <tr><td>server.js側</td><td>ターミナルに <code>[CONSOLELOG ERROR]</code> が<strong>出ていない</strong> → try/catch に到達する前にエラー？ または現在のセッションでは正常動作している可能性</td></tr>
+        <tr><td>コード確認</td><td>server.js の /consolelog 実装はコード上問題なし。sanitizeFeatureId も正常動作</td></tr>
+        <tr><td>次アクション</td><td>以下コマンドで .console.jsonl の存在・内容を確認すること</td></tr>
+      </table>
+      <div class="code-block"><code>ls -la ~/projects/log-server/logs/features/
+cat ~/projects/log-server/logs/features/MC_PRODUCTS_LIST.console.jsonl | tail -5</code></div>
+
+      <h3 style="margin-top:16px;">問題B：無限ループの可能性（未確認・要警戒）</h3>
+      <div class="alert warn">
+        <strong>発生メカニズム:</strong><br>
+        temp_files 404エラー → [I-05] addEventListener がキャプチャ → /consolelog に送信 → 500を返す<br>
+        → ブラウザが "Failed to load resource: 500" を console.error に出力<br>
+        → [v2.2] console.error オーバーライドがキャプチャ → /consolelog に再送信 → 無限ループ
+      </div>
+      <div class="alert info">
+        <strong>対策コード（未適用）:</strong> console[level] オーバーライド内の先頭に追加する
+      </div>
+      <div class="code-block"><code>console[level] = function (...args) {
+  native(...args);
+
+  // ── 無限ループ防止 (v2.3追加予定) ──
+  // サーバURLへの fetch 失敗が console.error → キャプチャ → 再送信 の
+  // 無限ループになるのを防ぐ。サーバURL文字列を含む出力はスキップ。
+  if (args.some(a => typeof a === 'string' && a.includes('192.168.1.11:3099'))) return;
+  // ─────────────────────────────────────
+
+  // ② args をシリアライズ
+  ...</code></div>
+
+      <h3 style="margin-top:16px;">問題C：IGNORE_ID_PATTERNS が不一致（確実な問題）</h3>
+      <div class="alert">
+        <strong>症状:</strong> ブラウザコンソールに <code>1_閲覧_0</code> ～ <code>1_編集_6</code> が14件出力され、
+        全ボタン操作がログ記録されてしまっている
+      </div>
+      <table style="margin:8px 0;">
+        <tr><th>現在のパターン（誤）</th><th>実際のボタンID</th><th>不一致の原因</th></tr>
+        <tr><td class="inline-code">/^TLN_1_閲覧_/</td><td class="inline-code">1_閲覧_0 〜 1_閲覧_6</td><td rowspan="2"><code>TLN_</code> プレフィックスが存在しない</td></tr>
+        <tr><td class="inline-code">/^TLN_1_編集_/</td><td class="inline-code">1_編集_0 〜 1_編集_6</td></tr>
+      </table>
+      <div class="alert info"><strong>修正内容（未適用）:</strong></div>
+      <div class="code-block"><code>const IGNORE_ID_PATTERNS = [
+  /^j_idt/,
+  /paginator/i,
+  /scroll/i,
+  /^TLN_1_閲覧_/,
+  /^TLN_1_編集_/,
+  /^1_閲覧_/,      // ← 追加
+  /^1_編集_/       // ← 追加
+];</code></div>
+
+      <h3 style="margin-top:16px;">その他の既知エラー（ログに記録できれば良い・修正不要）</h3>
+      <table>
+        <tr><th>エラー</th><th>内容</th><th>方針</th></tr>
+        <tr>
+          <td class="issue-id">I-04</td>
+          <td><code>adjustFixedList4onLoadImage is not defined</code> (ReferenceError)<br>
+          MC_PRODUCTS_LIST 画面で7回発生</td>
+          <td><span class="badge done">v2.3で対応済</span><br>window.onerror → /consolelog に記録される</td>
+        </tr>
+        <tr>
+          <td class="issue-id">I-05</td>
+          <td><code>temp_files/http:?... 404</code> (リソース読み込み失敗)<br>
+          Talon の一時ファイルURL生成バグ</td>
+          <td><span class="badge done">v2.3で対応済</span><br>addEventListener(capture) → /consolelog に記録される</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ④ 次の会話での作業手順 -->
+  <div class="section">
+    <div class="section-header orange">④ 次の会話での作業手順（優先順）</div>
+    <div class="section-body">
+      <table>
+        <tr><th>順序</th><th>作業</th><th>対象ファイル</th><th>優先度</th></tr>
+        <tr>
+          <td>1</td>
+          <td>
+            <strong>.console.jsonl の存在確認</strong><br>
+            <code>ls -la logs/features/</code><br>
+            <code>tail -5 logs/features/MC_PRODUCTS_LIST.console.jsonl</code><br>
+            → 存在すれば /consolelog 500 は過去セッションの問題
+          </td>
+          <td>server ターミナル</td>
+          <td><span class="badge todo">最優先</span></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>
+            <strong>IGNORE_ID_PATTERNS 修正</strong><br>
+            <code>/^1_閲覧_/</code> と <code>/^1_編集_/</code> を追加<br>
+            → 不要なボタン操作のログ記録を排除
+          </td>
+          <td>talon_testcase_logger.js</td>
+          <td><span class="badge todo">高</span></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>
+            <strong>無限ループ防止コード追加</strong><br>
+            console[level] オーバーライド先頭に<br>
+            <code>192.168.1.11:3099</code> を含む args をスキップする処理を追加
+          </td>
+          <td>talon_testcase_logger.js</td>
+          <td><span class="badge todo">高</span></td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>
+            <strong>/consolelog 500 が現在も発生するか確認</strong><br>
+            手順1の結果次第。まだ500が出るなら server.js に詳細ログ追加して原因調査
+          </td>
+          <td>server.js</td>
+          <td><span class="badge wip">状況次第</span></td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>
+            <strong>動作検証</strong><br>
+            修正後にブラウザをリロードし、コンソールに 500 や無限ループが出ないことを確認<br>
+            <code>tail -f logs/features/MC_PRODUCTS_LIST.console.jsonl</code> でリアルタイム確認
+          </td>
+          <td>browser + server</td>
+          <td><span class="badge info">最後</span></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ⑤ 検証コマンド集 -->
+  <div class="section">
+    <div class="section-header purple">⑤ よく使う検証コマンド集</div>
+    <div class="section-body">
+      <div class="grid2">
+        <div>
+          <h3>ログ確認</h3>
+          <div class="code-block"><code># console.jsonl の最新5件
+tail -5 ~/projects/log-server/logs/features/MC_PRODUCTS_LIST.console.jsonl
+
+# リアルタイム監視
+tail -f ~/projects/log-server/logs/features/MC_PRODUCTS_LIST.console.jsonl
+
+# JS_ERROR / RESOURCE_ERROR の件数
+grep -c '"JS_ERROR\|RESOURCE_ERROR"' \
+  logs/features/MC_PRODUCTS_LIST.console.jsonl
+
+# エラーレベルのみ抽出
+grep '"level":"error"' \
+  logs/features/MC_PRODUCTS_LIST.console.jsonl | tail -10</code></div>
+        </div>
+        <div>
+          <h3>サーバー操作</h3>
+          <div class="code-block"><code># サーバー起動
+node ~/projects/log-server/server.js -d
+
+# 死活確認
+curl http://192.168.1.11:3099/ping
+
+# 全ログ削除（テスト前リセット）
+curl http://192.168.1.11:3099/clean
+
+# consolelog API 取得
+curl http://192.168.1.11:3099/consolelogs/MC_PRODUCTS_LIST | python3 -m json.tool</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑥ ファイルバージョン状況 -->
+  <div class="section">
+    <div class="section-header">⑥ 現在のファイルバージョン状況</div>
+    <div class="section-body">
+      <table>
+        <tr><th>ファイル</th><th>バージョン</th><th>プロジェクトナレッジ</th><th>サーバー実機</th></tr>
+        <tr>
+          <td class="file-path">talon_testcase_logger.js</td>
+          <td>v2.3</td>
+          <td><span class="badge done">最新（2026-02-27）</span></td>
+          <td><span class="badge wip">要確認（適用済みのはず）</span></td>
+        </tr>
+        <tr>
+          <td class="file-path">server.js</td>
+          <td>v2.2</td>
+          <td><span class="badge done">最新（2026-02-27）</span></td>
+          <td><span class="badge done">起動中（node server.js -d）</span></td>
+        </tr>
+      </table>
+      <div class="alert info" style="margin-top:10px;">
+        <strong>注意:</strong> talon_testcase_logger.js の IGNORE_ID_PATTERNS と無限ループ防止コードは
+        <span class="highlight">まだ適用されていない</span>（次の会話で適用予定）
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
