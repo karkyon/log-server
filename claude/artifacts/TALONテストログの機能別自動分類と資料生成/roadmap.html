@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>方式B 実装ロードマップ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+    body { font-family: 'DM Sans', sans-serif; }
+    code, .mono { font-family: 'DM Mono', monospace; }
+    .step-done   { @apply bg-emerald-50 border-emerald-300; }
+    .step-todo   { @apply bg-white border-gray-200; }
+    .step-manual { @apply bg-amber-50 border-amber-300; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <div class="max-w-5xl mx-auto py-12 px-6">
+
+    <!-- タイトル -->
+    <div class="mb-10">
+      <p class="text-xs font-semibold tracking-widest text-indigo-400 uppercase mb-1">karkyon / log-server</p>
+      <h1 class="text-3xl font-bold text-gray-900">方式B 実装ロードマップ</h1>
+      <p class="mt-1 text-sm text-gray-400">GitHub Actions + Claude API で機能仕様書を自動生成する</p>
+    </div>
+
+    <!-- 現状サマリ -->
+    <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-5 mb-10 flex flex-wrap gap-4">
+      <div>
+        <p class="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-1">現在完了済み</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">✓ server.js (機能別分類対応)</span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">✓ talon_testcase_logger.js (v1.4)</span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">✓ MC_PRODUCTS_LIST ログ取得済み</span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">✓ スクショ取得済み</span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">✓ GitHub Push 完了</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ステップ一覧 -->
+    <div class="space-y-4">
+
+      <!-- STEP 1 -->
+      <div class="rounded-2xl border-2 step-manual p-5">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-white font-bold">1</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-base font-semibold text-gray-900">GitHub シークレットに API キーを登録</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-200 text-amber-800">⚡ 手動作業（1回のみ）</span>
+            </div>
+            <p class="text-sm text-gray-600 mb-3">console.anthropic.com でAPIキーを発行し、GitHubリポジトリのシークレットに登録する</p>
+            <div class="bg-white rounded-xl border border-amber-200 p-4 text-xs mono space-y-1 text-gray-600">
+              <p>① <a href="https://console.anthropic.com" class="text-indigo-600 underline">console.anthropic.com</a> → API Keys → Create Key</p>
+              <p>② GitHub → karkyon/log-server → Settings → Secrets and variables → Actions</p>
+              <p>③ New repository secret → Name: <strong class="text-amber-700">ANTHROPIC_API_KEY</strong> → Value: 発行したキー</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="rounded-2xl border-2 step-todo p-5">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold">2</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-base font-semibold text-gray-900">scripts/generate.js を作成</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">🛠 今回作成</span>
+            </div>
+            <p class="text-sm text-gray-600 mb-3">ログ + スクショを読み込み → Claude API 呼び出し → HTML仕様書を生成するNode.jsスクリプト</p>
+            <div class="bg-gray-50 rounded-xl border border-gray-200 p-4 text-xs mono text-gray-600 space-y-1">
+              <p class="text-indigo-600 font-semibold">処理フロー:</p>
+              <p>① 引数で featureId を受け取る（例: MC_PRODUCTS_LIST）</p>
+              <p>② logs/features/&lt;featureId&gt;.jsonl を読み込む</p>
+              <p>③ logs/screenshots/&lt;featureId&gt;/ のスクショをbase64変換</p>
+              <p>④ Claude API (claude-sonnet-4) へ ログ + 画像 + プロンプトを送信</p>
+              <p>⑤ 返答からHTMLを生成 → docs/&lt;featureId&gt;/index.html に保存</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="rounded-2xl border-2 step-todo p-5">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold">3</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-base font-semibold text-gray-900">.github/workflows/generate-docs.yml を作成</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">🛠 今回作成</span>
+            </div>
+            <p class="text-sm text-gray-600 mb-3">logs/ 以下のファイルが Push されたとき、変更された featureId のみ generate.js を実行する</p>
+            <div class="bg-gray-50 rounded-xl border border-gray-200 p-4 text-xs mono text-gray-600 space-y-1">
+              <p class="text-indigo-600 font-semibold">ワークフロー概要:</p>
+              <p>trigger: push → paths: logs/features/**, logs/screenshots/**</p>
+              <p>① git diff で変更された .jsonl ファイルを検出</p>
+              <p>② featureId を抽出（ファイル名から）</p>
+              <p>③ node scripts/generate.js &lt;featureId&gt; を実行</p>
+              <p>④ 生成された docs/ を git commit &amp;&amp; push</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="rounded-2xl border-2 step-todo p-5">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold">4</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-base font-semibold text-gray-900">package.json に依存パッケージを追加</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">🛠 今回作成</span>
+            </div>
+            <p class="text-sm text-gray-600 mb-2">generate.js が依存するパッケージを登録する</p>
+            <div class="bg-gray-50 rounded-xl border border-gray-200 p-4 text-xs mono text-gray-600">
+              <p>@anthropic-ai/sdk（Claude API クライアント）</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="rounded-2xl border-2 step-todo p-5">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center text-white font-bold">5</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-base font-semibold text-gray-900">GitHub Pages を有効化</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">⚡ 手動作業（1回のみ）</span>
+            </div>
+            <p class="text-sm text-gray-600 mb-3">生成された HTML をブラウザで参照できるようにする</p>
+            <div class="bg-white rounded-xl border border-amber-200 p-4 text-xs mono text-gray-600 space-y-1">
+              <p>GitHub → karkyon/log-server → Settings → Pages</p>
+              <p>Source: Deploy from a branch → Branch: main → / (root) or /docs</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 6 (テスト) -->
+      <div class="rounded-2xl border-2 step-todo p-5">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-gray-700 flex items-center justify-center text-white font-bold">6</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-base font-semibold text-gray-900">動作確認：MC_PRODUCTS_LIST で初回生成テスト</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">✅ 動作確認</span>
+            </div>
+            <p class="text-sm text-gray-600">既存の MC_PRODUCTS_LIST のログ・スクショで Actions を手動実行し、docs/ への HTML 生成を確認する</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 生成物の構造 -->
+    <div class="mt-10 bg-white rounded-2xl border border-gray-200 p-6">
+      <h3 class="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wider">Push 後のリポジトリ構造（完成時）</h3>
+      <pre class="text-xs mono text-gray-600 bg-gray-50 rounded-xl p-4 leading-relaxed">karkyon/log-server/
+├── logs/
+│   ├── features/
+│   │   └── MC_PRODUCTS_LIST.jsonl      ← テストログ（Push 済み ✓）
+│   └── screenshots/
+│       └── MC_PRODUCTS_LIST/           ← スクショ（Push 済み ✓）
+│           └── *.jpg
+├── scripts/
+│   └── generate.js                     ← ★ STEP2 で作成
+├── .github/
+│   └── workflows/
+│       └── generate-docs.yml           ← ★ STEP3 で作成
+├── docs/                               ← Actions が自動生成・Push
+│   └── MC_PRODUCTS_LIST/
+│       └── index.html                  ← 機能仕様書（白基調モダン）
+├── server.js                           ✓
+├── talon_testcase_logger.js            ✓
+└── package.json                        ← ★ STEP4 で更新</pre>
+    </div>
+
+    <p class="text-xs text-gray-400 text-center mt-8">karkyon / log-server — Method B Implementation Roadmap</p>
+  </div>
+
+</body>
+</html>

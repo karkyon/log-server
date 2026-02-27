@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>画面遷移図 - マシニング加工管理システム</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #0a0f1e;
+    --surface: #111827;
+    --surface2: #1e2538;
+    --border: #2d3748;
+    --accent: #3b82f6;
+    --accent2: #10b981;
+    --accent3: #f59e0b;
+    --accent4: #8b5cf6;
+    --accent5: #ef4444;
+    --text: #f1f5f9;
+    --text2: #94a3b8;
+    --text3: #475569;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ヘッダー */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header-logo {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .header-title { font-size: 16px; font-weight: 700; }
+  .header-subtitle { font-size: 11px; color: var(--text2); font-family: 'JetBrains Mono', monospace; }
+
+  /* 凡例 */
+  .legend {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+  .legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 3px;
+  }
+
+  /* メインコンテナ */
+  .main {
+    padding: 40px;
+    overflow-x: auto;
+  }
+
+  /* フロー全体 */
+  .flow-container {
+    min-width: 1400px;
+    position: relative;
+  }
+
+  /* セクションタイトル */
+  .flow-section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    margin-top: 40px;
+    padding-left: 4px;
+    border-left: 2px solid var(--text3);
+    padding-left: 10px;
+  }
+
+  /* スイムレーン */
+  .swimlane-container {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+  .swimlane-label {
+    background: var(--surface2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 12px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text2);
+    letter-spacing: 2px;
+  }
+  .swimlane-content {
+    padding: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  /* 画面ノード */
+  .screen-node {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .screen-node:hover { transform: translateY(-3px); }
+  .screen-node:hover .screen-box { box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+
+  .screen-box {
+    width: 130px;
+    border-radius: 8px;
+    border: 1px solid;
+    padding: 12px 10px;
+    text-align: center;
+    transition: box-shadow 0.2s;
+    position: relative;
+  }
+  .screen-icon { font-size: 20px; margin-bottom: 6px; }
+  .screen-name { font-size: 11px; font-weight: 700; line-height: 1.4; }
+  .screen-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    opacity: 0.6;
+    margin-top: 4px;
+  }
+
+  /* ノードカラー */
+  .node-auth { background: #1e1b4b; border-color: #4338ca; }
+  .node-auth .screen-name { color: #a5b4fc; }
+  .node-main { background: #0c1a3a; border-color: #3b82f6; }
+  .node-main .screen-name { color: #93c5fd; }
+  .node-machining { background: #0c2a1a; border-color: #10b981; }
+  .node-machining .screen-name { color: #6ee7b7; }
+  .node-sheet { background: #2a1a0c; border-color: #f59e0b; }
+  .node-sheet .screen-name { color: #fcd34d; }
+  .node-work { background: #1a0c2a; border-color: #8b5cf6; }
+  .node-work .screen-name { color: #c4b5fd; }
+  .node-tools { background: #1f1a0c; border-color: #d97706; }
+  .node-tools .screen-name { color: #fde68a; }
+  .node-info { background: #0c1f2a; border-color: #0ea5e9; }
+  .node-info .screen-name { color: #7dd3fc; }
+  .node-admin { background: #2a0c0c; border-color: #ef4444; }
+  .node-admin .screen-name { color: #fca5a5; }
+
+  /* バッジ */
+  .node-badge {
+    position: absolute;
+    top: -6px; right: -6px;
+    background: #ef4444;
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .node-badge.important { background: #f59e0b; color: black; }
+  .node-badge.new { background: #10b981; }
+
+  /* 矢印コンテナ */
+  .flow-arrows {
+    margin: 20px 0;
+    padding: 20px;
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .flow-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text2);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* 遷移フロー（横並び） */
+  .transition-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .flow-node {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 8px;
+    min-width: 70px;
+  }
+  .flow-arrow-line {
+    font-size: 18px;
+    color: var(--text3);
+    line-height: 1;
+  }
+  .flow-arrow-label {
+    font-size: 9px;
+    color: var(--text3);
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .flow-node.start { background: #1e3a5f; border-color: var(--accent); color: #93c5fd; font-weight: 700; }
+  .flow-node.end { background: #1a3a20; border-color: var(--accent2); color: #6ee7b7; font-weight: 700; }
+  .flow-node.action { background: #3a2a0c; border-color: var(--accent3); color: #fcd34d; }
+  .flow-node.system { background: #2a1a3a; border-color: var(--accent4); color: #c4b5fd; }
+
+  /* 詳細パネル */
+  .detail-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-top: 32px;
+  }
+  .detail-title { font-size: 15px; font-weight: 700; margin-bottom: 20px; color: var(--text); }
+
+  /* 主要フロー詳細テーブル */
+  .flow-detail-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin: 16px 0;
+  }
+  .flow-detail-table th {
+    background: var(--surface2);
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text2);
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+  }
+  .flow-detail-table td {
+    padding: 10px 14px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+  }
+  .flow-detail-table tr:last-child td { border-bottom: none; }
+
+  /* URL表示 */
+  .url-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 4px;
+    padding: 2px 8px;
+    color: #7dd3fc;
+    display: inline-block;
+    margin: 2px 0;
+  }
+
+  /* グリッドフロー */
+  .main-flow {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    margin: 24px 0;
+    position: relative;
+  }
+
+  .main-flow-connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text3);
+    font-size: 24px;
+  }
+
+  /* フッター */
+  .page-footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 20px 40px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">🏭</div>
+    <div>
+      <div class="header-title">マシニング加工管理システム — 画面遷移図</div>
+      <div class="header-subtitle">SCREEN NAVIGATION FLOW / MC-REBUILD-001 / Next.js App Router</div>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#4338ca"></div>認証</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>メニュー</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>マシニング情報</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>段取シート</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#8b5cf6"></div>作業実績</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#d97706"></div>工具・治具</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#0ea5e9"></div>参照・管理</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>管理者専用</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="flow-container">
+
+    <!-- ─── 認証フロー ─── -->
+    <div class="flow-section-title">01. 認証フロー</div>
+    <div class="swimlane-container">
+      <div class="swimlane-label" style="background:#1e1b4b; color:#a5b4fc;">認証</div>
+      <div class="swimlane-content">
+        <div class="screen-node">
+          <div class="screen-box node-auth">
+            <div class="screen-icon">🔐</div>
+            <div class="screen-name">ログイン画面</div>
+            <div class="screen-id">MC-AUTH-001</div>
+          </div>
+          <div style="font-size:10px; color:var(--text3);">/login</div>
+        </div>
+        <div style="display:flex;align-items:center;color:var(--text3);font-size:20px;padding-top:20px;">→</div>
+        <div class="screen-node">
+          <div class="screen-box node-auth">
+            <div class="screen-icon">✅</div>
+            <div class="screen-name">認証成功<br>→ メニューへ</div>
+            <div class="screen-id">JWT発行</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;color:var(--text3);font-size:20px;padding-top:20px; margin-left:40px;">‖ 失敗時</div>
+        <div class="screen-node">
+          <div class="screen-box node-auth">
+            <div class="screen-icon">❌</div>
+            <div class="screen-name">認証失敗<br>エラー表示</div>
+            <div class="screen-id">5回→ロック</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;color:var(--text3);font-size:20px;padding-top:20px; margin-left:40px;">‖ セッション切れ</div>
+        <div class="screen-node">
+          <div class="screen-box node-auth">
+            <div class="screen-icon">⏰</div>
+            <div class="screen-name">自動ログアウト<br>→ログイン画面</div>
+            <div class="screen-id">30分タイムアウト</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── メインメニュー ─── -->
+    <div class="flow-section-title">02. メインメニュー（ロール別表示制御）</div>
+    <div class="swimlane-container">
+      <div class="swimlane-label" style="background:#0c1a3a; color:#93c5fd;">メニュー</div>
+      <div class="swimlane-content">
+        <div class="screen-node">
+          <div class="screen-box node-main">
+            <div class="node-badge important">HUB</div>
+            <div class="screen-icon">🏠</div>
+            <div class="screen-name">メインメニュー<br>ダッシュボード</div>
+            <div class="screen-id">MC-MENU-001</div>
+          </div>
+          <div style="font-size:10px; color:var(--text3);">/dashboard</div>
+        </div>
+        <div style="padding: 20px 16px; color: var(--text3); font-size: 12px; display:flex;align-items:center;">
+          → ロールに応じた<br>メニュー表示
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+          <div style="text-align:center;font-size:11px;color:#6ee7b7;">【ENGINEER / ADMIN】</div>
+          <br>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <div style="background:#0c2a1a;border:1px solid #10b981;border-radius:6px;padding:6px 12px;font-size:11px;color:#6ee7b7;">マシニング情報管理</div>
+            <div style="background:#2a1a0c;border:1px solid #f59e0b;border-radius:6px;padding:6px 12px;font-size:11px;color:#fcd34d;">段取シート系</div>
+            <div style="background:#1a0c2a;border:1px solid #8b5cf6;border-radius:6px;padding:6px 12px;font-size:11px;color:#c4b5fd;">作業実績</div>
+            <div style="background:#1f1a0c;border:1px solid #d97706;border-radius:6px;padding:6px 12px;font-size:11px;color:#fde68a;">工具・治具管理</div>
+            <div style="background:#0c1f2a;border:1px solid #0ea5e9;border-radius:6px;padding:6px 12px;font-size:11px;color:#7dd3fc;">参照系</div>
+            <div style="background:#2a0c0c;border:1px solid #ef4444;border-radius:6px;padding:6px 12px;font-size:11px;color:#fca5a5;">管理者専用</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── マシニング情報管理フロー ─── -->
+    <div class="flow-section-title">03. マシニング情報管理フロー（最重要）</div>
+    <div class="swimlane-container">
+      <div class="swimlane-label" style="background:#0c2a1a; color:#6ee7b7;">マシニング情報</div>
+      <div class="swimlane-content" style="flex-direction:column; gap:20px;">
+
+        <!-- 行1: メインフロー -->
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div class="screen-node">
+            <div class="screen-box node-machining">
+              <div class="node-badge important">⭐最重要</div>
+              <div class="screen-icon">📊</div>
+              <div class="screen-name">マシニング<br>情報管理</div>
+              <div class="screen-id">MC-MACH-001</div>
+            </div>
+            <div style="font-size:10px; color:var(--text3);">/machining</div>
+          </div>
+          <div style="font-size:20px;color:var(--text3);">⇄</div>
+          <div class="screen-node">
+            <div class="screen-box node-machining">
+              <div class="screen-icon">🔧</div>
+              <div class="screen-name">ツーリング<br>編集</div>
+              <div class="screen-id">MC-TOOL-001</div>
+            </div>
+            <div style="font-size:10px; color:var(--text3);">/machining/:id/tooling</div>
+          </div>
+          <div style="font-size:20px;color:var(--text3);">⇄</div>
+          <div class="screen-node">
+            <div class="screen-box node-machining">
+              <div class="screen-icon">📐</div>
+              <div class="screen-name">ワークオフセット<br>編集</div>
+              <div class="screen-id">MC-OFFSET-001</div>
+            </div>
+            <div style="font-size:10px; color:var(--text3);">/machining/:id/offset</div>
+          </div>
+          <div style="font-size:20px;color:var(--text3);">⇄</div>
+          <div class="screen-node">
+            <div class="screen-box node-machining">
+              <div class="screen-icon">💻</div>
+              <div class="screen-name">インデックス<br>プログラム編集</div>
+              <div class="screen-id">MC-IDX-001</div>
+            </div>
+            <div style="font-size:10px; color:var(--text3);">/machining/:id/index</div>
+          </div>
+        </div>
+
+        <!-- 行2: サブ遷移 -->
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap; margin-left:20px;">
+          <div style="font-size:12px;color:var(--text3);">編集確定時 ↓</div>
+          <div class="screen-node">
+            <div class="screen-box node-machining">
+              <div class="screen-icon">✍️</div>
+              <div class="screen-name">情報更新内容<br>確認</div>
+              <div class="screen-id">MC-MACH-002</div>
+            </div>
+            <div style="font-size:10px; color:var(--text3);">/machining/:id/confirm</div>
+          </div>
+          <div style="font-size:20px;color:var(--text3);">→</div>
+          <div class="screen-node">
+            <div class="screen-box node-machining">
+              <div class="screen-icon">📂</div>
+              <div class="screen-name">図一覧</div>
+              <div class="screen-id">MC-DRW-001</div>
+            </div>
+            <div style="font-size:10px; color:var(--text3);">/machining/:id/drawings</div>
+          </div>
+          <div style="font-size:20px;color:var(--text3);">→</div>
+          <div class="screen-node">
+            <div class="screen-box node-machining">
+              <div class="screen-icon">📷</div>
+              <div class="screen-name">写真一覧</div>
+              <div class="screen-id">MC-PHOTO-001</div>
+            </div>
+            <div style="font-size:10px; color:var(--text3);">/machining/:id/photos</div>
+          </div>
+        </div>
+
+        <!-- 行3: 段取シートへの遷移 -->
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap; margin-left:20px;">
+          <div style="font-size:12px;color:var(--text3);">「段取シート発行」ボタン ↓</div>
+          <div class="screen-node">
+            <div class="screen-box node-sheet">
+              <div class="screen-icon">📋</div>
+              <div class="screen-name">段取シート発行<br>（リピート）</div>
+              <div class="screen-id">MC-SHEET-003</div>
+            </div>
+            <div style="font-size:10px; color:var(--text3);">/setup-sheet/repeat</div>
+          </div>
+          <div style="font-size:20px;color:var(--accent3);">→</div>
+          <div style="font-size:12px;color:#fcd34d;background:#2a1a0c;border:1px solid #f59e0b;border-radius:6px;padding:10px 14px;">
+            📥 Excelダウンロード<br><span style="font-size:10px;color:var(--text3);">ExcelJS生成 → ブラウザ配信</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 段取シート管理フロー ─── -->
+    <div class="flow-section-title">04. 段取シート管理フロー</div>
+    <div class="swimlane-container">
+      <div class="swimlane-label" style="background:#2a1a0c; color:#fcd34d;">段取シート</div>
+      <div class="swimlane-content" style="flex-direction:column; gap:16px;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div class="screen-node">
+            <div class="screen-box node-sheet">
+              <div class="screen-icon">📋</div>
+              <div class="screen-name">段取シート<br>一覧</div>
+              <div class="screen-id">MC-SHEET-001</div>
+            </div>
+            <div style="font-size:10px; color:var(--text3);">/setup-sheet</div>
+          </div>
+          <div style="font-size:20px;color:var(--text3);">→</div>
+          <div class="screen-node">
+            <div class="screen-box node-sheet">
+              <div class="screen-icon">🆕</div>
+              <div class="screen-name">段取シート発行<br>（新規）</div>
+              <div class="screen-id">MC-SHEET-002</div>
+            </div>
+            <div style="font-size:10px; color:var(--text3);">/setup-sheet/new</div>
+          </div>
+          <div style="font-size:20px;color:var(--text3);">→</div>
+          <div class="screen-node">
+            <div class="screen-box node-sheet">
+              <div class="screen-icon">🔁</div>
+              <div class="screen-name">段取シート発行<br>（リピート）</div>
+              <div class="screen-id">MC-SHEET-003</div>
+            </div>
+            <div style="font-size:10px; color:var(--text3);">/setup-sheet/repeat</div>
+          </div>
+          <div style="font-size:20px;color:var(--text3);">→</div>
+          <div class="screen-node">
+            <div class="screen-box node-sheet">
+              <div class="screen-icon">⚠️</div>
+              <div class="screen-name">SP段取シート<br>通知</div>
+              <div class="screen-id">MC-SHEET-004</div>
+            </div>
+            <div style="font-size:10px; color:var(--text3);">/setup-sheet/sp-notify</div>
+          </div>
+          <div style="font-size:20px;color:var(--text3);">→</div>
+          <div class="screen-node">
+            <div class="screen-box node-sheet">
+              <div class="screen-icon">📌</div>
+              <div class="screen-name">SP段取シート<br>発行</div>
+              <div class="screen-id">MC-SHEET-005</div>
+            </div>
+            <div style="font-size:10px; color:var(--text3);">/setup-sheet/sp-issue</div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-left:8px;">
+          ※ 段取シート一覧からは「未回収→回収済」の状況更新が可能。「マシニング」ボタンでマシニング情報管理画面へ遷移。
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 作業実績管理フロー ─── -->
+    <div class="flow-section-title">05. 作業実績管理フロー</div>
+    <div class="swimlane-container">
+      <div class="swimlane-label" style="background:#1a0c2a; color:#c4b5fd;">作業実績</div>
+      <div class="swimlane-content">
+        <div class="screen-node">
+          <div class="screen-box node-work">
+            <div class="screen-icon">📈</div>
+            <div class="screen-name">作業実績<br>一覧</div>
+            <div class="screen-id">MC-WORK-002</div>
+          </div>
+          <div style="font-size:10px; color:var(--text3);">/work-history</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding-top:20px;font-size:20px;color:var(--text3);">→</div>
+        <div class="screen-node">
+          <div class="screen-box node-work">
+            <div class="screen-icon">✏️</div>
+            <div class="screen-name">作業実績<br>登録</div>
+            <div class="screen-id">MC-WORK-001</div>
+          </div>
+          <div style="font-size:10px; color:var(--text3);">/work-history/register</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding-top:20px;font-size:20px;color:var(--text3);margin-left:20px;">→</div>
+        <div class="screen-node">
+          <div class="screen-box node-work">
+            <div class="screen-icon">📊</div>
+            <div class="screen-name">設備稼働<br>実績</div>
+            <div class="screen-id">MC-MACH-004</div>
+          </div>
+          <div style="font-size:10px; color:var(--text3);">/machine-operation</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding-top:20px;font-size:14px;color:var(--text3);margin-left:20px;">
+          CSV<br>エクスポート↓
+        </div>
+        <div style="display:flex;align-items:center;padding-top:20px;">
+          <div style="background:#1a0c2a;border:1px solid #8b5cf6;border-radius:6px;padding:10px;font-size:11px;color:#c4b5fd;text-align:center;">
+            📥 CSV/<br>Excel出力
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 工具・治具管理フロー ─── -->
+    <div class="flow-section-title">06. 工具・治具管理フロー</div>
+    <div class="swimlane-container">
+      <div class="swimlane-label" style="background:#1f1a0c; color:#fde68a;">工具・治具</div>
+      <div class="swimlane-content">
+        <div class="screen-node">
+          <div class="screen-box node-tools">
+            <div class="screen-icon">🔍</div>
+            <div class="screen-name">生爪検索</div>
+            <div class="screen-id">MC-JAW-001</div>
+          </div>
+          <div style="font-size:10px; color:var(--text3);">/jaws/search</div>
+        </div>
+        <div style="display:flex;align-items:center;padding-top:20px;font-size:20px;color:var(--text3);">→</div>
+        <div class="screen-node">
+          <div class="screen-box node-tools">
+            <div class="screen-icon">🛠️</div>
+            <div class="screen-name">生爪編集<br>（段取シート一覧）</div>
+            <div class="screen-id">MC-JAW-002</div>
+          </div>
+          <div style="font-size:10px; color:var(--text3);">/jaws/:id/edit</div>
+        </div>
+        <div style="display:flex;align-items:center;padding-top:20px;font-size:20px;color:var(--text3);margin-left:20px;">→</div>
+        <div class="screen-node">
+          <div class="screen-box node-tools">
+            <div class="screen-icon">💻</div>
+            <div class="screen-name">インデックス<br>プログラム編集</div>
+            <div class="screen-id">MC-IDX-001</div>
+          </div>
+          <div style="font-size:10px; color:var(--text3);">/index-program</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 参照系画面フロー ─── -->
+    <div class="flow-section-title">07. 部品・設備・図面・写真（参照系）フロー</div>
+    <div class="swimlane-container">
+      <div class="swimlane-label" style="background:#0c1f2a; color:#7dd3fc;">参照系</div>
+      <div class="swimlane-content">
+        <div class="screen-node">
+          <div class="screen-box node-info">
+            <div class="screen-icon">📦</div>
+            <div class="screen-name">部品一覧</div>
+            <div class="screen-id">MC-PARTS-001</div>
+          </div>
+          <div style="font-size:10px; color:var(--text3);">/parts</div>
+        </div>
+        <div style="display:flex;align-items:center;padding-top:20px;font-size:20px;color:var(--text3);">→</div>
+        <div class="screen-node">
+          <div class="screen-box node-info">
+            <div class="screen-icon">🏭</div>
+            <div class="screen-name">設備一覧</div>
+            <div class="screen-id">MC-MACH-003</div>
+          </div>
+          <div style="font-size:10px; color:var(--text3);">/machines</div>
+        </div>
+        <div style="display:flex;align-items:center;padding-top:20px;font-size:20px;color:var(--text3);">→</div>
+        <div class="screen-node">
+          <div class="screen-box node-info">
+            <div class="screen-icon">📐</div>
+            <div class="screen-name">図一覧</div>
+            <div class="screen-id">MC-DRW-001</div>
+          </div>
+          <div style="font-size:10px; color:var(--text3);">/drawings</div>
+        </div>
+        <div style="display:flex;align-items:center;padding-top:20px;font-size:20px;color:var(--text3);">→</div>
+        <div class="screen-node">
+          <div class="screen-box node-info">
+            <div class="screen-icon">📷</div>
+            <div class="screen-name">写真一覧</div>
+            <div class="screen-id">MC-PHOTO-001</div>
+          </div>
+          <div style="font-size:10px; color:var(--text3);">/photos</div>
+        </div>
+        <div style="display:flex;align-items:center;padding-top:20px;font-size:20px;color:var(--text3);">→</div>
+        <div style="padding-top:10px;">
+          <div style="background:#0c1f2a;border:1px solid #0ea5e9;border-radius:6px;padding:12px;font-size:11px;color:#7dd3fc;text-align:center;">
+            🖼️ Ridoc図面API<br><span style="font-size:10px;color:var(--text3);">192.168.1.9:8080</span><br>で図面表示
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 管理者専用フロー ─── -->
+    <div class="flow-section-title">08. 管理者専用機能フロー（ADMINロールのみ）</div>
+    <div class="swimlane-container">
+      <div class="swimlane-label" style="background:#2a0c0c; color:#fca5a5;">管理者専用</div>
+      <div class="swimlane-content">
+        <div class="screen-node">
+          <div class="screen-box node-admin">
+            <div class="node-badge">ADMIN</div>
+            <div class="screen-icon">👥</div>
+            <div class="screen-name">ユーザー管理</div>
+            <div class="screen-id">MC-USER-001</div>
+          </div>
+          <div style="font-size:10px; color:var(--text3);">/admin/users</div>
+        </div>
+        <div style="display:flex;align-items:center;padding-top:20px;font-size:20px;color:var(--text3);">→</div>
+        <div class="screen-node">
+          <div class="screen-box node-admin">
+            <div class="node-badge">ADMIN</div>
+            <div class="screen-icon">⚙️</div>
+            <div class="screen-name">マスタ管理</div>
+            <div class="screen-id">MC-MASTER-001</div>
+          </div>
+          <div style="font-size:10px; color:var(--text3);">/admin/master</div>
+        </div>
+        <div style="display:flex;align-items:center;padding-top:20px;font-size:20px;color:var(--text3);">→</div>
+        <div class="screen-node">
+          <div class="screen-box node-admin">
+            <div class="node-badge">ADMIN</div>
+            <div class="screen-icon">📝</div>
+            <div class="screen-name">システム操作<br>ログ</div>
+            <div class="screen-id">MC-LOG-001</div>
+          </div>
+          <div style="font-size:10px; color:var(--text3);">/admin/operation-log</div>
+        </div>
+        <div style="display:flex;align-items:center;padding-top:20px;font-size:20px;color:var(--text3);">→</div>
+        <div style="padding-top:10px;">
+          <div style="background:#2a0c0c;border:1px solid #ef4444;border-radius:6px;padding:12px;font-size:11px;color:#fca5a5;text-align:center;">
+            📥 CSV<br>エクスポート
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── URLルーティング設計 ─── -->
+    <div class="detail-panel">
+      <div class="detail-title">📡 Next.js App Router — URLルーティング設計</div>
+      <table class="flow-detail-table">
+        <thead>
+          <tr>
+            <th>画面名</th>
+            <th>URL（Next.js App Router）</th>
+            <th>動的パラメータ</th>
+            <th>アクセス権限</th>
+            <th>データ取得</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ログイン画面</td>
+            <td><span class="url-pill">/login</span></td>
+            <td>—</td>
+            <td>全ユーザー</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>ダッシュボード/メニュー</td>
+            <td><span class="url-pill">/dashboard</span></td>
+            <td>—</td>
+            <td>全ロール（認証済）</td>
+            <td>SP通知件数、最新実績</td>
+          </tr>
+          <tr>
+            <td>マシニング情報管理</td>
+            <td><span class="url-pill">/machining?partsId=&mode=edit&mcId=</span></td>
+            <td>?partsId, ?mode, ?mcId</td>
+            <td>ADMIN / ENGINEER / OPERATOR</td>
+            <td>SSR + Client Fetch</td>
+          </tr>
+          <tr>
+            <td>ツーリング編集</td>
+            <td><span class="url-pill">/machining/[mcId]/tooling</span></td>
+            <td>[mcId]</td>
+            <td>ADMIN / ENGINEER</td>
+            <td>Client Fetch</td>
+          </tr>
+          <tr>
+            <td>ワークオフセット編集</td>
+            <td><span class="url-pill">/machining/[mcId]/offset</span></td>
+            <td>[mcId]</td>
+            <td>ADMIN / ENGINEER</td>
+            <td>Client Fetch</td>
+          </tr>
+          <tr>
+            <td>マシニング更新確認</td>
+            <td><span class="url-pill">/machining/[mcId]/confirm</span></td>
+            <td>[mcId]</td>
+            <td>ADMIN / ENGINEER</td>
+            <td>Client Fetch</td>
+          </tr>
+          <tr>
+            <td>段取シート一覧</td>
+            <td><span class="url-pill">/setup-sheet?status=&from=&to=</span></td>
+            <td>?status, ?from, ?to</td>
+            <td>全ロール（認証済）</td>
+            <td>SSR</td>
+          </tr>
+          <tr>
+            <td>段取シート発行（新規）</td>
+            <td><span class="url-pill">/setup-sheet/new?partsId=</span></td>
+            <td>?partsId</td>
+            <td>ADMIN / ENGINEER / OPERATOR</td>
+            <td>Client Fetch</td>
+          </tr>
+          <tr>
+            <td>段取シート発行（リピート）</td>
+            <td><span class="url-pill">/setup-sheet/repeat?mcId=</span></td>
+            <td>?mcId</td>
+            <td>ADMIN / ENGINEER / OPERATOR</td>
+            <td>Client Fetch</td>
+          </tr>
+          <tr>
+            <td>SP段取シート通知</td>
+            <td><span class="url-pill">/setup-sheet/sp-notify</span></td>
+            <td>—</td>
+            <td>全ロール（認証済）</td>
+            <td>Client Fetch</td>
+          </tr>
+          <tr>
+            <td>作業実績一覧</td>
+            <td><span class="url-pill">/work-history</span></td>
+            <td>—</td>
+            <td>全ロール（認証済）</td>
+            <td>SSR + Pagination</td>
+          </tr>
+          <tr>
+            <td>作業実績登録</td>
+            <td><span class="url-pill">/work-history/register?mcId=</span></td>
+            <td>?mcId</td>
+            <td>ADMIN / ENGINEER / OPERATOR</td>
+            <td>Client Fetch</td>
+          </tr>
+          <tr>
+            <td>生爪検索</td>
+            <td><span class="url-pill">/jaws</span></td>
+            <td>—</td>
+            <td>全ロール（認証済）</td>
+            <td>SSR</td>
+          </tr>
+          <tr>
+            <td>生爪編集</td>
+            <td><span class="url-pill">/jaws/[id]/edit</span></td>
+            <td>[id]</td>
+            <td>ADMIN / ENGINEER</td>
+            <td>Client Fetch</td>
+          </tr>
+          <tr>
+            <td>部品一覧</td>
+            <td><span class="url-pill">/parts</span></td>
+            <td>—</td>
+            <td>全ロール（認証済）</td>
+            <td>SSR</td>
+          </tr>
+          <tr>
+            <td>設備一覧</td>
+            <td><span class="url-pill">/machines</span></td>
+            <td>—</td>
+            <td>全ロール（認証済）</td>
+            <td>SSR</td>
+          </tr>
+          <tr>
+            <td>設備稼働実績</td>
+            <td><span class="url-pill">/machine-operation</span></td>
+            <td>—</td>
+            <td>全ロール（認証済）</td>
+            <td>Client Fetch + Charts</td>
+          </tr>
+          <tr>
+            <td>図一覧</td>
+            <td><span class="url-pill">/drawings?mcId=</span></td>
+            <td>?mcId</td>
+            <td>全ロール（認証済）</td>
+            <td>Client Fetch + Ridoc API</td>
+          </tr>
+          <tr>
+            <td>写真一覧</td>
+            <td><span class="url-pill">/photos?mcId=</span></td>
+            <td>?mcId</td>
+            <td>全ロール（認証済）</td>
+            <td>Client Fetch</td>
+          </tr>
+          <tr>
+            <td>ユーザー管理（ADMINのみ）</td>
+            <td><span class="url-pill">/admin/users</span></td>
+            <td>—</td>
+            <td>ADMIN のみ</td>
+            <td>SSR（middleware保護）</td>
+          </tr>
+          <tr>
+            <td>マスタ管理（ADMINのみ）</td>
+            <td><span class="url-pill">/admin/master/[type]</span></td>
+            <td>[type]: employees, tools...</td>
+            <td>ADMIN のみ</td>
+            <td>SSR（middleware保護）</td>
+          </tr>
+          <tr>
+            <td>システム操作ログ（ADMINのみ）</td>
+            <td><span class="url-pill">/admin/operation-log</span></td>
+            <td>—</td>
+            <td>ADMIN のみ</td>
+            <td>SSR + Pagination</td>
+          </tr>
+          <tr>
+            <td>インデックスプログラム編集</td>
+            <td><span class="url-pill">/index-program/[id]</span></td>
+            <td>[id]</td>
+            <td>ADMIN / ENGINEER</td>
+            <td>Client Fetch</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ─── TALON vs 新システム画面遷移比較 ─── -->
+    <div class="detail-panel" style="margin-top:24px;">
+      <div class="detail-title">🔄 TALON vs 新システム — 画面遷移方式の比較</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#fca5a5;margin-bottom:12px;">❌ TALON（現行）の問題</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="background:#2a0c0c;border:1px solid #ef4444;border-radius:6px;padding:12px;font-size:12px;color:#fca5a5;">
+              <strong>window.open()</strong> でポップアップ多用<br>
+              → ブラウザのポップアップブロックに引っかかる
+            </div>
+            <div style="background:#2a0c0c;border:1px solid #ef4444;border-radius:6px;padding:12px;font-size:12px;color:#fca5a5;">
+              URLにハッシュや長いパラメータが付く<br>
+              → ブックマーク不可、ブラウザバック不対応
+            </div>
+            <div style="background:#2a0c0c;border:1px solid #ef4444;border-radius:6px;padding:12px;font-size:12px;color:#fca5a5;">
+              MutationObserverでダウンロードウィンドウ監視<br>
+              → タイミング依存の不安定なコード
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#6ee7b7;margin-bottom:12px;">✅ 新システム（Next.js）の解決</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="background:#0c2a1a;border:1px solid #10b981;border-radius:6px;padding:12px;font-size:12px;color:#6ee7b7;">
+              <strong>Next.js App Router</strong> による通常ページ遷移<br>
+              → URLベース、ブラウザバック完全対応
+            </div>
+            <div style="background:#0c2a1a;border:1px solid #10b981;border-radius:6px;padding:12px;font-size:12px;color:#6ee7b7;">
+              Dialog / Sheet コンポーネント（shadcn/ui）<br>
+              → モーダル画面はURLを変えずにオーバーレイ表示
+            </div>
+            <div style="background:#0c2a1a;border:1px solid #10b981;border-radius:6px;padding:12px;font-size:12px;color:#6ee7b7;">
+              <strong>Fetch API + download属性</strong> でExcel/PDF配信<br>
+              → MutationObserver不要。1行のコードで完結
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="page-footer">
+  マシニング加工管理システム / 画面遷移図 v1.0 / MC-REBUILD-001 / Next.js App Router<br>
+  総画面数: 25画面 | 管理者専用: 3画面 | エンジニア以上: 9画面 | 全ロール: 13画面
+</div>
+
+</body>
+</html>

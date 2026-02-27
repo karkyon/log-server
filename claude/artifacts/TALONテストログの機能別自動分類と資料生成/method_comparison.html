@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>自動生成方式 比較表</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Noto Sans JP', 'Inter', sans-serif; }
+    .badge-good    { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200; }
+    .badge-mid     { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200; }
+    .badge-bad     { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen py-12 px-4">
+
+  <!-- ヘッダー -->
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-10">
+      <p class="text-xs font-semibold tracking-widest text-indigo-400 uppercase mb-2">Machining System — Documentation Automation</p>
+      <h1 class="text-3xl font-bold text-gray-900 tracking-tight">自動資料生成方式 比較検討</h1>
+      <p class="mt-2 text-sm text-gray-500">GitHub Push トリガー × Claude API を活用した機能仕様書・操作マニュアル自動生成</p>
+    </div>
+
+    <!-- 方式カード（上段サマリー） -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+
+      <!-- 方式A -->
+      <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-lg">A</div>
+          <div>
+            <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">方式 A</p>
+            <h2 class="text-lg font-bold text-gray-900">GitHub Actions のみ</h2>
+          </div>
+        </div>
+        <p class="text-sm text-gray-600 leading-relaxed">Push をトリガーに Node.js / Python スクリプトで <code class="bg-gray-100 px-1 rounded text-xs">.jsonl</code> を解析し、テンプレートエンジンで HTML を静的生成する。Claude API は使用しない。</p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <span class="badge-good">✓ 低コスト</span>
+          <span class="badge-good">✓ 高速生成</span>
+          <span class="badge-mid">△ 成果物は固定品質</span>
+        </div>
+      </div>
+
+      <!-- 方式B -->
+      <div class="bg-white rounded-2xl border border-indigo-200 shadow-sm p-6 relative overflow-hidden">
+        <div class="absolute top-0 right-0 mt-3 mr-4">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-600 text-white">推奨</span>
+        </div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center text-white font-bold text-lg">B</div>
+          <div>
+            <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">方式 B</p>
+            <h2 class="text-lg font-bold text-gray-900">GitHub Actions + Claude API</h2>
+          </div>
+        </div>
+        <p class="text-sm text-gray-600 leading-relaxed">GitHub Actions から Claude API を呼び出し、<code class="bg-gray-100 px-1 rounded text-xs">.jsonl</code> + スクショを渡して仕様書・マニュアルを AI が解釈・記述生成する。</p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <span class="badge-good">✓ 高品質な文章生成</span>
+          <span class="badge-good">✓ スクショ解析対応</span>
+          <span class="badge-mid">△ APIコスト発生</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 詳細比較表 -->
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-10">
+      <div class="px-6 py-4 border-b border-gray-100">
+        <h3 class="text-base font-semibold text-gray-800">詳細比較表</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200">
+              <th class="text-left px-6 py-3.5 font-semibold text-gray-500 text-xs uppercase tracking-wider w-44">評価軸</th>
+              <th class="text-left px-6 py-3.5 font-semibold text-indigo-600 text-xs uppercase tracking-wider w-64">方式 A｜GitHub Actions のみ</th>
+              <th class="text-left px-6 py-3.5 font-semibold text-violet-600 text-xs uppercase tracking-wider w-64">方式 B｜Actions + Claude API</th>
+              <th class="text-left px-6 py-3.5 font-semibold text-gray-500 text-xs uppercase tracking-wider">備考</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+
+            <!-- 1 -->
+            <tr class="hover:bg-gray-50/70 transition-colors">
+              <td class="px-6 py-4 font-medium text-gray-700 align-top">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">1</span>
+                  成果物の充実度
+                </div>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-mid">△ 中程度</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">ログデータをそのまま整形表示。「ボタンをクリックした」の記録はあるが、<strong>その意味の説明</strong>（例: 検索結果を絞り込む）は自動では生成されない。テンプレートの作り込み次第。</p>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-good">◎ 非常に高い</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">ログ構造 + スクショを Claude が解釈し、<strong>各ボタンの目的・操作手順・遷移先の説明を自然な日本語</strong>で記述。スクショからUI要素を読み取り説明文を補完できる。</p>
+              </td>
+              <td class="px-6 py-4 align-top text-xs text-gray-400">成果物の品質差が最も大きい軸</td>
+            </tr>
+
+            <!-- 2 -->
+            <tr class="hover:bg-gray-50/70 transition-colors">
+              <td class="px-6 py-4 font-medium text-gray-700 align-top">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">2</span>
+                  完成度の高さ
+                </div>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-mid">△ 70〜80点</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">ログを正確に可視化するが、文書として読める品質にするには大量のテンプレート設計が必要。人間によるレビュー・追記が前提となる。</p>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-good">◎ 85〜95点</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">プロンプト設計次第で<strong>そのまま社内資料として使えるレベル</strong>を目指せる。スクショ付き仕様書、操作マニュアルともに高品質生成が現実的。</p>
+              </td>
+              <td class="px-6 py-4 align-top text-xs text-gray-400">プロンプト品質に依存するが上限が高い</td>
+            </tr>
+
+            <!-- 3 -->
+            <tr class="hover:bg-gray-50/70 transition-colors">
+              <td class="px-6 py-4 font-medium text-gray-700 align-top">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">3</span>
+                  柔軟性
+                </div>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-mid">△ 中程度</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">出力形式の変更はテンプレート修正が必要。新しい資料種別（不具合管理など）の追加は都度スクリプト開発が必要。</p>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-good">◎ 非常に高い</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed"><strong>プロンプトを変えるだけ</strong>で出力の種類・形式・粒度を変更できる。「テスト結果レポートに変えて」「不具合一覧を追加して」も設定変更で対応可能。</p>
+              </td>
+              <td class="px-6 py-4 align-top text-xs text-gray-400">将来の資料種別追加時に差が出る</td>
+            </tr>
+
+            <!-- 4 -->
+            <tr class="hover:bg-gray-50/70 transition-colors">
+              <td class="px-6 py-4 font-medium text-gray-700 align-top">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">4</span>
+                  生成速度・性能
+                </div>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-good">◎ 非常に高速</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">スクリプト処理のみのため<strong>数秒〜30秒</strong>で生成完了。画面数が増えても線形に速い。</p>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-mid">△ やや時間がかかる</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">API 呼び出し + 画像処理で<strong>1画面あたり15〜60秒</strong>。全画面（19画面）で最大20分程度。夜間バッチ実行で運用上は問題なし。</p>
+              </td>
+              <td class="px-6 py-4 align-top text-xs text-gray-400">GitHub Actions の無料枠（2,000分/月）で十分</td>
+            </tr>
+
+            <!-- 5 -->
+            <tr class="hover:bg-gray-50/70 transition-colors">
+              <td class="px-6 py-4 font-medium text-gray-700 align-top">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">5</span>
+                  スクショ活用
+                </div>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-mid">△ 埋め込みのみ</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">スクショを HTML に <code class="bg-gray-100 px-1 rounded">img</code> タグで埋め込むだけ。画像の<strong>内容を解釈した説明文</strong>の自動付与は不可。</p>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-good">◎ 内容解析まで可能</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">Claude の Vision 機能でスクショを解析し、<strong>「画面上部に検索フォーム、中央にデータグリッド…」</strong>といった説明を自動生成できる。</p>
+              </td>
+              <td class="px-6 py-4 align-top text-xs text-gray-400">スクショ付き仕様書の品質を左右する</td>
+            </tr>
+
+            <!-- 6 -->
+            <tr class="hover:bg-gray-50/70 transition-colors">
+              <td class="px-6 py-4 font-medium text-gray-700 align-top">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">6</span>
+                  実装難易度
+                </div>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-good">◎ 低い</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">Node.js/Python + テンプレートエンジン（EJS, Nunjucks 等）で実装。既存の JS スキルで対応可能。外部依存が少なく安定。</p>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-mid">△ やや高い</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">Anthropic SDK の導入、プロンプト設計、画像の base64 変換処理が追加で必要。ただし<strong>SDK は npm install 1行</strong>で導入でき、学習コストは低め。</p>
+              </td>
+              <td class="px-6 py-4 align-top text-xs text-gray-400">難易度の差は小さい。API キー管理が追加作業</td>
+            </tr>
+
+            <!-- 7 -->
+            <tr class="hover:bg-gray-50/70 transition-colors">
+              <td class="px-6 py-4 font-medium text-gray-700 align-top">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">7</span>
+                  コスト
+                </div>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-good">◎ ほぼ無料</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">GitHub Actions 無料枠のみ使用。外部 API コストはゼロ。</p>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-mid">△ APIコスト発生</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">Claude Sonnet 4使用時: 1画面あたり約<strong>$0.05〜$0.20</strong>。19画面全体で<strong>$1〜4 程度/回</strong>。月数回の実行であれば許容範囲。</p>
+              </td>
+              <td class="px-6 py-4 align-top text-xs text-gray-400">差分更新（変更画面のみ生成）で大幅削減可能</td>
+            </tr>
+
+            <!-- 8 -->
+            <tr class="hover:bg-gray-50/70 transition-colors">
+              <td class="px-6 py-4 font-medium text-gray-700 align-top">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">8</span>
+                  保守性
+                </div>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-mid">△ 中程度</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">画面追加・ログ項目追加のたびにテンプレートとスクリプトの修正が必要。ロジックとビューが密結合になりがち。</p>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-good">◎ 高い</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">スクリプト（データ読み込み）とプロンプト（出力定義）が分離。<strong>資料の形式変更はプロンプトだけ</strong>修正すれば良く、コードの改修が最小化される。</p>
+              </td>
+              <td class="px-6 py-4 align-top text-xs text-gray-400">長期的な保守コストで逆転する可能性あり</td>
+            </tr>
+
+            <!-- 9 -->
+            <tr class="hover:bg-gray-50/70 transition-colors">
+              <td class="px-6 py-4 font-medium text-gray-700 align-top">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">9</span>
+                  将来拡張性
+                </div>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-mid">△ 限定的</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">テスト結果レポート・不具合管理・操作マニュアルなど<strong>資料を増やすたびにスクリプト開発</strong>が必要。</p>
+              </td>
+              <td class="px-6 py-4 align-top">
+                <span class="badge-good">◎ 非常に高い</span>
+                <p class="mt-2 text-xs text-gray-500 leading-relaxed">同じパイプラインで<strong>プロンプトを切り替えるだけ</strong>で多種類の資料生成が可能。Next.js 移行後の新システムにもそのまま流用できる。</p>
+              </td>
+              <td class="px-6 py-4 align-top text-xs text-gray-400">「不具合管理」「テスト結果」追加時に効果大</td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 総合評価 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+
+      <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+        <h3 class="text-sm font-semibold text-indigo-600 mb-4 uppercase tracking-wider">方式 A が向いているケース</h3>
+        <ul class="space-y-2 text-sm text-gray-600">
+          <li class="flex items-start gap-2"><span class="text-gray-300 mt-0.5">▸</span>API コストをゼロにしたい</li>
+          <li class="flex items-start gap-2"><span class="text-gray-300 mt-0.5">▸</span>生成速度を最優先にしたい</li>
+          <li class="flex items-start gap-2"><span class="text-gray-300 mt-0.5">▸</span>資料の種類・形式が固定で変わらない</li>
+          <li class="flex items-start gap-2"><span class="text-gray-300 mt-0.5">▸</span>社内ネットワークの制約で外部 API 接続不可</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-violet-200 shadow-sm p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold text-violet-600 uppercase tracking-wider">方式 B が向いているケース</h3>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-600 text-white">本プロジェクト推奨</span>
+        </div>
+        <ul class="space-y-2 text-sm text-gray-600">
+          <li class="flex items-start gap-2"><span class="text-violet-400 mt-0.5">▸</span>スクショ付きで<strong>そのまま使える</strong>仕様書を生成したい</li>
+          <li class="flex items-start gap-2"><span class="text-violet-400 mt-0.5">▸</span>仕様書・マニュアル・テストレポートを<strong>同一パイプラインで</strong>生成したい</li>
+          <li class="flex items-start gap-2"><span class="text-violet-400 mt-0.5">▸</span>Next.js 移行後も<strong>同じ仕組みを流用</strong>したい</li>
+          <li class="flex items-start gap-2"><span class="text-violet-400 mt-0.5">▸</span>月数回の実行で API コスト $1〜4 が許容できる</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 推奨アーキテクチャ概要 -->
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-10">
+      <h3 class="text-base font-semibold text-gray-800 mb-5">方式 B 推奨アーキテクチャ概要</h3>
+      <div class="flex flex-col md:flex-row items-stretch gap-3 text-xs">
+
+        <div class="flex-1 rounded-xl border border-gray-200 p-4 bg-gray-50">
+          <p class="font-semibold text-gray-700 mb-1">① Push イベント</p>
+          <p class="text-gray-500">logs/features/<br>screenshots/ を含むコミット</p>
+        </div>
+        <div class="flex items-center justify-center text-gray-300 text-lg font-light">→</div>
+
+        <div class="flex-1 rounded-xl border border-indigo-200 p-4 bg-indigo-50">
+          <p class="font-semibold text-indigo-700 mb-1">② GitHub Actions</p>
+          <p class="text-indigo-500">変更ファイルを検出<br>generate.js を実行</p>
+        </div>
+        <div class="flex items-center justify-center text-gray-300 text-lg font-light">→</div>
+
+        <div class="flex-1 rounded-xl border border-violet-200 p-4 bg-violet-50">
+          <p class="font-semibold text-violet-700 mb-1">③ Claude API 呼び出し</p>
+          <p class="text-violet-500">.jsonl + スクショ(base64)<br>をプロンプトに渡す</p>
+        </div>
+        <div class="flex items-center justify-center text-gray-300 text-lg font-light">→</div>
+
+        <div class="flex-1 rounded-xl border border-emerald-200 p-4 bg-emerald-50">
+          <p class="font-semibold text-emerald-700 mb-1">④ HTML 生成 &amp; Push</p>
+          <p class="text-emerald-500">docs/<featureId>/<br>仕様書・マニュアルを出力</p>
+        </div>
+        <div class="flex items-center justify-center text-gray-300 text-lg font-light">→</div>
+
+        <div class="flex-1 rounded-xl border border-orange-200 p-4 bg-orange-50">
+          <p class="font-semibold text-orange-700 mb-1">⑤ GitHub Pages</p>
+          <p class="text-orange-500">生成された HTML を<br>ブラウザで参照可能</p>
+        </div>
+
+      </div>
+    </div>
+
+    <p class="text-xs text-gray-400 text-center pb-8">Machining System — Documentation Automation Review / karkyon log-server</p>
+  </div>
+
+</body>
+</html>

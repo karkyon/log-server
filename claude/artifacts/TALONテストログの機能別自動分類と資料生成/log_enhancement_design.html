@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>ログ強化設計書 v2.0</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    .mono { font-family: 'DM Mono', monospace; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+<div class="max-w-5xl mx-auto py-12 px-6">
+
+  <!-- タイトル -->
+  <div class="mb-12">
+    <p class="text-xs font-semibold tracking-widest text-indigo-400 uppercase mb-1">karkyon / log-server</p>
+    <h1 class="text-3xl font-bold text-gray-900">ログ強化 & 課題スクショ連携 設計書</h1>
+    <p class="text-sm text-gray-400 mt-1">v2.0 — 「どのボタンを・どの条件で・何が起きたか」を完全記録する</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       1. 現状分析
+  ════════════════════════════════════════════════════════ -->
+  <section class="mb-14">
+    <h2 class="text-xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+      <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold">1</span>
+      現状ログで「取れていること」vs「足りないこと」
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <!-- 取れている -->
+      <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
+        <p class="text-sm font-bold text-emerald-700 mb-3">✅ 現在取れている情報</p>
+        <div class="space-y-2 text-sm text-emerald-800">
+          <div class="flex gap-2"><span class="mono text-xs bg-emerald-100 px-2 py-0.5 rounded">featureId</span><span>画面ID（MC_PRODUCTS_LIST等）</span></div>
+          <div class="flex gap-2"><span class="mono text-xs bg-emerald-100 px-2 py-0.5 rounded">screenName</span><span>画面名（日本語）</span></div>
+          <div class="flex gap-2"><span class="mono text-xs bg-emerald-100 px-2 py-0.5 rounded">elementId</span><span>クリックした要素のID</span></div>
+          <div class="flex gap-2"><span class="mono text-xs bg-emerald-100 px-2 py-0.5 rounded">buttonLabel</span><span>ボタンのラベル文字</span></div>
+          <div class="flex gap-2"><span class="mono text-xs bg-emerald-100 px-2 py-0.5 rounded">formSnapshot</span><span>クリック時の全入力値</span></div>
+          <div class="flex gap-2"><span class="mono text-xs bg-emerald-100 px-2 py-0.5 rounded">rowData</span><span>行ボタン時の行データ</span></div>
+          <div class="flex gap-2"><span class="mono text-xs bg-emerald-100 px-2 py-0.5 rounded">traceId</span><span>操作とスクショの紐付けID</span></div>
+          <div class="flex gap-2"><span class="mono text-xs bg-emerald-100 px-2 py-0.5 rounded">screenshot</span><span>ボタン後の画面画像（遅延）</span></div>
+        </div>
+      </div>
+
+      <!-- 足りない -->
+      <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+        <p class="text-sm font-bold text-red-700 mb-3">❌ 足りない情報（今回追加する）</p>
+        <div class="space-y-2 text-sm text-red-800">
+          <div class="flex gap-2"><span class="mono text-xs bg-red-100 px-2 py-0.5 rounded">screenMode</span><span>閲覧/編集/新規などの画面モード</span></div>
+          <div class="flex gap-2"><span class="mono text-xs bg-red-100 px-2 py-0.5 rounded">urlParams</span><span>URLパラメータ（開いた条件）</span></div>
+          <div class="flex gap-2"><span class="mono text-xs bg-red-100 px-2 py-0.5 rounded">callerScreen</span><span>どの画面から遷移してきたか</span></div>
+          <div class="flex gap-2"><span class="mono text-xs bg-red-100 px-2 py-0.5 rounded">actionResult</span><span>ボタン実行後の結果（成功/失敗/変化なし）</span></div>
+          <div class="flex gap-2"><span class="mono text-xs bg-red-100 px-2 py-0.5 rounded">errorDetail</span><span>JS例外の完全内容（自動キャッチ）</span></div>
+          <div class="flex gap-2"><span class="mono text-xs bg-red-100 px-2 py-0.5 rounded">pageContext</span><span>画面タイトル・ヘッダーのテキスト</span></div>
+          <div class="flex gap-2"><span class="mono text-xs bg-red-100 px-2 py-0.5 rounded">issueId連携</span><span>課題IDとスクショの直接紐付け</span></div>
+          <div class="flex gap-2"><span class="mono text-xs bg-red-100 px-2 py-0.5 rounded">beforeAfter</span><span>ボタン前後の画面差分スクショ</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 現状の問題を具体的に示す -->
+    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+      <p class="text-sm font-bold text-amber-700 mb-3">⚠️ 現状ログの「読めない問題」— 具体例</p>
+      <div class="mono text-xs text-gray-600 bg-white rounded-xl p-4 mb-3">
+        <p class="text-gray-400 mb-2">// 現在のログ（何が起きたか分からない）</p>
+        <p>{"type":"UI_CLICK", "elementId":"BUTTON_MDL_R:0:POS_SEARCH_BTN", "buttonLabel":"検索",</p>
+        <p>&nbsp; "formSnapshot":{"CNDTN_STD:0:_TEXT":"5112",...}}</p>
+        <p class="text-red-400 mt-2">→ 「検索ボタンを押した」は分かる。でも…</p>
+        <p class="text-red-400">→ 閲覧モード？編集モード？どこから来た？結果は？エラーは？が不明</p>
+      </div>
+      <div class="mono text-xs text-gray-600 bg-white rounded-xl p-4">
+        <p class="text-gray-400 mb-2">// 理想のログ（v2.0 で目指す姿）</p>
+        <p>{"type":"ACTION",</p>
+        <p>&nbsp; "featureId":"MC_PRODUCTS_LIST", "screenName":"マシニング部品一覧",</p>
+        <p>&nbsp; <span class="text-indigo-600">"screenMode":"search",</span></p>
+        <p>&nbsp; <span class="text-indigo-600">"urlParams":{"COLUMN_0":"parts_id","VALUE_0":"5112"},</span></p>
+        <p>&nbsp; <span class="text-indigo-600">"callerScreen":"MC_MACHINING_DETAIL",</span></p>
+        <p>&nbsp; "action":"BTN_CLICK", "elementId":"BUTTON_MDL_R:0:POS_SEARCH_BTN",</p>
+        <p>&nbsp; "buttonLabel":"検索", "formSnapshot":{"CNDTN_STD:0:_TEXT":"5112",...},</p>
+        <p>&nbsp; <span class="text-emerald-600">"actionResult":{"status":"SUCCESS","resultCount":7},</span></p>
+        <p>&nbsp; <span class="text-emerald-600">"screenshotBefore":"...BEFORE.jpg",</span></p>
+        <p>&nbsp; <span class="text-emerald-600">"screenshotAfter":"...AFTER.jpg"</span>}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════
+       2. 追加が必要な情報と取得方法
+  ════════════════════════════════════════════════════════ -->
+  <section class="mb-14">
+    <h2 class="text-xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+      <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold">2</span>
+      追加が必要な情報と取得方法（汎用）
+    </h2>
+
+    <div class="overflow-x-auto rounded-2xl border border-gray-100">
+      <table class="w-full text-sm bg-white">
+        <thead>
+          <tr class="bg-gray-50 border-b border-gray-100">
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">情報</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">取得方法（JS）</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">画面への追加作業</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">重要度</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3 font-semibold">画面モード<br><span class="mono text-xs text-gray-400">screenMode</span></td>
+            <td class="px-5 py-3 mono text-xs text-gray-600">URLパラメータのモード値を解析<br>または画面タイトル・ヘッダーのDOMから取得</td>
+            <td class="px-5 py-3 text-sm text-gray-600">init()呼び出し時に<br>モード文字列を引数追加</td>
+            <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700">最重要</span></td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3 font-semibold">URLパラメータ<br><span class="mono text-xs text-gray-400">urlParams</span></td>
+            <td class="px-5 py-3 mono text-xs text-gray-600">new URLSearchParams(location.search)<br>→ 自動取得可能・追加作業不要</td>
+            <td class="px-5 py-3 text-sm text-emerald-700 font-medium">✅ 自動取得（コード変更不要）</td>
+            <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700">最重要</span></td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3 font-semibold">前画面情報<br><span class="mono text-xs text-gray-400">callerScreen</span></td>
+            <td class="px-5 py-3 mono text-xs text-gray-600">document.referrer または<br>sessionStorage で前画面IDを引き継ぐ</td>
+            <td class="px-5 py-3 text-sm text-gray-600">sessionStorageへの書き込みを<br>遷移ボタンクリック時に追加</td>
+            <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-xs bg-orange-100 text-orange-700">重要</span></td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3 font-semibold">ボタン実行結果<br><span class="mono text-xs text-gray-400">actionResult</span></td>
+            <td class="px-5 py-3 mono text-xs text-gray-600">Ajax完了コールバックまたは<br>MutationObserverでDOM変化を検知</td>
+            <td class="px-5 py-3 text-sm text-gray-600">検索・保存ボタンごとに<br>結果ログ呼び出しを追加</td>
+            <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700">最重要</span></td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3 font-semibold">JS例外自動キャッチ<br><span class="mono text-xs text-gray-400">errorDetail</span></td>
+            <td class="px-5 py-3 mono text-xs text-gray-600">window.onerror<br>window.onunhandledrejection<br>→ 自動キャッチ可能</td>
+            <td class="px-5 py-3 text-sm text-emerald-700 font-medium">✅ 自動取得（コード変更不要）</td>
+            <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700">最重要</span></td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3 font-semibold">画面コンテキスト<br><span class="mono text-xs text-gray-400">pageContext</span></td>
+            <td class="px-5 py-3 mono text-xs text-gray-600">document.title<br>h1/h2テキスト自動取得<br>→ 自動取得可能</td>
+            <td class="px-5 py-3 text-sm text-emerald-700 font-medium">✅ 自動取得（コード変更不要）</td>
+            <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">中</span></td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3 font-semibold">ボタン前後スクショ<br><span class="mono text-xs text-gray-400">before/after</span></td>
+            <td class="px-5 py-3 mono text-xs text-gray-600">クリック直前に before 撮影<br>既存の clickWithShot が after 撮影</td>
+            <td class="px-5 py-3 text-sm text-gray-600">clickWithShotを<br>clickWithBeforeAfterShotに拡張</td>
+            <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-xs bg-orange-100 text-orange-700">重要</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════
+       3. talon_testcase_logger.js v2.0 変更設計
+  ════════════════════════════════════════════════════════ -->
+  <section class="mb-14">
+    <h2 class="text-xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+      <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold">3</span>
+      talon_testcase_logger.js v2.0 変更設計
+    </h2>
+
+    <div class="space-y-4">
+
+      <!-- 変更点1: init()の引数拡張 -->
+      <div class="bg-white rounded-2xl border border-gray-100 p-5">
+        <div class="flex items-start gap-3 mb-3">
+          <span class="px-2 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-700">変更①</span>
+          <div>
+            <p class="font-semibold text-gray-800">init() の引数に screenMode を追加</p>
+            <p class="text-sm text-gray-500 mt-0.5">各画面のJSの init() 呼び出し1行だけ変更するだけ</p>
+          </div>
+        </div>
+        <div class="mono text-xs bg-gray-50 rounded-xl p-4 space-y-1">
+          <p class="text-gray-400">// 変更前（現在）</p>
+          <p class="text-red-500">TLogAutoInstrument.init('MC_PRODUCTS_LIST');</p>
+          <p class="text-gray-400 mt-2">// 変更後（v2.0）</p>
+          <p class="text-emerald-600">TLogAutoInstrument.init('MC_PRODUCTS_LIST', {</p>
+          <p class="text-emerald-600">&nbsp; screenMode : 'search',          // 'search' / 'edit' / 'view' / 'new'</p>
+          <p class="text-emerald-600">&nbsp; screenTitle: 'マシニング部品一覧' // 日本語名（省略可・自動取得）</p>
+          <p class="text-emerald-600">});</p>
+        </div>
+      </div>
+
+      <!-- 変更点2: 自動取得の追加 -->
+      <div class="bg-white rounded-2xl border border-gray-100 p-5">
+        <div class="flex items-start gap-3 mb-3">
+          <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-700">追加②</span>
+          <div>
+            <p class="font-semibold text-gray-800">URLパラメータ・前画面・ページタイトルの自動取得（変更不要）</p>
+            <p class="text-sm text-gray-500 mt-0.5">init() 内で自動的に収集。各画面への追加作業なし</p>
+          </div>
+        </div>
+        <div class="mono text-xs bg-gray-50 rounded-xl p-4 space-y-1">
+          <p class="text-gray-400">// init() 内に自動追加される処理</p>
+          <p>const urlParams  = Object.fromEntries(new URLSearchParams(location.search));</p>
+          <p>const callerScreen = sessionStorage.getItem('TLog_callerScreen') || '';</p>
+          <p>const pageContext  = document.title || document.querySelector('h1,h2')?.textContent || '';</p>
+          <p class="mt-2 text-gray-400">// 全ログに自動付与</p>
+          <p>_context = { urlParams, callerScreen, pageContext, screenMode };</p>
+        </div>
+      </div>
+
+      <!-- 変更点3: JS例外自動キャッチ -->
+      <div class="bg-white rounded-2xl border border-gray-100 p-5">
+        <div class="flex items-start gap-3 mb-3">
+          <span class="px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700">追加③</span>
+          <div>
+            <p class="font-semibold text-gray-800">JS例外の自動キャッチ（変更不要）</p>
+            <p class="text-sm text-gray-500 mt-0.5">window.onerror を設定するだけ。全画面で自動動作</p>
+          </div>
+        </div>
+        <div class="mono text-xs bg-gray-50 rounded-xl p-4 space-y-1">
+          <p>window.onerror = function(message, source, lineno, colno, error) {</p>
+          <p>&nbsp; TLog.error(null, _featureId, message, {</p>
+          <p>&nbsp;&nbsp;  source, lineno, colno,</p>
+          <p>&nbsp;&nbsp;  stack: error?.stack || '',</p>
+          <p>&nbsp;&nbsp;  <span class="text-orange-500">formSnapshot: getFormSnapshot(), // エラー時の入力値も保存</span></p>
+          <p>&nbsp; });</p>
+          <p>&nbsp; <span class="text-orange-500">takeScreenshot(null, _featureId, 'JS_ERROR'); // エラー時スクショ自動撮影</span></p>
+          <p>};</p>
+        </div>
+      </div>
+
+      <!-- 変更点4: before/afterスクショ -->
+      <div class="bg-white rounded-2xl border border-gray-100 p-5">
+        <div class="flex items-start gap-3 mb-3">
+          <span class="px-2 py-0.5 rounded text-xs font-bold bg-indigo-100 text-indigo-700">拡張④</span>
+          <div>
+            <p class="font-semibold text-gray-800">ボタン前後スクショ（Before / After）</p>
+            <p class="text-sm text-gray-500 mt-0.5">clickWithShot を拡張。重要なボタンに適用</p>
+          </div>
+        </div>
+        <div class="mono text-xs bg-gray-50 rounded-xl p-4 space-y-1">
+          <p class="text-gray-400">// 新関数: clickWithBeforeAfterShot()</p>
+          <p>clickWithBeforeAfterShot: function(screenId, elementId, label, inputValues, delayMs) {</p>
+          <p>&nbsp; const traceId = newTrace();</p>
+          <p>&nbsp; <span class="text-orange-500">takeScreenshot(traceId, screenId, elementId + '_BEFORE'); // 直前</span></p>
+          <p>&nbsp; send({type:'ACTION', traceId, ...});</p>
+          <p>&nbsp; setTimeout(() => {</p>
+          <p>&nbsp;&nbsp;  <span class="text-emerald-600">takeScreenshot(traceId, screenId, elementId + '_AFTER'); // 実行後</span></p>
+          <p>&nbsp; }, delayMs || 1500);</p>
+          <p>}</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════
+       4. 課題IDとスクショの連携設計
+  ════════════════════════════════════════════════════════ -->
+  <section class="mb-14">
+    <h2 class="text-xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+      <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold">4</span>
+      課題IDとスクショの連携設計
+    </h2>
+
+    <div class="space-y-4">
+
+      <!-- 連携の仕組み -->
+      <div class="bg-white rounded-2xl border border-gray-100 p-6">
+        <p class="text-sm font-bold text-gray-700 mb-4">連携の仕組み（traceId を橋渡しとして使う）</p>
+        <div class="flex flex-wrap items-center gap-2 text-sm mb-6">
+          <div class="px-3 py-2 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 font-medium">UI_CLICK<br><span class="text-xs text-indigo-400">traceId=TR-xxx</span></div>
+          <span class="text-gray-400">→</span>
+          <div class="px-3 py-2 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 font-medium">SCREENSHOT<br><span class="text-xs text-orange-400">traceId=TR-xxx</span></div>
+          <span class="text-gray-400">→</span>
+          <div class="px-3 py-2 rounded-xl bg-red-50 border border-red-200 text-red-700 font-medium">analyze-logs.js<br><span class="text-xs text-red-400">問題を検出</span></div>
+          <span class="text-gray-400">→</span>
+          <div class="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-medium">issueId生成<br><span class="text-xs text-emerald-400">MC_PRODUCTS_LIST-001</span></div>
+          <span class="text-gray-400">→</span>
+          <div class="px-3 py-2 rounded-xl bg-violet-50 border border-violet-200 text-violet-700 font-medium">スクショを<br>issueIdに紐付け</div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- analyze-logs.jsの変更 -->
+          <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">analyze-logs.js の追加処理</p>
+            <div class="mono text-xs bg-gray-50 rounded-xl p-4 space-y-1">
+              <p class="text-gray-400">// 問題検出時: 関連スクショを紐付け</p>
+              <p>function findRelatedScreenshots(featureId, traceId, logs) {</p>
+              <p>&nbsp; return logs</p>
+              <p>&nbsp;&nbsp;  .filter(e => e.type === 'SCREENSHOT'</p>
+              <p>&nbsp;&nbsp;    && e.traceId === traceId)</p>
+              <p>&nbsp;&nbsp;  .map(e => e.file);</p>
+              <p>}</p>
+              <p class="mt-2 text-gray-400">// issue に付与</p>
+              <p>issue.screenshots = findRelatedScreenshots(</p>
+              <p>&nbsp; featureId, relatedTraceId, logs);</p>
+            </div>
+          </div>
+          <!-- issues.jsonの構造 -->
+          <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">issues.json の新フィールド</p>
+            <div class="mono text-xs bg-gray-50 rounded-xl p-4 space-y-1">
+              <p>{</p>
+              <p>&nbsp; "issueId": "MC_PRODUCTS_LIST-001",</p>
+              <p>&nbsp; "severity": "Medium",</p>
+              <p>&nbsp; "description": "検索結果取得不可",</p>
+              <p>&nbsp; <span class="text-orange-500">"relatedTraceId": "TR-1772001413581-4fjk",</span></p>
+              <p>&nbsp; <span class="text-emerald-600">"screenshots": [</span></p>
+              <p>&nbsp;&nbsp;  <span class="text-emerald-600">"screenshots/MC_PRODUCTS_LIST/</span></p>
+              <p>&nbsp;&nbsp;   <span class="text-emerald-600">...SEARCH_BTN_TR-xxx.jpg"</span></p>
+              <p>&nbsp; <span class="text-emerald-600">],</span></p>
+              <p>&nbsp; "status": "Open"</p>
+              <p>}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════
+       5. ダッシュボードのスクショプレビュー設計
+  ════════════════════════════════════════════════════════ -->
+  <section class="mb-14">
+    <h2 class="text-xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+      <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold">5</span>
+      ダッシュボード スクショプレビュー設計
+    </h2>
+
+    <div class="bg-white rounded-2xl border border-gray-100 p-6">
+      <p class="text-sm font-bold text-gray-700 mb-4">課題行を展開するとスクショが表示されるUI</p>
+
+      <!-- モックUI -->
+      <div class="border border-gray-200 rounded-xl overflow-hidden text-xs">
+        <!-- 課題行 -->
+        <div class="bg-gray-50 px-4 py-3 flex items-center gap-3 border-b border-gray-200">
+          <span class="w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-bold text-xs">1</span>
+          <div class="flex-1">
+            <span class="font-semibold text-gray-800">MC_PRODUCTS_LIST — 検索結果取得不可</span>
+            <span class="ml-2 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 font-medium">High</span>
+          </div>
+          <span class="text-indigo-500 cursor-pointer font-medium">▼ 展開（スクショあり 2枚）</span>
+        </div>
+        <!-- 展開パネル -->
+        <div class="bg-white px-4 py-4">
+          <div class="grid grid-cols-3 gap-3 mb-3">
+            <!-- スクショモック -->
+            <div class="rounded-xl border-2 border-orange-200 overflow-hidden">
+              <div class="bg-orange-50 px-3 py-1.5 text-xs font-medium text-orange-700">📸 BEFORE — 検索ボタン押下直前</div>
+              <div class="bg-gray-100 h-24 flex items-center justify-center text-gray-400 text-xs">スクショ画像</div>
+            </div>
+            <div class="rounded-xl border-2 border-red-200 overflow-hidden">
+              <div class="bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700">📸 AFTER — 検索ボタン後の結果</div>
+              <div class="bg-gray-100 h-24 flex items-center justify-center text-gray-400 text-xs">スクショ画像</div>
+            </div>
+            <div class="rounded-xl border-2 border-gray-200 overflow-hidden">
+              <div class="bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-600">📸 SCREEN_LOAD — 初期状態</div>
+              <div class="bg-gray-100 h-24 flex items-center justify-center text-gray-400 text-xs">スクショ画像</div>
+            </div>
+          </div>
+          <!-- 操作文脈 -->
+          <div class="mono text-xs bg-gray-50 rounded-xl p-3 text-gray-600">
+            <span class="text-indigo-500 font-semibold">操作文脈:</span>
+            画面モード=search / URLパラメータ=parts_id:5112 /
+            ボタン=「検索」/ 条件=部品ID:5112 / 結果=取得不可
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════
+       6. 実装ロードマップ
+  ════════════════════════════════════════════════════════ -->
+  <section class="mb-14">
+    <h2 class="text-xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+      <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold">6</span>
+      実装ロードマップ（優先順）
+    </h2>
+
+    <div class="space-y-3">
+      <div class="bg-white rounded-xl border-l-4 border-red-400 border border-gray-100 p-4">
+        <div class="flex items-center gap-3 mb-1">
+          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded">Phase 1 — 今すぐ</span>
+          <span class="text-sm font-semibold text-gray-800">talon_testcase_logger.js v2.0 へ更新</span>
+        </div>
+        <p class="text-xs text-gray-500 ml-0">① URLパラメータ自動取得 ② JS例外自動キャッチ ③ pageContext自動取得 ④ init()にscreenMode引数追加</p>
+        <p class="text-xs text-emerald-600 mt-1">各画面への変更: init() の引数追加1行のみ</p>
+      </div>
+
+      <div class="bg-white rounded-xl border-l-4 border-orange-400 border border-gray-100 p-4">
+        <div class="flex items-center gap-3 mb-1">
+          <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded">Phase 2 — 次回</span>
+          <span class="text-sm font-semibold text-gray-800">analyze-logs.js へスクショ紐付け追加</span>
+        </div>
+        <p class="text-xs text-gray-500">問題検出時に relatedTraceId → screenshots[] を自動収集して issues.json に格納</p>
+      </div>
+
+      <div class="bg-white rounded-xl border-l-4 border-amber-400 border border-gray-100 p-4">
+        <div class="flex items-center gap-3 mb-1">
+          <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Phase 3 — 次回</span>
+          <span class="text-sm font-semibold text-gray-800">generate-dashboard.js へスクショプレビュー追加</span>
+        </div>
+        <p class="text-xs text-gray-500">課題行に 📸 ボタンを追加。クリックで BEFORE/AFTER スクショを展開表示</p>
+      </div>
+
+      <div class="bg-white rounded-xl border-l-4 border-indigo-400 border border-gray-100 p-4">
+        <div class="flex items-center gap-3 mb-1">
+          <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">Phase 4 — 将来</span>
+          <span class="text-sm font-semibold text-gray-800">Before/After スクショの差分ハイライト</span>
+        </div>
+        <p class="text-xs text-gray-500">2枚の画像を比較してピクセル差分を表示（変化のない問題を視覚的に強調）</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- まとめ -->
+  <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 text-sm text-indigo-800">
+    <p class="font-bold mb-2">💡 まとめ：今すぐ実装できる最小変更</p>
+    <ol class="space-y-1 list-decimal list-inside text-indigo-700">
+      <li><strong>talon_testcase_logger.js</strong> を v2.0 に更新（URLパラメータ・例外自動取得）</li>
+      <li>各画面の <code class="mono text-xs">init('MC_XXX')</code> を <code class="mono text-xs">init('MC_XXX', {screenMode:'search'})</code> に変更</li>
+      <li><strong>analyze-logs.js</strong> に screenshots[] 紐付け処理を追加</li>
+      <li><strong>generate-dashboard.js</strong> に課題スクショプレビューUIを追加</li>
+    </ol>
+    <p class="mt-3 text-indigo-600">Phase 1（logger更新）だけで「どのボタンを・どの条件で・何が起きたか」の大半が記録可能になります。</p>
+  </div>
+
+  <p class="text-xs text-gray-400 text-center mt-10">karkyon / log-server — ログ強化設計書 v2.0</p>
+</div>
+</body>
+</html>

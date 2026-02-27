@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ワイヤーフレーム - マシニング加工管理システム</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+:root{--bg:#f0f4f8;--surface:#fff;--surface2:#f8fafc;--border:#cbd5e1;--accent:#2563eb;--text:#1e293b;--text2:#64748b;--text3:#94a3b8;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);}
+.page-header{background:#1e293b;color:white;padding:24px 40px;}
+.page-header h1{font-size:1.5em;font-weight:900;margin-bottom:4px;}
+.page-header p{font-size:12px;color:#94a3b8;}
+.wf-container{padding:32px 40px;}
+.screen-card{background:white;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.07);margin-bottom:40px;overflow:hidden;border:1px solid var(--border);}
+.screen-card-header{background:#1e293b;color:white;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;}
+.screen-card-title{font-weight:700;font-size:14px;}
+.screen-card-id{font-family:'JetBrains Mono',monospace;font-size:11px;color:#64748b;}
+.screen-card-url{font-family:'JetBrains Mono',monospace;font-size:11px;background:#0f172a;padding:4px 10px;border-radius:4px;color:#7dd3fc;}
+.note-box{background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:10px 14px;font-size:12px;color:#92400e;margin-bottom:16px;}
+.wf-section-title{font-size:13px;font-weight:700;color:var(--text2);margin:0 0 16px;padding:10px 14px;background:#f8fafc;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.wf-section-num{width:26px;height:26px;background:var(--accent);color:white;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0;}
+/* Browser */
+.browser-bar{padding:7px 14px;display:flex;gap:10px;align-items:center;background:#f1f5f9;border-bottom:1px solid var(--border);}
+.browser-dots{display:flex;gap:5px;}
+.browser-dot{width:9px;height:9px;border-radius:50%;}
+.browser-dot:nth-child(1){background:#ef4444;}
+.browser-dot:nth-child(2){background:#f59e0b;}
+.browser-dot:nth-child(3){background:#22c55e;}
+.browser-url{flex:1;background:white;border:1px solid var(--border);border-radius:14px;padding:3px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);}
+/* App frame */
+.app-topbar{background:#1e293b;display:flex;align-items:center;padding:0 16px;height:48px;gap:14px;}
+.topbar-logo{font-weight:900;font-size:13px;color:white;}
+.topbar-breadcrumb{font-size:11px;color:#64748b;}
+.topbar-user{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.topbar-role{font-size:10px;background:#059669;color:white;padding:2px 7px;border-radius:8px;font-weight:700;}
+.topbar-name{font-size:11px;color:#94a3b8;}
+.topbar-avatar{width:28px;height:28px;background:#3b82f6;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:white;font-weight:700;}
+/* Sidebar */
+.app-body{display:grid;grid-template-columns:180px 1fr;}
+.sidebar{background:#f8fafc;border-right:1px solid var(--border);padding:10px 0;}
+.sidebar-sec{padding:6px 14px 3px;font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;}
+.sidebar-item{padding:8px 14px;font-size:11px;color:var(--text2);display:flex;align-items:center;gap:8px;cursor:pointer;border-left:3px solid transparent;}
+.sidebar-item.active{background:#eff6ff;color:var(--accent);font-weight:700;border-left-color:var(--accent);}
+/* Main content */
+.main-c{padding:0;background:#f8fafc;}
+.page-titlebar{background:white;border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.page-titlebar h2{font-size:15px;font-weight:700;}
+/* Forms */
+.btn{padding:6px 14px;border-radius:5px;font-size:11px;font-weight:600;border:1px solid transparent;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+.btn-primary{background:#3b82f6;color:white;border-color:#2563eb;}
+.btn-secondary{background:white;color:var(--text2);border-color:var(--border);}
+.btn-danger{background:#ef4444;color:white;}
+.btn-success{background:#22c55e;color:white;}
+.btn-amber{background:#f59e0b;color:white;}
+.btn-outline{background:transparent;color:var(--accent);border-color:var(--accent);}
+.btn-purple{background:#8b5cf6;color:white;}
+.btn-sm{padding:4px 9px;font-size:10px;}
+.form-group{display:flex;flex-direction:column;gap:3px;}
+.form-label{font-size:10px;color:var(--text2);font-weight:600;}
+.form-input{border:1px solid var(--border);border-radius:4px;padding:6px 9px;font-size:11px;background:white;color:var(--text);}
+.form-input.ro{background:#f8fafc;color:var(--text2);}
+.form-select{border:1px solid var(--border);border-radius:4px;padding:6px 9px;font-size:11px;background:white;}
+.search-bar{background:white;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
+/* Data table */
+.dt-wrap{margin:0 12px 12px;background:white;border-radius:8px;border:1px solid var(--border);overflow:hidden;}
+.dt-toolbar{padding:8px 12px;background:#f8fafc;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text2);}
+table.dt{width:100%;border-collapse:collapse;}
+table.dt th{background:#1e293b;color:white;padding:8px 11px;font-size:10px;font-weight:700;text-align:left;white-space:nowrap;}
+table.dt td{padding:8px 11px;font-size:11px;border-bottom:1px solid #f1f5f9;color:var(--text);white-space:nowrap;}
+table.dt tr:last-child td{border-bottom:none;}
+table.dt tr:hover td{background:#f8fafc;}
+.dt-pager{padding:8px 12px;background:#f8fafc;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px;justify-content:space-between;font-size:11px;color:var(--text2);}
+.pg-btn{width:26px;height:26px;border:1px solid var(--border);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;background:white;}
+.pg-btn.active{background:var(--accent);color:white;border-color:var(--accent);}
+.badge{display:inline-block;padding:1px 7px;border-radius:8px;font-size:10px;font-weight:700;}
+.badge-green{background:#dcfce7;color:#166534;}
+.badge-blue{background:#dbeafe;color:#1d4ed8;}
+.badge-purple{background:#f3e8ff;color:#7e22ce;}
+.badge-amber{background:#fef9c3;color:#92400e;}
+.badge-gray{background:#f3f4f6;color:#6b7280;}
+/* Machining 4-block */
+.mach-4{display:grid;grid-template-columns:240px 1fr;grid-template-rows:auto auto;gap:0;min-height:540px;}
+.m-block{border:1px solid var(--border);background:white;overflow:auto;}
+.m-block-hd{background:#1e293b;color:white;padding:7px 12px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
+.m-block-hd .tbl-ref{font-size:9px;background:rgba(255,255,255,0.12);padding:1px 6px;border-radius:3px;}
+.m-block-body{padding:10px;}
+.info-row{display:flex;align-items:baseline;gap:6px;margin-bottom:5px;font-size:11px;}
+.info-lbl{color:var(--text2);min-width:64px;font-size:10px;font-weight:600;flex-shrink:0;}
+.info-val{color:var(--text);}
+.info-link{color:var(--accent);text-decoration:underline;font-weight:600;}
+.info-val-box{background:#f1f5f9;padding:1px 5px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:11px;}
+/* Nav grid */
+.nav-hd{display:grid;grid-template-columns:24px 52px 44px 52px;gap:3px;background:#f1f5f9;padding:4px 6px;font-size:9px;font-weight:700;color:var(--text2);border-bottom:1px solid var(--border);}
+.nav-row{display:grid;grid-template-columns:24px 52px 44px 52px;gap:3px;padding:4px 6px;border-bottom:1px solid #f8fafc;cursor:pointer;font-size:10px;align-items:center;}
+.nav-row:hover{background:#eff6ff;}
+.nav-row.sel{background:#dbeafe;font-weight:600;}
+/* Mach info grid */
+.mig{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;}
+.mi-item{display:flex;flex-direction:column;gap:2px;}
+.mi-lbl{font-size:9px;color:var(--text2);font-weight:700;}
+.mi-val{border:1px solid var(--border);border-radius:4px;padding:4px 7px;font-size:11px;}
+.mi-val.ro{background:#f8fafc;color:var(--text2);}
+/* Sub tabs */
+.sub-tabs{display:flex;border-bottom:1px solid var(--border);background:#f8fafc;}
+.sub-tab{padding:7px 12px;font-size:10px;font-weight:600;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;}
+.sub-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:white;}
+.cnt-badge{display:inline-block;background:#f59e0b;color:white;border-radius:8px;padding:0 5px;font-size:8px;margin-left:3px;}
+/* Footer */
+.page-footer{background:#1e293b;color:#64748b;text-align:center;padding:20px;font-size:11px;font-family:'JetBrains Mono',monospace;}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>🖥️ ワイヤーフレーム — マシニング加工管理システム</h1>
+  <p>主要5画面 UIワイヤーフレーム / Next.js + shadcn/ui + Tailwind CSS / MC-REBUILD-001</p>
+</div>
+
+<div class="wf-container">
+
+<!-- ===== WF-01 マシニング情報管理 ===== -->
+<div class="wf-section-title"><div class="wf-section-num">1</div>マシニング情報管理画面（MC-MACH-001）— 4ブロック構成・最重要画面</div>
+<div class="note-box">⚠️ 最大規模画面（約35人日）。4ブロック構成、6編集モード。TALONのポップアップを1ページに統合。ブラウザバック・URLシェア完全対応。</div>
+<div class="screen-card">
+  <div class="screen-card-header">
+    <div><div class="screen-card-title">📊 マシニング情報管理</div><div class="screen-card-id">MC-MACH-001 | ENGINEER / ADMIN / OPERATOR</div></div>
+    <div class="screen-card-url">/machining?partsId=5112&amp;mode=edit&amp;mcId=9570</div>
+  </div>
+  <div class="browser-bar"><div class="browser-dots"><div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div></div><div class="browser-url">http://mc-system.local/machining?partsId=5112&amp;mode=edit&amp;mcId=9570</div></div>
+  <div>
+    <div class="app-topbar">
+      <div class="topbar-logo">🏭 MC System</div>
+      <div class="topbar-breadcrumb">ホーム › マシニング情報管理 › 部品ID: 5112</div>
+      <div class="topbar-user"><span class="topbar-role">ENGINEER</span><div class="topbar-name">藤下 哲人</div><div class="topbar-avatar">藤</div></div>
+    </div>
+    <div class="app-body">
+      <div class="sidebar">
+        <div class="sidebar-sec">メイン</div>
+        <div class="sidebar-item active">📊 マシニング情報管理</div>
+        <div class="sidebar-item">📋 段取シート一覧</div>
+        <div class="sidebar-item">✏️ 作業実績</div>
+        <div class="sidebar-sec">工具・治具</div>
+        <div class="sidebar-item">🔧 ツーリング編集</div>
+        <div class="sidebar-item">🛠️ 生爪検索</div>
+        <div class="sidebar-sec">参照</div>
+        <div class="sidebar-item">📦 部品一覧</div>
+        <div class="sidebar-item">🏭 設備一覧</div>
+        <div class="sidebar-item">📐 図一覧</div>
+        <div class="sidebar-item">📷 写真一覧</div>
+      </div>
+      <div class="main-c">
+        <div class="page-titlebar">
+          <h2>📊 マシニング情報管理</h2>
+          <div style="display:flex;gap:7px;align-items:center;">
+            <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:5px;overflow:hidden;font-size:11px;">
+              <div style="padding:5px 10px;background:#f8fafc;color:var(--text2);cursor:pointer;">閲覧</div>
+              <div style="padding:5px 10px;background:var(--accent);color:white;font-weight:700;">編集</div>
+              <div style="padding:5px 10px;background:#f8fafc;color:var(--text2);cursor:pointer;">新規</div>
+            </div>
+            <span class="btn btn-purple btn-sm">段取シートバック</span>
+          </div>
+        </div>
+        <!-- 4ブロック -->
+        <div class="mach-4">
+          <!-- B1: 部品情報（左上） -->
+          <div class="m-block" style="border-right:none;border-bottom:none;">
+            <div class="m-block-hd"><span>📦 ブロック1: 部品情報</span><span class="tbl-ref">parts_machining</span></div>
+            <div class="m-block-body">
+              <div class="info-row"><span class="info-lbl">部品ID</span><span class="info-val-box">5112</span></div>
+              <div class="info-row"><span class="info-lbl">加工ID</span><span class="info-val-box">9570</span></div>
+              <div class="info-row"><span class="info-lbl">MCID</span><span class="info-val-box">9570</span></div>
+              <div class="info-row"><span class="info-lbl">納入先</span><span class="info-val">DMG森精機㈱</span></div>
+              <div class="info-row"><span class="info-lbl">図面番号</span><span class="info-link">B4701104A01</span></div>
+              <div class="info-row"><span class="info-lbl">名称</span><span class="info-val">CYLINDER</span></div>
+              <div class="info-row"><span class="info-lbl">主機種型式</span><input class="form-input" style="flex:1;padding:3px 6px;" placeholder="入力..."></div>
+              <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+                <span class="btn btn-amber btn-sm">SP段取シート</span>
+                <span class="btn btn-primary btn-sm">段取シート印刷</span>
+              </div>
+            </div>
+          </div>
+          <!-- B3: マシニング情報（右上） -->
+          <div class="m-block" style="border-bottom:none;">
+            <div class="m-block-hd"><span>⚙️ ブロック3: マシニング情報</span><span class="tbl-ref">machining</span></div>
+            <div class="m-block-body">
+              <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--text2);margin-bottom:8px;">
+                <span>作成者: <b>藤下 哲人</b></span><span>作成日: <b>2024/10/21</b></span><span>入力者: <b>藤下 哲人</b></span><span>入力日: <b>2024/11/06</b></span>
+              </div>
+              <div class="mig">
+                <div class="mi-item"><div class="mi-lbl">工程No</div><input class="mi-val form-input" value="1" style="padding:4px 7px;"></div>
+                <div class="mi-item"><div class="mi-lbl">加工ID</div><div class="mi-val ro">9570</div></div>
+                <div class="mi-item"><div class="mi-lbl">機械</div><select class="mi-val form-select" style="padding:4px 7px;"><option>a500Z</option></select></div>
+                <div class="mi-item"><div class="mi-lbl">タイム H/M/S</div>
+                  <div style="display:flex;gap:3px;">
+                    <input class="form-input" value="0" style="width:38px;padding:4px 5px;font-size:11px;">
+                    <input class="form-input" value="32" style="width:38px;padding:4px 5px;font-size:11px;">
+                    <input class="form-input" value="8" style="width:38px;padding:4px 5px;font-size:11px;">
+                  </div>
+                </div>
+                <div class="mi-item"><div class="mi-lbl">倍数</div><input class="mi-val form-input" value="1" style="padding:4px 7px;width:50px;"></div>
+                <div class="mi-item"><div class="mi-lbl">メインONo</div><input class="mi-val form-input" value="1836" style="padding:4px 7px;"></div>
+                <div class="mi-item"><div class="mi-lbl">フォルダ名</div><input class="mi-val form-input" style="padding:4px 7px;"></div>
+                <div class="mi-item"><div class="mi-lbl">ファイル名</div><input class="mi-val form-input" style="padding:4px 7px;"></div>
+                <div class="mi-item"><div class="mi-lbl">PG作成者</div><select class="mi-val form-select" style="padding:4px 7px;"><option>藤下 哲人</option></select></div>
+              </div>
+              <div style="margin-top:8px;">
+                <div class="mi-lbl" style="margin-bottom:3px;">メッセージ</div>
+                <textarea class="form-input" style="width:100%;height:40px;resize:none;font-size:11px;" placeholder="メッセージ..."></textarea>
+              </div>
+              <div style="margin-top:8px;display:flex;gap:8px;align-items:center;background:#f8fafc;border:1px solid var(--border);border-radius:6px;padding:7px 10px;flex-wrap:wrap;">
+                <div style="font-size:11px;color:var(--text2);">承認: <select class="form-select" style="padding:3px 7px;font-size:10px;"><option>藤下 哲人</option></select></div>
+                <span class="btn btn-success btn-sm">承認実行</span>
+                <div style="font-size:11px;color:var(--text2);">承認日: <b>2024/11/06</b></div>
+                <div style="font-size:11px;color:var(--text2);">Version: <b style="color:var(--accent);">1.0001</b></div>
+                <span class="btn btn-secondary btn-sm" style="margin-left:auto;">更新履歴</span>
+                <span class="btn btn-outline btn-sm">作策記録</span>
+              </div>
+            </div>
+          </div>
+          <!-- B2: ナビゲーション（左下） -->
+          <div class="m-block" style="border-right:none;">
+            <div class="m-block-hd"><span>🗂️ ブロック2: ナビゲーション</span><span class="tbl-ref">部品リスト</span></div>
+            <div class="m-block-body" style="padding:6px;">
+              <div style="display:flex;gap:5px;padding:4px 0 6px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+                <span class="btn btn-sm" style="background:#64748b;color:white;">仮登録</span>
+                <span class="btn btn-primary btn-sm">共通登録</span>
+              </div>
+              <div class="nav-hd"><span>工程</span><span>機械名</span><span>MCID</span><span>加工ID</span></div>
+              <div class="nav-row"><span>1</span><span>MC13</span><span></span><span>8115</span></div>
+              <div class="nav-row sel"><span>1</span><span>a500Z</span><span>9570</span><span>9570</span></div>
+              <div class="nav-row"><span>1</span><span>CMX50U-1</span><span></span><span>9540</span></div>
+              <div class="nav-row"><span>1</span><span>MC14</span><span></span><span>9534</span></div>
+              <div class="nav-row"><span>2</span><span>MC15</span><span></span><span>9535</span></div>
+              <div class="nav-row"><span>2</span><span>a500Z</span><span>9571</span><span>9571</span></div>
+              <div class="nav-row"><span>3</span><span>MC20</span><span></span><span>8117</span></div>
+              <div style="font-size:9px;color:var(--text3);padding:5px;text-align:center;">クリックで右の情報を切替</div>
+            </div>
+          </div>
+          <!-- B4: サブ情報タブ（右下） -->
+          <div class="m-block" style="display:flex;flex-direction:column;">
+            <div class="m-block-hd"><span>📎 ブロック4: サブ情報（タブ切替）</span></div>
+            <div class="sub-tabs">
+              <div class="sub-tab active">ツーリング<span class="cnt-badge">28</span></div>
+              <div class="sub-tab">ワークオフセット</div>
+              <div class="sub-tab">インデックス</div>
+              <div class="sub-tab">図<span class="cnt-badge">5</span></div>
+              <div class="sub-tab">写真<span class="cnt-badge">13</span></div>
+              <div class="sub-tab">備考</div>
+            </div>
+            <div style="padding:10px;flex:1;overflow:auto;">
+              <div style="display:flex;gap:7px;align-items:center;margin-bottom:7px;">
+                <span style="font-size:11px;color:var(--text2);">ツーリング一覧（28件）</span>
+                <span class="btn btn-primary btn-sm" style="margin-left:auto;">ツーリング編集</span>
+              </div>
+              <div style="background:#f8fafc;border:1px solid var(--border);border-radius:6px;overflow:hidden;font-size:10px;">
+                <div style="display:grid;grid-template-columns:28px 36px 1fr 54px 54px 54px;background:#1e293b;padding:5px 9px;font-size:9px;font-weight:700;color:white;">
+                  <span>T#</span><span>刃数</span><span>工具名</span><span>工具長</span><span>工具径</span><span>メーカ</span>
+                </div>
+                <div style="display:grid;grid-template-columns:28px 36px 1fr 54px 54px 54px;padding:4px 9px;border-bottom:1px solid #f1f5f9;">
+                  <span>T01</span><span>2</span><span>フェイスミル Φ80</span><span>85.2</span><span>80.0</span><span>三菱</span>
+                </div>
+                <div style="display:grid;grid-template-columns:28px 36px 1fr 54px 54px 54px;padding:4px 9px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">
+                  <span>T02</span><span>4</span><span>エンドミル Φ20</span><span>92.5</span><span>20.0</span><span>OSG</span>
+                </div>
+                <div style="display:grid;grid-template-columns:28px 36px 1fr 54px 54px 54px;padding:4px 9px;">
+                  <span>T03</span><span>1</span><span>ドリル Φ12.5</span><span>110.0</span><span>12.5</span><span>YAMAWA</span>
+                </div>
+                <div style="padding:4px 9px;color:var(--text3);text-align:center;border-top:1px solid #f1f5f9;font-size:10px;">... 他 25件</div>
+              </div>
+              <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+                <div style="font-size:10px;background:#f8fafc;border:1px solid var(--border);border-radius:5px;padding:7px;">
+                  <div style="font-weight:700;color:var(--text2);margin-bottom:3px;">クランプ</div>
+                  <div>ロックタイト5軸マシンバイス 102×142</div>
+                </div>
+                <div style="font-size:10px;background:#f8fafc;border:1px solid var(--border);border-radius:5px;padding:7px;">
+                  <div style="font-weight:700;color:var(--text2);margin-bottom:3px;">備考</div>
+                  <div>素材 7.8×7.5×6.5 黒皮四角 SW78<br>工程1 マシニング1 加工id 9570 ★</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /mach-4 -->
+        <div style="padding:10px 14px;background:white;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;">
+          <span class="btn btn-secondary">キャンセル</span>
+          <span class="btn btn-danger">マシニング更新</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WF-02 段取シート発行リピート ===== -->
+<div class="wf-section-title"><div class="wf-section-num">2</div>段取シート発行画面（リピート）（MC-SHEET-003）— ExcelJSでVBA廃止</div>
+<div class="note-box">💡 ExcelJSによるサーバーサイド生成 → ブラウザ直接ダウンロード。MutationObserver/window.open監視ロジック完全不要。</div>
+<div class="screen-card">
+  <div class="screen-card-header">
+    <div><div class="screen-card-title">📋 段取シート発行（リピート）</div><div class="screen-card-id">MC-SHEET-003 | ADMIN / ENGINEER / OPERATOR</div></div>
+    <div class="screen-card-url">/setup-sheet/repeat?mcId=9091</div>
+  </div>
+  <div class="browser-bar"><div class="browser-dots"><div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div></div><div class="browser-url">http://mc-system.local/setup-sheet/repeat?mcId=9091</div></div>
+  <div>
+    <div class="app-topbar">
+      <div class="topbar-logo">🏭 MC System</div>
+      <div class="topbar-breadcrumb">ホーム › 段取シート › リピート発行</div>
+      <div class="topbar-user"><span class="topbar-role">OPERATOR</span><div class="topbar-name">藤下 哲人</div><div class="topbar-avatar">藤</div></div>
+    </div>
+    <div style="padding:16px;background:#f8fafc;">
+      <div class="page-titlebar" style="margin-bottom:12px;border-radius:7px;"><h2>📋 段取シート発行（リピート）</h2></div>
+      <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div style="display:grid;grid-template-columns:90px 1fr;gap:5px;align-items:baseline;">
+          <div class="form-label">部品ID</div><div class="form-input ro" style="padding:4px 7px;">8304</div>
+          <div class="form-label">納入先</div><div class="form-input ro" style="padding:4px 7px;">技研工業㈱</div>
+          <div class="form-label">図面番号</div><div class="form-input ro" style="padding:4px 7px;">NR-24-01-1</div>
+          <div class="form-label">名称</div><div class="form-input ro" style="padding:4px 7px;">集中排気式モーターケース</div>
+        </div>
+        <div style="display:grid;grid-template-columns:90px 1fr;gap:5px;align-items:baseline;">
+          <div class="form-label">主機種型式</div><div class="form-input ro" style="padding:4px 7px;">NR-24</div>
+          <div class="form-label">加工ID / MCID</div><div class="form-input ro" style="padding:4px 7px;">9091</div>
+          <div class="form-label">タイム</div><div class="form-input ro" style="padding:4px 7px;">0H 24M 20S</div>
+          <div class="form-label">Version</div><div class="form-input ro" style="padding:4px 7px;">3.0001</div>
+          <div class="form-label">承認者</div><div class="form-input ro" style="padding:4px 7px;">藤下 哲</div>
+        </div>
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:14px;margin-bottom:12px;">
+        <div style="font-weight:700;font-size:12px;margin-bottom:10px;">発行オプション</div>
+        <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="form-group"><div class="form-label">用途</div><select class="form-select"><option>段取</option><option>参照</option></select></div>
+          <div class="form-group"><div class="form-label">印刷者</div><select class="form-select"><option>藤下 哲人</option><option>ソン</option></select></div>
+          <div class="form-group"><div class="form-label">ワーク数</div><input class="form-input" type="number" style="width:70px;" value="1"></div>
+          <div class="form-group" style="min-width:220px;"><div class="form-label">出力内容選択</div><select class="form-select"><option>段取シート (+ツーリング + IP + WD)</option><option>段取シートのみ</option></select></div>
+          <div class="form-group"><div class="form-label">発行日時</div><input class="form-input" type="datetime-local"></div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;background:white;border:1px solid var(--border);border-radius:7px;padding:12px 16px;">
+        <div style="font-size:11px;color:var(--text2);">⚡ ExcelJSサーバー生成 — 1クリックでダウンロード開始</div>
+        <div style="display:flex;gap:8px;">
+          <span class="btn btn-secondary">← 戻る</span>
+          <span class="btn btn-success">📥 段取りシート発行（Excel）</span>
+          <span class="btn btn-outline">📄 PDF出力</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WF-03 システム操作ログ ===== -->
+<div class="wf-section-title"><div class="wf-section-num">3</div>システム操作ログ画面（MC-LOG-001）— 管理者専用・自動構造化ログ</div>
+<div class="note-box">🔒 管理者（ADMIN）ロールのみ。NestJS WinstonInterceptorで全操作を自動記録。TALONの手動記録と異なり記録漏れゼロ。</div>
+<div class="screen-card">
+  <div class="screen-card-header">
+    <div><div class="screen-card-title">📝 システム操作ログ（管理者専用）</div><div class="screen-card-id">MC-LOG-001 | ADMIN のみ</div></div>
+    <div class="screen-card-url">/admin/operation-log</div>
+  </div>
+  <div class="browser-bar"><div class="browser-dots"><div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div></div><div class="browser-url">http://mc-system.local/admin/operation-log</div></div>
+  <div style="padding:14px;background:#f8fafc;">
+    <div class="page-titlebar" style="margin-bottom:10px;border-radius:7px;"><h2>📝 システム操作ログ</h2><span class="btn btn-success btn-sm">📥 CSV エクスポート</span></div>
+    <div class="search-bar">
+      <div class="form-group"><div class="form-label">処理日時（開始）</div><input class="form-input" type="date" value="2025-11-01"></div>
+      <div class="form-group"><div class="form-label">処理日時（終了）</div><input class="form-input" type="date" value="2025-11-28"></div>
+      <div class="form-group"><div class="form-label">オペレータ</div><select class="form-select"><option>（全員）</option><option>藤下 哲人</option><option>ソン</option></select></div>
+      <div class="form-group"><div class="form-label">作業内容</div><select class="form-select"><option>（全て）</option><option>ログイン</option><option>データ登録</option><option>段取シート発行</option><option>マスタ変更</option><option>エラー発生</option></select></div>
+      <div class="form-group"><div class="form-label">検索ワード</div><input class="form-input" style="min-width:160px;" placeholder="加工ID、操作内容..."></div>
+      <div style="display:flex;gap:6px;align-items:flex-end;"><span class="btn btn-primary">🔍 検索</span><span class="btn btn-secondary">クリア</span></div>
+    </div>
+    <div class="dt-wrap">
+      <div class="dt-toolbar"><span>検索結果: <b>247件</b></span><select class="form-select" style="font-size:10px;padding:3px 7px;"><option>20件表示</option><option>50件表示</option></select></div>
+      <table class="dt">
+        <thead><tr><th>処理日時</th><th>オペレータ</th><th>作業内容</th><th>作業内容詳細</th><th>IPアドレス</th><th>対象ID</th></tr></thead>
+        <tbody>
+          <tr><td>2025/11/28 14:32:15</td><td>藤下 哲人</td><td><span class="badge badge-green">段取シート発行</span></td><td>段取シートを発行しました（加工ID: 9091）</td><td>192.168.1.50</td><td>9091</td></tr>
+          <tr><td>2025/11/28 13:55:03</td><td>ソン</td><td><span class="badge badge-blue">データ更新</span></td><td>マシニング情報を更新しました（加工ID: 9570）</td><td>192.168.1.52</td><td>9570</td></tr>
+          <tr><td>2025/11/28 11:20:44</td><td>藤下 哲人</td><td><span class="badge badge-purple">データ登録</span></td><td>作業実績を登録しました（加工ID: 9541、個数: 12）</td><td>192.168.1.50</td><td>9541</td></tr>
+          <tr><td>2025/11/28 09:05:12</td><td>藤下 哲人</td><td><span class="badge badge-green">ログイン</span></td><td>ログインしました</td><td>192.168.1.50</td><td>—</td></tr>
+          <tr><td>2025/11/27 17:43:22</td><td>管理者</td><td><span class="badge badge-amber">マスタ変更</span></td><td>社員マスタを更新しました（社員ID: 42）</td><td>192.168.1.1</td><td>42</td></tr>
+        </tbody>
+      </table>
+      <div class="dt-pager">
+        <div>1〜20件 / 247件</div>
+        <div style="display:flex;gap:3px;"><div class="pg-btn">«</div><div class="pg-btn active">1</div><div class="pg-btn">2</div><div class="pg-btn">3</div><div class="pg-btn">...</div><div class="pg-btn">13</div><div class="pg-btn">»</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WF-04 段取シート一覧 ===== -->
+<div class="wf-section-title"><div class="wf-section-num">4</div>段取シート一覧画面（MC-SHEET-001）</div>
+<div class="screen-card">
+  <div class="screen-card-header">
+    <div><div class="screen-card-title">📋 段取シート一覧</div><div class="screen-card-id">MC-SHEET-001 | 全ロール（認証済）</div></div>
+    <div class="screen-card-url">/setup-sheet?status=unread</div>
+  </div>
+  <div class="browser-bar"><div class="browser-dots"><div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div></div><div class="browser-url">http://mc-system.local/setup-sheet?status=unread&amp;from=2025-11-14&amp;to=2025-11-28</div></div>
+  <div style="padding:14px;background:#f8fafc;">
+    <div class="page-titlebar" style="margin-bottom:10px;border-radius:7px;"><h2>📋 段取シート一覧</h2><span class="btn btn-primary btn-sm">＋ 新規発行</span></div>
+    <div class="search-bar">
+      <div class="form-group"><div class="form-label">内容</div><select class="form-select"><option>（全て）</option><option>新規</option><option>リピート</option><option>SP</option></select></div>
+      <div class="form-group"><div class="form-label">状況</div><select class="form-select"><option>未回収</option><option>回収済</option><option>参照</option><option>（全て）</option></select></div>
+      <div class="form-group"><div class="form-label">印刷日（開始）</div><input class="form-input" type="date" value="2025-11-14"></div>
+      <div class="form-group"><div class="form-label">印刷日（終了）</div><input class="form-input" type="date" value="2025-11-28"></div>
+      <div class="form-group"><div class="form-label">部品ID</div><input class="form-input" style="width:72px;"></div>
+      <div class="form-group"><div class="form-label">MCID</div><input class="form-input" style="width:72px;"></div>
+      <div style="display:flex;gap:6px;align-items:flex-end;"><span class="btn btn-primary">🔍 検索</span><span class="btn btn-secondary">クリア</span><span class="btn btn-secondary">確定</span></div>
+    </div>
+    <div class="dt-wrap">
+      <div class="dt-toolbar"><span>検索結果: <b>20件</b></span></div>
+      <table class="dt">
+        <thead><tr><th></th><th>機械ID</th><th>機械名</th><th>工程No</th><th>内容</th><th>納入先</th><th>図面番号</th><th>名称</th><th>主機種</th><th>加工時間</th><th>状況</th><th>発行者名</th><th>発行日時</th></tr></thead>
+        <tbody>
+          <tr><td><span class="btn btn-primary btn-sm">マシニング</span></td><td>6</td><td>MC5</td><td>—</td><td><span class="badge badge-blue">リピート</span></td><td>DMG森精機㈱</td><td>A34306A05</td><td>ポット回転用フック(2)</td><td>SH-63</td><td>HMS</td><td><select class="form-select" style="padding:2px 5px;font-size:10px;"><option>未回収</option><option>回収済</option></select></td><td>藤下 哲人</td><td>2025/11/14 09:01:11</td></tr>
+          <tr><td><span class="btn btn-primary btn-sm">マシニング</span></td><td>6</td><td>MC5</td><td>—</td><td><span class="badge badge-blue">リピート</span></td><td>DMG森精機㈱</td><td>A34306A05</td><td>ポット回転用フック(2)</td><td>SH-63</td><td>HMS</td><td><select class="form-select" style="padding:2px 5px;font-size:10px;"><option>未回収</option><option>回収済</option></select></td><td>藤下 哲人</td><td>2025/11/14 09:02:03</td></tr>
+          <tr><td><span class="btn btn-primary btn-sm">マシニング</span></td><td>21</td><td>MC15</td><td>1</td><td><span class="badge badge-blue">リピート</span></td><td>太陽機械商事㈱</td><td>MAE-10a</td><td>球面プレート</td><td>—</td><td>0H 51M 26S</td><td><select class="form-select" style="padding:2px 5px;font-size:10px;"><option>未回収</option><option>回収済</option></select></td><td>藤下 哲人</td><td>2025/11/14 11:13:33</td></tr>
+        </tbody>
+      </table>
+      <div class="dt-pager"><div>1〜3件 / 20件</div><div style="display:flex;gap:3px;"><div class="pg-btn active">1</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WF-05 ユーザー管理 ===== -->
+<div class="wf-section-title"><div class="wf-section-num">5</div>ユーザー管理画面（MC-USER-001）— TALONにはなかった新規機能</div>
+<div class="note-box">✅ TALONでは不可能だったロールベースのユーザー管理。管理者がGUI上でアカウント作成・ロール変更・PW初期化を操作可能。</div>
+<div class="screen-card">
+  <div class="screen-card-header">
+    <div><div class="screen-card-title">👥 ユーザー管理（新規追加機能）</div><div class="screen-card-id">MC-USER-001 | ADMIN のみ</div></div>
+    <div class="screen-card-url">/admin/users</div>
+  </div>
+  <div class="browser-bar"><div class="browser-dots"><div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div></div><div class="browser-url">http://mc-system.local/admin/users</div></div>
+  <div style="padding:14px;background:#f8fafc;">
+    <div class="page-titlebar" style="margin-bottom:10px;border-radius:7px;"><h2>👥 ユーザー管理</h2><span class="btn btn-primary btn-sm">＋ ユーザー追加</span></div>
+    <div class="search-bar">
+      <div class="form-group"><div class="form-label">ユーザー名</div><input class="form-input" placeholder="名前で検索..."></div>
+      <div class="form-group"><div class="form-label">ロール</div><select class="form-select"><option>（全ロール）</option><option>ADMIN</option><option>ENGINEER</option><option>OPERATOR</option><option>VIEWER</option></select></div>
+      <div class="form-group"><div class="form-label">ステータス</div><select class="form-select"><option>有効</option><option>無効</option><option>全て</option></select></div>
+      <span class="btn btn-primary" style="align-self:flex-end;">🔍 検索</span>
+    </div>
+    <div class="dt-wrap">
+      <table class="dt">
+        <thead><tr><th>社員ID</th><th>社員コード</th><th>氏名</th><th>部署</th><th>ロール</th><th>ステータス</th><th>最終ログイン</th><th>操作</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>EMP001</td><td>藤下 哲人</td><td>マシニング課</td><td><span class="badge badge-amber">ADMIN</span></td><td><span style="color:#22c55e;font-weight:700;">● 有効</span></td><td>2025/11/28 14:30</td><td><div style="display:flex;gap:5px;"><span class="btn btn-secondary btn-sm">編集</span><span class="btn btn-amber btn-sm">PW初期化</span></div></td></tr>
+          <tr><td>2</td><td>EMP002</td><td>ソン</td><td>マシニング課</td><td><span class="badge badge-blue">ENGINEER</span></td><td><span style="color:#22c55e;font-weight:700;">● 有効</span></td><td>2025/11/28 13:55</td><td><div style="display:flex;gap:5px;"><span class="btn btn-secondary btn-sm">編集</span><span class="btn btn-amber btn-sm">PW初期化</span></div></td></tr>
+          <tr><td>3</td><td>EMP003</td><td>山田 太郎</td><td>品質管理課</td><td><span class="badge" style="background:#e0f2fe;color:#0c4a6e;">VIEWER</span></td><td><span style="color:#22c55e;font-weight:700;">● 有効</span></td><td>2025/11/20 09:10</td><td><div style="display:flex;gap:5px;"><span class="btn btn-secondary btn-sm">編集</span><span class="btn btn-danger btn-sm">無効化</span></div></td></tr>
+          <tr style="opacity:0.5;"><td>4</td><td>EMP004</td><td>旧 社員</td><td>—</td><td><span class="badge badge-gray">OPERATOR</span></td><td><span style="color:#94a3b8;font-weight:700;">○ 無効</span></td><td>2024/08/01</td><td><div style="display:flex;gap:5px;"><span class="btn btn-secondary btn-sm">編集</span><span class="btn btn-success btn-sm">有効化</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- UIデザイン指針 -->
+<div style="background:white;border:1px solid var(--border);border-radius:10px;padding:24px;margin-top:16px;">
+  <div style="font-size:14px;font-weight:700;margin-bottom:14px;color:#1e293b;">🎨 UIデザイン指針（shadcn/ui + Tailwind CSS 実装ガイド）</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;font-size:12px;">
+    <div style="background:#f8fafc;border-radius:7px;padding:14px;">
+      <div style="font-weight:700;margin-bottom:8px;color:#3b82f6;">採用コンポーネント</div>
+      <ul style="list-style:none;color:#64748b;line-height:1.9;">
+        <li>• DataTable → TanStack Table v8</li>
+        <li>• モーダル → shadcn/ui Dialog</li>
+        <li>• マルチセレクト → react-select v5</li>
+        <li>• 日付 → react-day-picker</li>
+        <li>• フォーム → react-hook-form + zod</li>
+        <li>• グラフ → Recharts</li>
+        <li>• アイコン → Lucide React</li>
+      </ul>
+    </div>
+    <div style="background:#f8fafc;border-radius:7px;padding:14px;">
+      <div style="font-weight:700;margin-bottom:8px;color:#10b981;">TALON比UX改善点</div>
+      <ul style="list-style:none;color:#64748b;line-height:1.9;">
+        <li>✅ ブラウザバック・進む完全対応</li>
+        <li>✅ URLシェア・ブックマーク可能</li>
+        <li>✅ Excelダウンロード 1クリック</li>
+        <li>✅ インライングリッド編集</li>
+        <li>✅ キーボードナビゲーション対応</li>
+        <li>✅ ポップアップウィンドウ廃止</li>
+        <li>✅ レスポンシブ対応（将来）</li>
+      </ul>
+    </div>
+    <div style="background:#f8fafc;border-radius:7px;padding:14px;">
+      <div style="font-weight:700;margin-bottom:8px;color:#f59e0b;">カラーパレット</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:18px;height:18px;background:#1e293b;border-radius:3px;"></div><span style="color:#64748b;">Primary dark #1e293b</span></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:18px;height:18px;background:#3b82f6;border-radius:3px;"></div><span style="color:#64748b;">Accent blue #3b82f6</span></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:18px;height:18px;background:#22c55e;border-radius:3px;"></div><span style="color:#64748b;">Success #22c55e</span></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:18px;height:18px;background:#f59e0b;border-radius:3px;"></div><span style="color:#64748b;">Warning #f59e0b</span></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:18px;height:18px;background:#ef4444;border-radius:3px;"></div><span style="color:#64748b;">Danger #ef4444</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="page-footer">
+  マシニング加工管理システム / ワイヤーフレーム v1.0 / MC-REBUILD-001 / shadcn/ui + Tailwind CSS<br>
+  総ワイヤーフレーム画面数: 5画面（詳細版）/ 残り20画面は同パターンで実装
+</div>
+</body>
+</html>

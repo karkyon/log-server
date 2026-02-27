@@ -1,0 +1,106 @@
+# .github/workflows/generate-docs.yml
+# ============================================================
+# 機能仕様書 自動生成ワークフロー
+#
+# ⚠️ Claude API（有料）を使用するため Push 時の自動実行は無効
+#
+# トリガー:
+#   - Actions タブからの手動実行のみ（workflow_dispatch）
+#
+# 実行方法:
+#   GitHub → Actions → 機能仕様書 自動生成（手動のみ） → Run workflow
+#   → featureId を入力して実行（空欄で全機能を再生成）
+#
+# 処理:
+#   1. 指定された featureId の .jsonl + スクショを読み込み
+#   2. Claude API（claude-sonnet-4）で HTML 仕様書を生成
+#   3. 生成された docs/<featureId>/index.html を Push
+# ============================================================
+
+name: 機能仕様書 自動生成（手動のみ）
+
+on:
+  # ✅ 手動実行のみ（Push 時は起動しない → Claude API 課金なし）
+  workflow_dispatch:
+    inputs:
+      feature_id:
+        description: '生成対象の featureId（例: MC_PRODUCTS_LIST）。空欄で全機能を再生成'
+        required: false
+        default: ''
+
+jobs:
+  generate:
+    name: 仕様書生成
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      # ── 1. チェックアウト ─────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── 2. Node.js セットアップ ───────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # ── 3. 依存パッケージインストール ─────────────────────────────────────
+      - name: Install dependencies
+        run: npm ci
+
+      # ── 4. 生成対象の featureId を特定 ────────────────────────────────────
+      #       入力値を使用（空欄なら logs/features/ 全件）
+      - name: Detect target featureIds
+        id: detect
+        run: |
+          FEATURE_INPUT="${{ github.event.inputs.feature_id }}"
+          if [ -z "$FEATURE_INPUT" ]; then
+            IDS=$(ls logs/features/*.jsonl 2>/dev/null | xargs -I{} basename {} .jsonl | tr '\n' ' ')
+            echo "対象: 全機能 → $IDS"
+          else
+            IDS="$FEATURE_INPUT"
+            echo "対象: $IDS"
+          fi
+          echo "feature_ids=$IDS" >> $GITHUB_OUTPUT
+
+      # ── 5. 各 featureId に対して仕様書生成（Claude API 呼び出し）──────────
+      - name: Generate documents
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          IDS="${{ steps.detect.outputs.feature_ids }}"
+
+          if [ -z "$IDS" ]; then
+            echo "生成対象の featureId が見つかりませんでした。スキップします。"
+            exit 0
+          fi
+
+          for ID in $IDS; do
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "生成中: $ID"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            node scripts/generate.js "$ID"
+            # Free Tier レート制限対策（5回/分）
+            sleep 15
+          done
+
+      # ── 6. docs/index.html（一覧ページ）を更新 ───────────────────────────
+      - name: Update docs index
+        run: node scripts/generate-index.js
+        continue-on-error: true
+
+      # ── 7. 自動コミット & Push ────────────────────────────────────────────
+      - name: Commit and push generated docs
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add docs/
+          git diff --cached --quiet && echo "変更なし。コミットをスキップします。" && exit 0
+
+          FEATURE_IDS="${{ steps.detect.outputs.feature_ids }}"
+          git commit -m "docs: 機能仕様書を自動生成 [${FEATURE_IDS}] [skip ci]"
+          git push

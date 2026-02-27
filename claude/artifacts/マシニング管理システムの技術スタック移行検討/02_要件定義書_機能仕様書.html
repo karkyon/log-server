@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>要件定義書・機能仕様書 - マシニング加工管理システム</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+  :root {
+    --primary: #0f2027;
+    --accent: #2563eb;
+    --accent2: #059669;
+    --accent3: #d97706;
+    --danger: #dc2626;
+    --surface: #ffffff;
+    --surface2: #f8fafc;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text2: #475569;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans JP', sans-serif; background: var(--surface2); color: var(--text); line-height: 1.7; }
+
+  .doc-header {
+    background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+    color: white;
+    padding: 56px 80px;
+  }
+  .header-tag {
+    display: inline-block;
+    background: rgba(37,99,235,0.3);
+    border: 1px solid rgba(37,99,235,0.5);
+    color: #93c5fd;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+  .doc-header h1 { font-size: 2.4em; font-weight: 900; margin-bottom: 12px; }
+  .doc-header .subtitle { color: #94a3b8; font-size: 1.05em; margin-bottom: 28px; }
+  .header-meta { display: flex; gap: 28px; }
+  .header-meta-item { display: flex; flex-direction: column; }
+  .header-meta-item span:first-child { font-size: 10px; color: #64748b; letter-spacing: 1px; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
+  .header-meta-item span:last-child { font-size: 14px; color: #e2e8f0; }
+
+  .toc {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 0 60px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+  .toc ul { display: flex; list-style: none; overflow-x: auto; }
+  .toc ul li a {
+    display: block; padding: 14px 16px;
+    text-decoration: none; color: var(--text2);
+    font-size: 12px; font-weight: 500;
+    border-bottom: 2px solid transparent; white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .toc ul li a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .content { max-width: 1100px; margin: 0 auto; padding: 48px 32px; }
+
+  .section {
+    background: white; border-radius: 10px;
+    border: 1px solid var(--border); padding: 44px;
+    margin-bottom: 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--accent);
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px;
+  }
+  h2 { font-size: 1.5em; font-weight: 700; color: var(--primary); margin-bottom: 24px; padding-bottom: 14px; border-bottom: 2px solid var(--surface2); }
+  h3 { font-size: 1.1em; font-weight: 700; color: var(--primary); margin: 28px 0 14px; }
+  h4 { font-size: 1em; font-weight: 700; color: var(--text2); margin: 16px 0 10px; }
+  p { color: var(--text2); margin-bottom: 14px; font-size: 14px; }
+
+  /* テーブル */
+  table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin: 16px 0; }
+  th { background: #1e293b; color: white; padding: 12px 14px; font-size: 12px; font-weight: 600; text-align: left; }
+  td { padding: 11px 14px; font-size: 13px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: #f8fafc; }
+
+  /* バッジ */
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-high { background: #dcfce7; color: #166534; }
+  .badge-med { background: #fef9c3; color: #854d0e; }
+  .badge-low { background: #fee2e2; color: #991b1b; }
+  .badge-new { background: #dbeafe; color: #1e40af; }
+  .badge-exist { background: #f3e8ff; color: #6b21a8; }
+  .badge-admin { background: #fef3c7; color: #92400e; }
+  .badge-user { background: #dcfce7; color: #14532d; }
+  .badge-viewer { background: #e0f2fe; color: #0c4a6e; }
+
+  .info-box { background: #eff6ff; border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 16px 0; font-size: 13px; color: #1e40af; }
+  .warn-box { background: #fffbeb; border-left: 4px solid var(--accent3); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 16px 0; font-size: 13px; color: #92400e; }
+  .success-box { background: #f0fdf4; border-left: 4px solid var(--accent2); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 16px 0; font-size: 13px; color: #14532d; }
+
+  /* 機能カード */
+  .func-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 20px 0; }
+  .func-card {
+    border: 1px solid var(--border); border-radius: 8px; padding: 18px;
+    background: white; transition: box-shadow 0.2s;
+  }
+  .func-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .func-card .func-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); margin-bottom: 6px; }
+  .func-card .func-name { font-weight: 700; font-size: 14px; color: var(--primary); margin-bottom: 8px; }
+  .func-card .func-desc { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+  /* 権限表 */
+  .perm-table td:first-child { font-weight: 600; color: var(--primary); }
+  .perm-center { text-align: center; }
+  .perm-ok { color: #16a34a; font-weight: 700; font-size: 16px; }
+  .perm-no { color: #dc2626; font-weight: 700; font-size: 16px; }
+  .perm-read { color: #2563eb; font-weight: 700; font-size: 14px; }
+
+  /* NFR */
+  .nfr-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 20px 0; }
+  .nfr-card { background: var(--surface2); border-radius: 8px; border: 1px solid var(--border); padding: 20px; }
+  .nfr-card h4 { color: var(--primary); font-size: 14px; margin-bottom: 12px; }
+  .nfr-card ul { list-style: none; }
+  .nfr-card ul li { font-size: 13px; color: var(--text2); padding: 4px 0; padding-left: 20px; position: relative; }
+  .nfr-card ul li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); font-size: 11px; top: 6px; }
+
+  .doc-footer { background: var(--primary); color: #64748b; text-align: center; padding: 28px; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <div class="header-tag">REQUIREMENTS & FUNCTIONAL SPECIFICATION</div>
+  <h1>要件定義書・機能仕様書</h1>
+  <p class="subtitle">マシニング加工管理システム — Next.js + NestJS 新規構築版</p>
+  <div class="header-meta">
+    <div class="header-meta-item"><span>Version</span><span>1.0</span></div>
+    <div class="header-meta-item"><span>Project ID</span><span>MC-REBUILD-001</span></div>
+    <div class="header-meta-item"><span>DB</span><span>SQL Server 2019</span></div>
+    <div class="header-meta-item"><span>スタック</span><span>Next.js 14 + NestJS 10</span></div>
+  </div>
+</div>
+
+<nav class="toc">
+  <ul>
+    <li><a href="#overview">1. システム概要</a></li>
+    <li><a href="#stakeholders">2. ステークホルダー</a></li>
+    <li><a href="#funcreq">3. 機能要件</a></li>
+    <li><a href="#funcspec">4. 機能仕様詳細</a></li>
+    <li><a href="#permissions">5. 権限設計</a></li>
+    <li><a href="#reports">6. 帳票仕様</a></li>
+    <li><a href="#external">7. 外部連携</a></li>
+    <li><a href="#nonfunc">8. 非機能要件</a></li>
+    <li><a href="#api">9. API設計方針</a></li>
+    <li><a href="#migration">10. データ移行</a></li>
+  </ul>
+</nav>
+
+<div class="content">
+
+  <!-- 1. システム概要 -->
+  <div class="section" id="overview">
+    <div class="section-label">SECTION 01</div>
+    <h2>システム概要</h2>
+
+    <h3>1.1 目的</h3>
+    <p>マシニングセンタ（MC：Machining Center）の加工技術情報を一元管理し、段取作業の効率化・作業実績の記録・工具/治具情報の管理を実現するWebベース統合管理システムを、TALONローコードプラットフォームから<strong>Next.js + NestJS + TypeScript</strong>で再構築します。</p>
+
+    <h3>1.2 移行時の改善目標</h3>
+    <table>
+      <thead><tr><th>課題領域</th><th>TALON現状</th><th>新システム目標値</th></tr></thead>
+      <tbody>
+        <tr><td>帳票出力</td><td>VBAマクロ依存、レイアウト固定</td><td>ExcelJSによるサーバーサイド生成。レイアウト変更工数 80%削減</td></tr>
+        <tr><td>ログ収集</td><td>手動記録のみ、検索性低</td><td>全操作の自動構造化ログ記録。検索・エクスポート・アラート対応</td></tr>
+        <tr><td>画面遷移</td><td>ポップアップ多用、URLなし</td><td>URLベース遷移。ブラウザバック完全対応</td></tr>
+        <tr><td>権限管理</td><td>メニュー単位のみ</td><td>フィールドレベル・APIレベルのRBAC（役割ベースアクセス制御）</td></tr>
+        <tr><td>テスト</td><td>手動のみ</td><td>Jest単体テスト + Playwright E2Eテスト自動化</td></tr>
+        <tr><td>応答速度</td><td>3〜5秒（大量データ時）</td><td>一覧表示 2秒以内（TanStack QueryキャッシュとSQL最適化）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>1.3 システム規模（継承）</h3>
+    <table>
+      <thead><tr><th>項目</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td>機能数</td><td>22機能（9カテゴリ）— TALONと同等 + 新規追加機能</td></tr>
+        <tr><td>DBテーブル数</td><td>23テーブル（メイン21 + 外部参照2）</td></tr>
+        <tr><td>画面数</td><td>約25画面（TALON20画面 + 新規管理画面5）</td></tr>
+        <tr><td>帳票種別</td><td>Excel 5種類、PDF 3種類</td></tr>
+        <tr><td>同時接続</td><td>5〜10名（想定最大20名）</td></tr>
+        <tr><td>対応ブラウザ</td><td>Chrome 最新版（プライマリ）、Edge 最新版</td></tr>
+        <tr><td>動作OS（クライアント）</td><td>Windows 10/11</td></tr>
+        <tr><td>動作OS（サーバー）</td><td>Windows Server 2019 / Ubuntu 22.04</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 2. ステークホルダー -->
+  <div class="section" id="stakeholders">
+    <div class="section-label">SECTION 02</div>
+    <h2>ステークホルダーとユーザーロール定義</h2>
+
+    <h3>2.1 ユーザーロール（RBAC設計）</h3>
+    <table>
+      <thead><tr><th>ロール名</th><th>対象者</th><th>権限概要</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-admin">管理者 (ADMIN)</span></td>
+          <td>システム管理担当者</td>
+          <td>全機能アクセス可。マスタ管理、ユーザー管理、操作ログ閲覧、全データのCRUD</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-user">作業者 (OPERATOR)</span></td>
+          <td>マシニングセンタ担当者</td>
+          <td>マシニング情報の参照・限定編集。段取シート発行・実績登録。マスタ管理・操作ログ閲覧不可</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-high">技術者 (ENGINEER)</span></td>
+          <td>加工技術担当者</td>
+          <td>マシニング情報の全編集権限。段取シート承認。ツーリング・生爪・ワークオフセット編集</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-viewer">閲覧者 (VIEWER)</span></td>
+          <td>参照のみ利用者（品質管理等）</td>
+          <td>全画面の参照のみ。データ変更・帳票発行不可</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-box">
+      💡 <strong>RBAC（Role-Based Access Control）:</strong> 役割に基づいてアクセス権を管理する方式です。NestJS Guards + CASL ライブラリにより、APIエンドポイントとUI要素の両方で権限チェックを実装します。
+    </div>
+
+    <h3>2.2 ステークホルダー一覧</h3>
+    <table>
+      <thead><tr><th>関係者</th><th>関心事</th><th>影響度</th></tr></thead>
+      <tbody>
+        <tr><td>マシニング加工担当者</td><td>段取シート迅速発行、工具情報参照の容易さ</td><td><span class="badge badge-high">高</span></td></tr>
+        <tr><td>加工技術管理者</td><td>技術情報の正確な管理、変更履歴の追跡</td><td><span class="badge badge-high">高</span></td></tr>
+        <tr><td>IT/システム管理者</td><td>安定稼働、ログ収集、セキュリティ、保守性</td><td><span class="badge badge-high">高</span></td></tr>
+        <tr><td>品質管理部門</td><td>監査証跡、操作ログ、帳票の正確性</td><td><span class="badge badge-med">中</span></td></tr>
+        <tr><td>経営層</td><td>コスト削減、生産効率向上、システム投資対効果</td><td><span class="badge badge-med">中</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 3. 機能要件 -->
+  <div class="section" id="funcreq">
+    <div class="section-label">SECTION 03</div>
+    <h2>機能要件一覧（22機能）</h2>
+
+    <h3>カテゴリ 1: 認証・メニュー機能</h3>
+    <div class="func-grid">
+      <div class="func-card">
+        <div class="func-id">MC-AUTH-001</div>
+        <div class="func-name">ユーザー認証</div>
+        <div class="func-desc">JWT認証 + Active Directory LDAP連携オプション。ログイン失敗5回でアカウントロック（30分）。セッションタイムアウト30分。</div>
+        <div style="margin-top:10px"><span class="badge badge-high">優先度: 高</span> <span class="badge badge-new">新規改善</span></div>
+      </div>
+      <div class="func-card">
+        <div class="func-id">MC-MENU-001</div>
+        <div class="func-name">メインメニュー</div>
+        <div class="func-desc">ロールに応じた動的メニュー表示。サイドバーナビゲーション + パンくずリスト。未読通知バッジ表示。</div>
+        <div style="margin-top:10px"><span class="badge badge-high">優先度: 高</span></div>
+      </div>
+    </div>
+
+    <h3>カテゴリ 2: マシニング情報管理</h3>
+    <div class="func-grid">
+      <div class="func-card">
+        <div class="func-id">MC-MACH-001</div>
+        <div class="func-name">マシニング情報管理 ⭐</div>
+        <div class="func-desc">本システム最重要画面。4ブロック構成、6編集モード。部品・設備・工具・治具・図面・写真を一元管理。</div>
+        <div style="margin-top:10px"><span class="badge badge-high">優先度: 高</span></div>
+      </div>
+      <div class="func-card">
+        <div class="func-id">MC-MACH-002</div>
+        <div class="func-name">マシニング情報更新確認</div>
+        <div class="func-desc">編集確定時の変更理由入力・変更内容差分表示・バージョン管理。変更履歴change_historyに自動記録。</div>
+        <div style="margin-top:10px"><span class="badge badge-med">優先度: 中</span></div>
+      </div>
+    </div>
+
+    <h3>カテゴリ 3: 段取シート発行管理</h3>
+    <div class="func-grid">
+      <div class="func-card">
+        <div class="func-id">MC-SHEET-001</div>
+        <div class="func-name">段取シート一覧</div>
+        <div class="func-desc">発行済みシートの検索・状況管理（未回収/回収済/参照）。回収状況の更新。部品番号・設備・日付での絞り込み。</div>
+        <div style="margin-top:10px"><span class="badge badge-high">優先度: 高</span></div>
+      </div>
+      <div class="func-card">
+        <div class="func-id">MC-SHEET-002</div>
+        <div class="func-name">段取シート発行（新規）</div>
+        <div class="func-desc">新規製品用の段取シートデータ作成・Excel出力。ExcelJSでサーバーサイド生成。VBA不要。</div>
+        <div style="margin-top:10px"><span class="badge badge-high">優先度: 高</span> <span class="badge badge-new">改善</span></div>
+      </div>
+      <div class="func-card">
+        <div class="func-id">MC-SHEET-003</div>
+        <div class="func-name">段取シート発行（リピート）</div>
+        <div class="func-desc">登録済みマシニング情報からの発行。工具リスト・治具情報・加工条件・統計情報含む。Excel出力。</div>
+        <div style="margin-top:10px"><span class="badge badge-high">優先度: 高</span> <span class="badge badge-new">改善</span></div>
+      </div>
+      <div class="func-card">
+        <div class="func-id">MC-SHEET-004</div>
+        <div class="func-name">SP段取シート通知</div>
+        <div class="func-desc">特別注意製品（SPシート）のアラート表示。通知の既読管理。ダッシュボードへのバッジ表示。</div>
+        <div style="margin-top:10px"><span class="badge badge-med">優先度: 中</span></div>
+      </div>
+      <div class="func-card">
+        <div class="func-id">MC-SHEET-005</div>
+        <div class="func-name">SP段取シート発行</div>
+        <div class="func-desc">製品別SPシートテンプレートからのExcel出力。テンプレートファイル管理機能付き。</div>
+        <div style="margin-top:10px"><span class="badge badge-med">優先度: 中</span></div>
+      </div>
+    </div>
+
+    <h3>カテゴリ 4: 作業実績管理</h3>
+    <div class="func-grid">
+      <div class="func-card">
+        <div class="func-id">MC-WORK-001</div>
+        <div class="func-name">作業実績登録</div>
+        <div class="func-desc">日々の加工実績登録。作業者・段取作業者（各最大5名）選択（react-select）。サイクルタイム・加工個数入力。非アクティブユーザの動的追加。</div>
+        <div style="margin-top:10px"><span class="badge badge-high">優先度: 高</span></div>
+      </div>
+      <div class="func-card">
+        <div class="func-id">MC-WORK-002</div>
+        <div class="func-name">作業実績一覧</div>
+        <div class="func-desc">登録済み実績の検索・参照。設備別・期間別集計。CSVエクスポート機能。</div>
+        <div style="margin-top:10px"><span class="badge badge-med">優先度: 中</span></div>
+      </div>
+    </div>
+
+    <h3>カテゴリ 5: システム管理</h3>
+    <div class="func-grid">
+      <div class="func-card">
+        <div class="func-id">MC-LOG-001</div>
+        <div class="func-name">システム操作ログ</div>
+        <div class="func-desc">全操作の自動記録（WinstonによるInterceptor）。管理者のみ閲覧。日時・ユーザー・操作・IPアドレス検索。CSVエクスポート。</div>
+        <div style="margin-top:10px"><span class="badge badge-med">優先度: 中</span> <span class="badge badge-new">大幅改善</span></div>
+      </div>
+    </div>
+
+    <h3>カテゴリ 6: 部品・設備管理</h3>
+    <div class="func-grid">
+      <div class="func-card">
+        <div class="func-id">MC-PARTS-001</div>
+        <div class="func-name">部品一覧</div>
+        <div class="func-desc">登録部品の検索・参照。部品番号・図面番号・納入先検索。ImotoAP DB連携（TypeORM Multi DataSource）。</div>
+        <div style="margin-top:10px"><span class="badge badge-high">優先度: 高</span></div>
+      </div>
+      <div class="func-card">
+        <div class="func-id">MC-MACH-003</div>
+        <div class="func-name">設備一覧</div>
+        <div class="func-desc">マシニングセンタの仕様情報一覧（機種・メーカ・XYZストローク・TOOL数・主軸回転数）。稼働状況更新。</div>
+        <div style="margin-top:10px"><span class="badge badge-med">優先度: 中</span></div>
+      </div>
+      <div class="func-card">
+        <div class="func-id">MC-MACH-004</div>
+        <div class="func-name">設備稼働実績</div>
+        <div class="func-desc">設備別稼働時間の登録・参照。規定値を毎日自動生成（NestJS Scheduler）。月次・年次集計グラフ（Recharts）。</div>
+        <div style="margin-top:10px"><span class="badge badge-low">優先度: 低</span> <span class="badge badge-new">改善</span></div>
+      </div>
+    </div>
+
+    <h3>カテゴリ 7: 工具・治具管理</h3>
+    <div class="func-grid">
+      <div class="func-card">
+        <div class="func-id">MC-TOOL-001</div>
+        <div class="func-name">ツーリング編集</div>
+        <div class="func-desc">工具組立情報の登録・編集。T01〜T99工具番号管理。工具長・工具径。インライングリッド編集（TanStack Table）。</div>
+        <div style="margin-top:10px"><span class="badge badge-high">優先度: 高</span></div>
+      </div>
+      <div class="func-card">
+        <div class="func-id">MC-JAW-001</div>
+        <div class="func-name">生爪検索</div>
+        <div class="func-desc">生爪情報の検索。形状・寸法・材質による絞り込み。サムネイル表示。</div>
+        <div style="margin-top:10px"><span class="badge badge-med">優先度: 中</span></div>
+      </div>
+      <div class="func-card">
+        <div class="func-id">MC-JAW-002</div>
+        <div class="func-name">生爪編集</div>
+        <div class="func-desc">生爪情報の登録・編集・削除。写真添付（multer）。ファイルサーバー（\\Server\d\MC\）連携。</div>
+        <div style="margin-top:10px"><span class="badge badge-med">優先度: 中</span></div>
+      </div>
+      <div class="func-card">
+        <div class="func-id">MC-OFFSET-001</div>
+        <div class="func-name">ワークオフセット編集</div>
+        <div class="func-desc">X/Y/Z軸補正値の登録・編集・削除。グリッドインライン編集。変更履歴自動記録。</div>
+        <div style="margin-top:10px"><span class="badge badge-med">優先度: 中</span></div>
+      </div>
+      <div class="func-card">
+        <div class="func-id">MC-IDX-001</div>
+        <div class="func-name">インデックスプログラム編集</div>
+        <div class="func-desc">インデックステーブル用プログラムの管理・編集。コードエディタコンポーネント（Monaco Editor軽量版）。</div>
+        <div style="margin-top:10px"><span class="badge badge-low">優先度: 低</span></div>
+      </div>
+    </div>
+
+    <h3>カテゴリ 8: 図面・写真管理</h3>
+    <div class="func-grid">
+      <div class="func-card">
+        <div class="func-id">MC-DRW-001</div>
+        <div class="func-name">図一覧</div>
+        <div class="func-desc">登録図面の一覧・検索。Ridoc図面管理APIへのリンク（http://192.168.1.9:8080/v1/DrawingImage）。図面番号クリックで表示。</div>
+        <div style="margin-top:10px"><span class="badge badge-med">優先度: 中</span></div>
+      </div>
+      <div class="func-card">
+        <div class="func-id">MC-PHOTO-001</div>
+        <div class="func-name">写真一覧</div>
+        <div class="func-desc">加工品・治具写真の管理。サムネイル表示（Next.js Image最適化）。ライトボックス拡大表示。ファイルサーバー連携。</div>
+        <div style="margin-top:10px"><span class="badge badge-med">優先度: 中</span></div>
+      </div>
+    </div>
+
+    <h3>カテゴリ 9: マスタ管理</h3>
+    <div class="func-grid">
+      <div class="func-card">
+        <div class="func-id">MC-MASTER-001</div>
+        <div class="func-name">各種マスタ管理</div>
+        <div class="func-desc">社員・工具・工具メーカ・材質・表面処理・設備等のマスタCRUD。一括インポート（CSV）機能追加。変更ログ自動記録。</div>
+        <div style="margin-top:10px"><span class="badge badge-high">優先度: 高</span> <span class="badge badge-new">機能追加</span></div>
+      </div>
+      <div class="func-card">
+        <div class="func-id">MC-USER-001</div>
+        <div class="func-name">ユーザー管理（新規追加）</div>
+        <div class="func-desc">ユーザーアカウントの作成・編集・削除・ロール割当。TALONにはなかった管理画面。管理者専用。</div>
+        <div style="margin-top:10px"><span class="badge badge-high">優先度: 高</span> <span class="badge badge-new">新機能</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 機能仕様詳細 -->
+  <div class="section" id="funcspec">
+    <div class="section-label">SECTION 04</div>
+    <h2>機能仕様詳細（重要機能）</h2>
+
+    <h3>4.1 マシニング情報管理画面（MC-MACH-001）— 最重要・最大規模</h3>
+    <div class="warn-box">⚠️ 開発工数 約35人日。4ブロック構成・6編集モードの複雑な画面。経験豊富な開発者をアサインすること。</div>
+    <table>
+      <thead><tr><th>項目</th><th>仕様</th></tr></thead>
+      <tbody>
+        <tr><td>画面レイアウト</td><td>左ペイン（部品一覧 + ナビゲーション） / 右ペイン（マシニング情報詳細）の2カラム構成。responsive対応</td></tr>
+        <tr><td>編集モード</td><td>①閲覧モード ②編集モード ③新規登録 ④段取シートバック新規 ⑤段取シートバックリピート ⑥仮登録モード</td></tr>
+        <tr><td>ブロック1（左上）</td><td>部品情報エリア: 部品ID・加工ID・MCID・納入先・図面番号・名称・主機種型式</td></tr>
+        <tr><td>ブロック2（左下）</td><td>ナビゲーション: 部品に紐づく加工IDリスト表示。クリックでブロック3・4を切替</td></tr>
+        <tr><td>ブロック3（右上）</td><td>マシニング情報: 工程No・機械・タイム・倍数・フォルダ/ファイル名・メインONo・PG作成者・メッセージ</td></tr>
+        <tr><td>ブロック4（右下）</td><td>タブ切替エリア: ツーリング件数・ワークオフセット件数・インデックス・図枚数・写真枚数・備考・承認情報</td></tr>
+        <tr><td>状態管理</td><td>編集モード切替時、URL Query Parameterを更新（例: ?mode=edit&id=9570）。ブラウザバック対応</td></tr>
+        <tr><td>楽観的更新</td><td>TanStack Queryのoptimistic updateで保存前にUIを先行更新。エラー時はロールバック</td></tr>
+        <tr><td>変更追跡</td><td>react-hook-formのdirty stateで変更検知。未保存離脱時に確認ダイアログ表示</td></tr>
+        <tr><td>承認フロー</td><td>「承認実行」ボタン押下→確認ダイアログ→承認日・Version自動更新→change_history記録</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.2 段取シート発行（MC-SHEET-002/003）— 帳票改善の核心</h3>
+    <table>
+      <thead><tr><th>項目</th><th>仕様</th></tr></thead>
+      <tbody>
+        <tr><td>出力方式</td><td>ExcelJSでサーバーサイドExcel生成 → StreamableFileでブラウザに直接ストリーミング。VBA/マクロ完全不要</td></tr>
+        <tr><td>段取シート（リピート）構成</td><td>表紙 + 工具リスト（toolingテーブル全件）+ 治具情報（chuck/vise/claw）+ ワークオフセット + 統計情報</td></tr>
+        <tr><td>出力項目（リピート）</td><td>部品ID・納入先・図面番号・名称・主機種型式・加工ID・MCID・工程No・タイム・個数・Version・作成日・承認者 + ツーリング詳細</td></tr>
+        <tr><td>印刷設定</td><td>A4横 or 縦（用途に応じて切替）。ページ番号自動付与。ヘッダー/フッター自動</td></tr>
+        <tr><td>発行ログ</td><td>発行時にsetup_sheet_historyテーブルへ自動記録（発行者・発行日時・対象データ）</td></tr>
+        <tr><td>SPシート</td><td>製品別テンプレートファイル（\\Server\d\MC\SPSheet\）を読込み、ExcelJSでデータ埋込み後に出力</td></tr>
+        <tr><td>PDF出力</td><td>Puppeteerを使用。HTMLテンプレート → PDF変換。印刷プレビュー画面から直接PDF保存可能</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.3 権限制御の実装仕様（MC-AUTH-001）— 新規大幅改善</h3>
+    <table>
+      <thead><tr><th>制御レベル</th><th>実装方法</th><th>対象</th></tr></thead>
+      <tbody>
+        <tr><td>APIレベル</td><td>NestJS @UseGuards(JwtAuthGuard, RolesGuard) デコレータ</td><td>全APIエンドポイント</td></tr>
+        <tr><td>画面レベル</td><td>Next.js middleware.ts でJWTトークン検証</td><td>全ページルート</td></tr>
+        <tr><td>コンポーネントレベル</td><td>usePermissions() カスタムフックでCASL Ability確認</td><td>ボタン・フォーム要素</td></tr>
+        <tr><td>フィールドレベル</td><td>CASLのfield-levelチェックでAPIレスポンスから機密フィールドをマスク</td><td>承認情報等の機密データ</td></tr>
+        <tr><td>データレベル</td><td>Ownershipチェック（作成者のみ編集可等）をNestJS ServiceレイヤーでCASL検証</td><td>仮登録データ等</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.4 構造化ログ仕様（MC-LOG-001）— 新規大幅改善</h3>
+    <table>
+      <thead><tr><th>ログ種別</th><th>記録内容</th><th>保存先</th></tr></thead>
+      <tbody>
+        <tr><td>アクセスログ</td><td>HTTPメソッド・URL・ステータスコード・レスポンス時間・IPアドレス・User-Agent</td><td>ファイル（JSON）</td></tr>
+        <tr><td>操作ログ</td><td>ユーザーID・操作種別・対象テーブル・対象ID・変更前後データ・操作日時</td><td>DB（operation_logs）+ ファイル</td></tr>
+        <tr><td>帳票ログ</td><td>帳票種別・発行者・発行日時・対象データID・ファイル名</td><td>DB（setup_sheet_history）</td></tr>
+        <tr><td>認証ログ</td><td>ログイン成功/失敗・IPアドレス・失敗回数・ロックアウト発生</td><td>DB（auth_logs）+ ファイル</td></tr>
+        <tr><td>エラーログ</td><td>エラー種別・スタックトレース・ユーザーID・リクエスト情報</td><td>ファイル（ERROR専用）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 5. 権限設計 -->
+  <div class="section" id="permissions">
+    <div class="section-label">SECTION 05</div>
+    <h2>権限マトリクス（RBAC）</h2>
+
+    <table class="perm-table">
+      <thead>
+        <tr>
+          <th>機能</th>
+          <th class="perm-center">ADMIN<br><small>管理者</small></th>
+          <th class="perm-center">ENGINEER<br><small>技術者</small></th>
+          <th class="perm-center">OPERATOR<br><small>作業者</small></th>
+          <th class="perm-center">VIEWER<br><small>閲覧者</small></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>マシニング情報 閲覧</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td></tr>
+        <tr><td>マシニング情報 編集</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-no">✕</td><td class="perm-center perm-no">✕</td></tr>
+        <tr><td>マシニング情報 新規登録</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-no">✕</td><td class="perm-center perm-no">✕</td></tr>
+        <tr><td>マシニング情報 承認</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-no">✕</td><td class="perm-center perm-no">✕</td></tr>
+        <tr><td>段取シート 発行</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-no">✕</td></tr>
+        <tr><td>段取シート 一覧 閲覧</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td></tr>
+        <tr><td>段取シート 回収状況 更新</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-no">✕</td></tr>
+        <tr><td>ツーリング 編集</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-no">✕</td><td class="perm-center perm-no">✕</td></tr>
+        <tr><td>生爪 編集</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-no">✕</td><td class="perm-center perm-no">✕</td></tr>
+        <tr><td>ワークオフセット 編集</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-no">✕</td><td class="perm-center perm-no">✕</td></tr>
+        <tr><td>作業実績 登録</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-no">✕</td></tr>
+        <tr><td>作業実績 閲覧</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td></tr>
+        <tr><td>部品一覧 閲覧</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td></tr>
+        <tr><td>設備一覧 閲覧</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td></tr>
+        <tr><td>図面・写真 閲覧</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td></tr>
+        <tr><td>マスタ管理</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-no">✕</td><td class="perm-center perm-no">✕</td><td class="perm-center perm-no">✕</td></tr>
+        <tr><td>ユーザー管理</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-no">✕</td><td class="perm-center perm-no">✕</td><td class="perm-center perm-no">✕</td></tr>
+        <tr><td>システム操作ログ 閲覧</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-no">✕</td><td class="perm-center perm-no">✕</td><td class="perm-center perm-no">✕</td></tr>
+        <tr><td>インデックスプログラム編集</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-ok">●</td><td class="perm-center perm-no">✕</td><td class="perm-center perm-no">✕</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top: 10px; font-size: 12px; color: var(--text2);">
+      <strong>●</strong> = 全権限あり &nbsp;&nbsp; <strong>✕</strong> = アクセス不可 &nbsp;&nbsp; <strong>R</strong> = 参照のみ
+    </div>
+  </div>
+
+  <!-- 6. 帳票仕様 -->
+  <div class="section" id="reports">
+    <div class="section-label">SECTION 06</div>
+    <h2>帳票仕様（ExcelJS実装）</h2>
+
+    <table>
+      <thead><tr><th>帳票名</th><th>機能ID</th><th>形式</th><th>使用ライブラリ</th><th>主要出力項目</th></tr></thead>
+      <tbody>
+        <tr><td><strong>段取シート（新規）</strong></td><td>MC-SHEET-002</td><td>Excel (.xlsx)</td><td>ExcelJS</td><td>部品情報・機械情報・工程No・タイム・工具リスト・治具情報・備考</td></tr>
+        <tr><td><strong>段取シート（リピート）</strong></td><td>MC-SHEET-003</td><td>Excel (.xlsx)</td><td>ExcelJS</td><td>上記 + ワークオフセット・統計情報（平均CT・最大個数等）</td></tr>
+        <tr><td><strong>SPシート</strong></td><td>MC-SHEET-005</td><td>Excel (.xlsx)</td><td>ExcelJS + テンプレート</td><td>製品固有の注意事項・資料。テンプレートファイル（製品別）ベース</td></tr>
+        <tr><td><strong>作業実績レポート</strong></td><td>MC-WORK-002</td><td>CSV / Excel</td><td>ExcelJS</td><td>作業日・設備・作業者・加工数・サイクルタイム・稼働率</td></tr>
+        <tr><td><strong>操作ログ出力</strong></td><td>MC-LOG-001</td><td>CSV</td><td>NestJS組込み</td><td>処理日時・オペレータ・作業内容・詳細・IPアドレス</td></tr>
+        <tr><td><strong>段取シートPDF</strong></td><td>MC-SHEET-003</td><td>PDF</td><td>Puppeteer</td><td>段取シートと同内容。印刷配布用</td></tr>
+      </tbody>
+    </table>
+
+    <div class="success-box">
+      ✅ <strong>帳票改善のポイント:</strong> TALONのExcel+VBA方式と異なり、ExcelJSはサーバーサイドで完全なExcelバイナリを生成します。マクロなし・VBAなし・クライアントExcelインストール不要。ブラウザに直接ダウンロード配信するため、TALONのwindow.open監視ロジックが完全に不要になります。
+    </div>
+  </div>
+
+  <!-- 7. 外部連携 -->
+  <div class="section" id="external">
+    <div class="section-label">SECTION 07</div>
+    <h2>外部システム連携仕様</h2>
+
+    <table>
+      <thead><tr><th>外部システム</th><th>連携方式</th><th>接続先</th><th>実装</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Ridoc 図面管理システム</strong></td>
+          <td>REST API (HTTP GET)</td>
+          <td>http://192.168.1.9:8080/v1/DrawingImage</td>
+          <td>@nestjs/axios + DrawingService</td>
+          <td>図面番号から図面画像を取得・表示</td>
+        </tr>
+        <tr>
+          <td><strong>ImotoAP DB（部品情報）</strong></td>
+          <td>SQL直接接続（TypeORM）</td>
+          <td>\\Server\d\DB\部品情報\ImotoAP</td>
+          <td>TypeORM Multi DataSource（読取専用）</td>
+          <td>部品情報・納入先の参照</td>
+        </tr>
+        <tr>
+          <td><strong>ファイルサーバー（写真・図）</strong></td>
+          <td>UNCパス（ネットワークドライブ）</td>
+          <td>\\Server\d\MC\files\Pictures\</td>
+          <td>NestJS fs.promises / multer</td>
+          <td>写真・図ファイルの読込・保存</td>
+        </tr>
+        <tr>
+          <td><strong>Active Directory</strong></td>
+          <td>LDAP</td>
+          <td>社内ADサーバー</td>
+          <td>ldapjs ライブラリ（オプション）</td>
+          <td>SSOログイン認証（フェーズ2以降）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 8. 非機能要件 -->
+  <div class="section" id="nonfunc">
+    <div class="section-label">SECTION 08</div>
+    <h2>非機能要件</h2>
+
+    <div class="nfr-grid">
+      <div class="nfr-card">
+        <h4>⚡ パフォーマンス要件</h4>
+        <ul>
+          <li>一覧画面の初期表示: 2秒以内（TanStack QueryキャッシュとサーバーサイドページングでSQL最適化）</li>
+          <li>マシニング情報保存: 1秒以内</li>
+          <li>Excel帳票生成: 10秒以内（段取シートリピート）</li>
+          <li>同時接続10名でのレスポンス劣化: 50%以内</li>
+          <li>データベースクエリ: N+1問題を禁止（TypeORM relations eager loading）</li>
+        </ul>
+      </div>
+      <div class="nfr-card">
+        <h4>🔒 セキュリティ要件</h4>
+        <ul>
+          <li>HTTPS必須（TLS 1.2以降）。HTTP → HTTPSリダイレクト</li>
+          <li>パスワード: bcrypt ハッシュ化（ソルトラウンド 12）</li>
+          <li>JWTトークン有効期限: アクセス30分・リフレッシュ7日</li>
+          <li>ログイン失敗5回: 30分アカウントロック</li>
+          <li>XSS対策: React DOMのエスケープ + CSPヘッダー</li>
+          <li>CSRF対策: SameSite Cookie + CSRFトークン</li>
+          <li>SQLインジェクション対策: TypeORM パラメータバインディング</li>
+        </ul>
+      </div>
+      <div class="nfr-card">
+        <h4>🛡️ 可用性・信頼性要件</h4>
+        <ul>
+          <li>稼働率: 99%以上（計画停止除く）</li>
+          <li>データバックアップ: 日次自動バックアップ（SQL Server Backup Job）</li>
+          <li>エラーハンドリング: 全APIに try-catch。エラーは適切なHTTPステータスとメッセージを返却</li>
+          <li>グレースフルシャットダウン: NestJS enableShutdownHooks()で処理中リクエストを完了後停止</li>
+          <li>ヘルスチェックAPI: /api/health エンドポイント（DB接続確認含む）</li>
+        </ul>
+      </div>
+      <div class="nfr-card">
+        <h4>🔧 保守性・拡張性要件</h4>
+        <ul>
+          <li>全コード TypeScript 厳格モード（strict: true）</li>
+          <li>単体テストカバレッジ: 70%以上（Jest）</li>
+          <li>E2Eテスト: 主要ユースケース（Playwright）</li>
+          <li>OpenAPI（Swagger）: 全APIエンドポイントを自動生成</li>
+          <li>環境変数: .env ファイルで管理（@nestjs/config）。本番値はシークレット管理</li>
+          <li>コードレビュー: Pull Requestベース。ESLint + Prettier強制</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. API設計方針 -->
+  <div class="section" id="api">
+    <div class="section-label">SECTION 09</div>
+    <h2>REST API設計方針</h2>
+
+    <h3>主要APIエンドポイント一覧</h3>
+    <table>
+      <thead><tr><th>リソース</th><th>メソッド</th><th>エンドポイント</th><th>説明</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="4">マシニング情報</td><td>GET</td><td>/api/machining?page=1&size=20&partsId=xxx</td><td>一覧取得（ページング）</td></tr>
+        <tr><td>GET</td><td>/api/machining/:id</td><td>単件取得</td></tr>
+        <tr><td>PUT</td><td>/api/machining/:id</td><td>更新</td></tr>
+        <tr><td>POST</td><td>/api/machining</td><td>新規作成</td></tr>
+        <tr><td rowspan="2">段取シート</td><td>POST</td><td>/api/setup-sheet/generate</td><td>Excelファイル生成・ダウンロード</td></tr>
+        <tr><td>GET</td><td>/api/setup-sheet/history</td><td>発行履歴一覧</td></tr>
+        <tr><td>ツーリング</td><td>GET/POST/PUT/DELETE</td><td>/api/machining/:id/tooling</td><td>ツーリング情報CRUD</td></tr>
+        <tr><td>作業実績</td><td>GET/POST</td><td>/api/work-history</td><td>実績登録・一覧</td></tr>
+        <tr><td>操作ログ</td><td>GET</td><td>/api/operation-log?from=&to=&userId=</td><td>ログ検索（管理者のみ）</td></tr>
+        <tr><td>帳票CSVエクスポート</td><td>GET</td><td>/api/operation-log/export?format=csv</td><td>CSV一括出力</td></tr>
+        <tr><td>認証</td><td>POST</td><td>/api/auth/login</td><td>ログイン → JWT発行</td></tr>
+        <tr><td>認証</td><td>POST</td><td>/api/auth/refresh</td><td>トークンリフレッシュ</td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box">
+      💡 <strong>APIバージョニング:</strong> /api/v1/ プレフィックスを推奨。初期は /api/ のみでも可。将来の破壊的変更時にv2へ移行しやすい設計を心がけること。
+    </div>
+  </div>
+
+  <!-- 10. データ移行 -->
+  <div class="section" id="migration">
+    <div class="section-label">SECTION 10</div>
+    <h2>データ移行方針</h2>
+
+    <h3>10.1 移行対象データ</h3>
+    <table>
+      <thead><tr><th>テーブル</th><th>移行方針</th><th>注意事項</th></tr></thead>
+      <tbody>
+        <tr><td>machining（マシニング）</td><td>そのまま引継ぎ</td><td>最重要テーブル。新スタックはTypeORM Entityで既存テーブル構造にマッピング</td></tr>
+        <tr><td>tooling（ツーリング）</td><td>そのまま引継ぎ</td><td>machiningとのリレーション確認</td></tr>
+        <tr><td>work_offset / chuck / claw</td><td>そのまま引継ぎ</td><td>—</td></tr>
+        <tr><td>employees（社員）</td><td>そのまま引継ぎ + 拡張</td><td>password_hashカラム追加。display_order引継ぎ重要</td></tr>
+        <tr><td>machines（機械）</td><td>そのまま引継ぎ</td><td>—</td></tr>
+        <tr><td>change_history</td><td>そのまま引継ぎ</td><td>新規更新分は新システムから自動記録</td></tr>
+        <tr><td>setup_sheet_history</td><td>そのまま引継ぎ</td><td>—</td></tr>
+        <tr><td>users（新規）</td><td>employeesから生成</td><td>社員マスタをベースにユーザーアカウントを作成するマイグレーションスクリプト</td></tr>
+        <tr><td>roles / permissions（新規）</td><td>新規作成</td><td>RBACテーブルを新規追加。既存テーブルへの影響なし</td></tr>
+      </tbody>
+    </table>
+
+    <div class="warn-box">
+      ⚠️ <strong>移行の重要原則:</strong> 新システムはTALONと<strong>同一SQL Serverに接続</strong>します。テーブル構造を変更する場合はTypeORMマイグレーションで慎重に実行し、必ずバックアップ取得後に適用してください。TALON並行稼働期間中は既存テーブルへの破壊的変更を禁止します。
+    </div>
+  </div>
+
+</div>
+
+<div class="doc-footer">
+  マシニング加工管理システム / 要件定義書・機能仕様書 v1.0 / MC-REBUILD-001<br>
+  © 2025 Machining System Project — Confidential
+</div>
+
+</body>
+</html>

@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>マシニング部品一覧 ― システムドキュメント</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --brand: #0f4c81;
+      --accent: #0093d9;
+      --danger: #cc0101;
+      --success: #16a34a;
+      --warn: #d97706;
+      --bg: #f0f4f8;
+    }
+    body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); }
+    code, .mono { font-family: 'JetBrains Mono', monospace; }
+    .nav-link { transition: all .2s; }
+    .nav-link:hover { color: var(--accent); border-left-color: var(--accent); }
+    .nav-link.active { color: var(--brand); border-left-color: var(--brand); font-weight: 700; }
+    .badge-pass  { background:#dcfce7; color:#166534; }
+    .badge-fail  { background:#fee2e2; color:#991b1b; }
+    .badge-warn  { background:#fef9c3; color:#854d0e; }
+    .badge-info  { background:#dbeafe; color:#1e40af; }
+    .section-card { background:#fff; border-radius:12px; box-shadow:0 1px 6px rgba(0,0,0,.08); }
+    .bug-open   { border-left: 4px solid #ef4444; }
+    .bug-closed { border-left: 4px solid #22c55e; }
+    .bug-warn   { border-left: 4px solid #f59e0b; }
+    details > summary { cursor:pointer; list-style:none; }
+    details > summary::-webkit-details-marker { display:none; }
+    details[open] > summary .chevron { transform: rotate(90deg); }
+    .chevron { transition: transform .2s; display:inline-block; }
+    .ss-thumb { transition: transform .15s; }
+    .ss-thumb:hover { transform: scale(1.02); }
+    .timeline-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+    .sticky-nav { position:sticky; top:24px; max-height:calc(100vh - 48px); overflow-y:auto; }
+  </style>
+</head>
+<body class="text-gray-800">
+
+<!-- ===== TOP HEADER ===== -->
+<header style="background:var(--brand);" class="text-white py-6 px-8 shadow-lg">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <div>
+      <p class="text-xs uppercase tracking-widest opacity-60 mb-1">マシニングシステム</p>
+      <h1 class="text-2xl font-bold">マシニング部品一覧</h1>
+      <p class="text-sm opacity-70 mt-1">MC_PRODUCTS_LIST ― システムドキュメント</p>
+    </div>
+    <div class="text-right text-sm opacity-70">
+      <p>生成日時：2026-02-25</p>
+      <p>ログ取得期間：06:03:22 〜 06:04:10</p>
+      <p>総操作数：<strong class="text-white text-base">38件</strong></p>
+    </div>
+  </div>
+</header>
+
+<!-- ===== TAB NAV ===== -->
+<nav class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+  <div class="max-w-7xl mx-auto px-8 flex gap-1 overflow-x-auto">
+    <a href="#spec"    class="tab-btn px-5 py-3 text-sm font-medium border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600 transition whitespace-nowrap">📋 機能仕様書</a>
+    <a href="#manual"  class="tab-btn px-5 py-3 text-sm font-medium border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600 transition whitespace-nowrap">📖 操作マニュアル</a>
+    <a href="#test"    class="tab-btn px-5 py-3 text-sm font-medium border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600 transition whitespace-nowrap">🧪 テスト実行履歴</a>
+    <a href="#bugs"    class="tab-btn px-5 py-3 text-sm font-medium border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600 transition whitespace-nowrap">🐛 不具合管理</a>
+  </div>
+</nav>
+
+<div class="max-w-7xl mx-auto px-8 py-8 space-y-16">
+
+<!-- ====================================================
+     📋 セクション1: 機能仕様書
+     ==================================================== -->
+<section id="spec">
+  <h2 class="text-xl font-bold mb-6 flex items-center gap-2" style="color:var(--brand)">
+    <span class="text-2xl">📋</span> 機能仕様書
+  </h2>
+
+  <!-- 画面概要 -->
+  <div class="section-card p-6 mb-6">
+    <h3 class="font-bold text-lg mb-4 text-gray-700 border-b pb-2">画面概要</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+      <div><p class="text-gray-400 text-xs mb-1">画面ID</p><p class="font-mono font-bold">MC_PRODUCTS_LIST</p></div>
+      <div><p class="text-gray-400 text-xs mb-1">画面名</p><p class="font-bold">マシニング部品一覧</p></div>
+      <div><p class="text-gray-400 text-xs mb-1">画面種別</p><p>一覧参照・検索</p></div>
+      <div><p class="text-gray-400 text-xs mb-1">ウィンドウ</p><p>子ウィンドウ（IS_CHILD_FUNC=1）</p></div>
+    </div>
+  </div>
+
+  <!-- 初期表示 -->
+  <div class="section-card p-6 mb-6">
+    <h3 class="font-bold text-lg mb-4 text-gray-700 border-b pb-2">🖥️ 初期表示状態</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <p class="text-sm text-gray-500 mb-3">初期表示時、全検索条件は空白。検索結果エリアは非表示。</p>
+        <table class="text-xs w-full border-collapse">
+          <thead><tr class="bg-gray-50"><th class="border border-gray-200 px-3 py-2 text-left">要素ID</th><th class="border border-gray-200 px-3 py-2 text-left">ラベル</th><th class="border border-gray-200 px-3 py-2 text-left">初期値</th></tr></thead>
+          <tbody>
+            <tr><td class="border border-gray-200 px-3 py-1.5 mono">CNDTN_STD:0:_TEXT</td><td class="border border-gray-200 px-3 py-1.5">部品ID</td><td class="border border-gray-200 px-3 py-1.5 text-gray-400">空</td></tr>
+            <tr class="bg-gray-50"><td class="border border-gray-200 px-3 py-1.5 mono">CNDTN_STD:1:_TEXT</td><td class="border border-gray-200 px-3 py-1.5">MCID</td><td class="border border-gray-200 px-3 py-1.5 text-gray-400">空</td></tr>
+            <tr><td class="border border-gray-200 px-3 py-1.5 mono">CNDTN_STD:2:_TEXT</td><td class="border border-gray-200 px-3 py-1.5">加工ID</td><td class="border border-gray-200 px-3 py-1.5 text-gray-400">空</td></tr>
+            <tr class="bg-gray-50"><td class="border border-gray-200 px-3 py-1.5 mono">CNDTN_STD:3:_TEXT</td><td class="border border-gray-200 px-3 py-1.5">工程No</td><td class="border border-gray-200 px-3 py-1.5 text-gray-400">空</td></tr>
+            <tr><td class="border border-gray-200 px-3 py-1.5 mono">CNDTN_STD:4:_SEL</td><td class="border border-gray-200 px-3 py-1.5">関係費用種</td><td class="border border-gray-200 px-3 py-1.5 text-gray-400">未選択</td></tr>
+            <tr class="bg-gray-50"><td class="border border-gray-200 px-3 py-1.5 mono">CNDTN_STD:5:_TEXT</td><td class="border border-gray-200 px-3 py-1.5">*名称*</td><td class="border border-gray-200 px-3 py-1.5 text-gray-400">空</td></tr>
+            <tr><td class="border border-gray-200 px-3 py-1.5 mono">CNDTN_STD:6:_TEXT</td><td class="border border-gray-200 px-3 py-1.5">*主機種型式*</td><td class="border border-gray-200 px-3 py-1.5 text-gray-400">空</td></tr>
+            <tr class="bg-gray-50"><td class="border border-gray-200 px-3 py-1.5 mono">CNDTN_STD:7:_TEXT</td><td class="border border-gray-200 px-3 py-1.5">納入先名</td><td class="border border-gray-200 px-3 py-1.5 text-gray-400">空</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p class="text-xs text-gray-400 mb-2">初期表示スクリーンショット</p>
+        <div class="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center bg-gray-50">
+          <p class="text-xs text-gray-400">📸 TR-1771999402391-yqqy</p>
+          <p class="text-xs mono text-gray-300 mt-1">SCREEN_LOAD 06:03:23</p>
+          <div class="mt-3 bg-gray-100 rounded h-32 flex items-center justify-center">
+            <span class="text-gray-400 text-sm">検索条件空・結果エリア非表示の状態</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ボタン・アクション仕様 -->
+  <div class="section-card p-6 mb-6">
+    <h3 class="font-bold text-lg mb-4 text-gray-700 border-b pb-2">🔘 ボタン・アクション仕様</h3>
+    <div class="space-y-3">
+
+      <div class="flex gap-4 items-start p-4 rounded-lg bg-blue-50 border border-blue-100">
+        <div class="flex-shrink-0">
+          <span class="inline-block px-3 py-1 text-xs font-bold text-white rounded" style="background:#0093d9">検索</span>
+        </div>
+        <div class="text-sm flex-1">
+          <p class="font-bold mono text-gray-700">BUTTON_MDL_R:0:POS_SEARCH_BTN</p>
+          <p class="text-gray-600 mt-1">検索条件を元にDBを検索し、結果を一覧に表示する。実行後 SCREEN_LOAD が発火（Ajax リフレッシュ）。</p>
+          <p class="text-xs text-gray-400 mt-1">遷移先：同画面リロード（検索結果表示状態）</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 items-start p-4 rounded-lg bg-gray-50 border border-gray-200">
+        <div class="flex-shrink-0">
+          <span class="inline-block px-3 py-1 text-xs font-bold text-gray-600 rounded border border-gray-300 bg-white">クリア</span>
+        </div>
+        <div class="text-sm flex-1">
+          <p class="font-bold mono text-gray-700">BUTTON_MDL_R:1:POS_CLEAR_BTN</p>
+          <p class="text-gray-600 mt-1">全検索条件を空白に戻し、画面をリセットする。SCREEN_LOAD が発火。</p>
+          <p class="text-xs text-gray-400 mt-1">⚠️ クリックイベントが4回重複発火する不具合あり（BUG-001）</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 items-start p-4 rounded-lg bg-red-50 border border-red-100">
+        <div class="flex-shrink-0">
+          <span class="inline-block px-3 py-1 text-xs font-bold rounded" style="background:#f9e5e5;color:#cc0101">閲覧</span>
+        </div>
+        <div class="text-sm flex-1">
+          <p class="font-bold mono text-gray-700">TLN_1_閲覧_{行番号}</p>
+          <p class="text-gray-600 mt-1">選択行の部品詳細画面（閲覧モード）を開く。行データ（部品ID・MCID・図面番号等）をセッションに渡す。</p>
+          <p class="text-xs text-gray-400 mt-1">遷移先：マシニング情報管理画面（閲覧モード）</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 items-start p-4 rounded-lg bg-sky-50 border border-sky-100">
+        <div class="flex-shrink-0">
+          <span class="inline-block px-3 py-1 text-xs font-bold text-white rounded" style="background:#0093d9">編集</span>
+        </div>
+        <div class="text-sm flex-1">
+          <p class="font-bold mono text-gray-700">TLN_1_編集_{行番号}</p>
+          <p class="text-gray-600 mt-1">選択行の部品詳細画面（編集モード）を開く。閲覧ボタンと同様の行データを渡す。</p>
+          <p class="text-xs text-gray-400 mt-1">遷移先：マシニング情報管理画面（編集モード）</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 items-start p-4 rounded-lg bg-gray-50 border border-gray-200">
+        <div class="flex-shrink-0">
+          <span class="inline-block px-3 py-1 text-xs font-bold text-gray-600 rounded border border-gray-300 bg-white">閉じる</span>
+        </div>
+        <div class="text-sm flex-1">
+          <p class="font-bold mono text-gray-700">BUTTON_TOP_R:0:BACK_BTN</p>
+          <p class="text-gray-600 mt-1">ウィンドウを閉じ、親画面に戻る。</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 一覧列定義 -->
+  <div class="section-card p-6">
+    <h3 class="font-bold text-lg mb-4 text-gray-700 border-b pb-2">📊 一覧表示列定義</h3>
+    <table class="text-xs w-full border-collapse">
+      <thead><tr class="bg-gray-50 text-gray-600"><th class="border border-gray-200 px-3 py-2">col_No</th><th class="border border-gray-200 px-3 py-2">列名</th><th class="border border-gray-200 px-3 py-2">サンプル値</th><th class="border border-gray-200 px-3 py-2">CSS幅</th></tr></thead>
+      <tbody>
+        <tr><td class="border border-gray-200 px-3 py-1.5 text-center mono">col_0〜2</td><td class="border border-gray-200 px-3 py-1.5">図面・閲覧・編集ボタン</td><td class="border border-gray-200 px-3 py-1.5 text-gray-400">（ボタン）</td><td class="border border-gray-200 px-3 py-1.5">100px</td></tr>
+        <tr class="bg-gray-50"><td class="border border-gray-200 px-3 py-1.5 text-center mono">col_3</td><td class="border border-gray-200 px-3 py-1.5">部品ID</td><td class="border border-gray-200 px-3 py-1.5 mono">5112, 7659, 1953</td><td class="border border-gray-200 px-3 py-1.5">40px</td></tr>
+        <tr><td class="border border-gray-200 px-3 py-1.5 text-center mono">col_4</td><td class="border border-gray-200 px-3 py-1.5">MCID</td><td class="border border-gray-200 px-3 py-1.5 mono">5218, 1026</td><td class="border border-gray-200 px-3 py-1.5">40px</td></tr>
+        <tr class="bg-gray-50"><td class="border border-gray-200 px-3 py-1.5 text-center mono">col_5</td><td class="border border-gray-200 px-3 py-1.5">加工ID</td><td class="border border-gray-200 px-3 py-1.5 mono">210, 955</td><td class="border border-gray-200 px-3 py-1.5">40px</td></tr>
+        <tr><td class="border border-gray-200 px-3 py-1.5 text-center mono">col_6</td><td class="border border-gray-200 px-3 py-1.5">工程No</td><td class="border border-gray-200 px-3 py-1.5 mono">1, 2</td><td class="border border-gray-200 px-3 py-1.5">30px</td></tr>
+        <tr class="bg-gray-50"><td class="border border-gray-200 px-3 py-1.5 text-center mono">col_7</td><td class="border border-gray-200 px-3 py-1.5">納入先名</td><td class="border border-gray-200 px-3 py-1.5">DMG森精機㈱</td><td class="border border-gray-200 px-3 py-1.5">100px</td></tr>
+        <tr><td class="border border-gray-200 px-3 py-1.5 text-center mono">col_8</td><td class="border border-gray-200 px-3 py-1.5">図面番号</td><td class="border border-gray-200 px-3 py-1.5 mono">B56252B01, A15086A03</td><td class="border border-gray-200 px-3 py-1.5">100px</td></tr>
+        <tr class="bg-gray-50"><td class="border border-gray-200 px-3 py-1.5 text-center mono">col_9</td><td class="border border-gray-200 px-3 py-1.5">名称</td><td class="border border-gray-200 px-3 py-1.5">POSITIONING BLOCK</td><td class="border border-gray-200 px-3 py-1.5">120px</td></tr>
+        <tr><td class="border border-gray-200 px-3 py-1.5 text-center mono">col_10</td><td class="border border-gray-200 px-3 py-1.5">主機種型式</td><td class="border border-gray-200 px-3 py-1.5 mono">MH-632</td><td class="border border-gray-200 px-3 py-1.5">100px</td></tr>
+        <tr class="bg-gray-50"><td class="border border-gray-200 px-3 py-1.5 text-center mono">col_11</td><td class="border border-gray-200 px-3 py-1.5">SPシート名</td><td class="border border-gray-200 px-3 py-1.5">mori_method_change</td><td class="border border-gray-200 px-3 py-1.5">150px</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<!-- ====================================================
+     📖 セクション2: 操作マニュアル
+     ==================================================== -->
+<section id="manual">
+  <h2 class="text-xl font-bold mb-6 flex items-center gap-2" style="color:var(--brand)">
+    <span class="text-2xl">📖</span> 操作説明マニュアル
+  </h2>
+
+  <!-- STEP 1 -->
+  <div class="section-card p-6 mb-4">
+    <details open>
+      <summary class="flex items-center gap-3 select-none">
+        <span class="flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-bold flex-shrink-0" style="background:var(--brand)">1</span>
+        <span class="font-bold text-lg">画面を開く</span>
+        <span class="chevron ml-auto text-gray-400">▶</span>
+      </summary>
+      <div class="mt-4 ml-11">
+        <p class="text-sm text-gray-600 mb-4">マシニングシステムのメニューから「部品一覧」を選択すると、子ウィンドウとして本画面が開きます。</p>
+        <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm">
+          <p class="font-bold text-blue-800 mb-2">✅ 初期表示の確認ポイント</p>
+          <ul class="list-disc list-inside space-y-1 text-blue-700">
+            <li>全検索条件フィールドが空白であること</li>
+            <li>検索結果エリアが非表示（テーブルが表示されない）であること</li>
+            <li>「検索」「クリア」「閉じる」ボタンが表示されること</li>
+          </ul>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="section-card p-6 mb-4">
+    <details open>
+      <summary class="flex items-center gap-3 select-none">
+        <span class="flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-bold flex-shrink-0" style="background:var(--brand)">2</span>
+        <span class="font-bold text-lg">検索条件を入力して検索する</span>
+        <span class="chevron ml-auto text-gray-400">▶</span>
+      </summary>
+      <div class="mt-4 ml-11">
+        <p class="text-sm text-gray-600 mb-4">検索条件は複数組み合わせ可能です。いずれか1つ以上を入力して「検索」ボタンをクリックします。</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+          <div class="bg-gray-50 rounded-lg p-3 text-sm">
+            <p class="font-bold text-gray-700 mb-1">部品IDで絞り込み</p>
+            <p class="text-gray-500 text-xs">例：<code class="bg-white px-1 rounded">5112</code> と入力 → 検索結果7件</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3 text-sm">
+            <p class="font-bold text-gray-700 mb-1">MCIDで絞り込み</p>
+            <p class="text-gray-500 text-xs">例：<code class="bg-white px-1 rounded">955</code> と入力 → 検索結果1件</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3 text-sm">
+            <p class="font-bold text-gray-700 mb-1">加工IDで絞り込み</p>
+            <p class="text-gray-500 text-xs">例：<code class="bg-white px-1 rounded">210</code> と入力 → 検索結果2件</p>
+          </div>
+        </div>
+
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
+          <p class="font-bold">⚠️ 注意</p>
+          <p>検索を実行すると画面がリフレッシュされ、入力した検索条件は検索後も保持されます。「クリア」ボタンで全条件をリセットできます。</p>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="section-card p-6 mb-4">
+    <details open>
+      <summary class="flex items-center gap-3 select-none">
+        <span class="flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-bold flex-shrink-0" style="background:var(--brand)">3</span>
+        <span class="font-bold text-lg">検索結果から部品を選択する</span>
+        <span class="chevron ml-auto text-gray-400">▶</span>
+      </summary>
+      <div class="mt-4 ml-11">
+        <p class="text-sm text-gray-600 mb-4">検索結果一覧に表示された各行に「閲覧」「編集」ボタンがあります。</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="border-l-4 pl-4" style="border-color:#f9e5e5">
+            <p class="font-bold text-sm" style="color:#cc0101">閲覧ボタン（赤）</p>
+            <p class="text-sm text-gray-600 mt-1">選択した部品の詳細情報を<strong>参照のみ</strong>で表示します。データの変更はできません。</p>
+          </div>
+          <div class="border-l-4 pl-4" style="border-color:#0093d9">
+            <p class="font-bold text-sm" style="color:#0093d9">編集ボタン（青）</p>
+            <p class="text-sm text-gray-600 mt-1">選択した部品の詳細情報を<strong>編集モード</strong>で表示します。データの変更・保存が可能です。</p>
+          </div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="section-card p-6">
+    <details>
+      <summary class="flex items-center gap-3 select-none">
+        <span class="flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-bold flex-shrink-0" style="background:var(--brand)">4</span>
+        <span class="font-bold text-lg">画面を閉じる</span>
+        <span class="chevron ml-auto text-gray-400">▶</span>
+      </summary>
+      <div class="mt-4 ml-11">
+        <p class="text-sm text-gray-600 mb-3">右上の「✕ 閉じる」ボタン（BUTTON_TOP_R:0:BACK_BTN）をクリックすると、このウィンドウが閉じ、親画面に戻ります。</p>
+        <div class="bg-blue-50 border border-blue-100 rounded p-3 text-sm text-blue-800">
+          検索条件を入力中の場合も、閉じるボタンで即座にウィンドウが閉じます。変更の保存確認ダイアログは表示されません。
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+
+<!-- ====================================================
+     🧪 セクション3: テスト実行履歴
+     ==================================================== -->
+<section id="test">
+  <h2 class="text-xl font-bold mb-6 flex items-center gap-2" style="color:var(--brand)">
+    <span class="text-2xl">🧪</span> テスト実行履歴
+  </h2>
+
+  <!-- サマリー -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="section-card p-4 text-center">
+      <p class="text-3xl font-bold text-green-600">4</p>
+      <p class="text-xs text-gray-500 mt-1">テストシナリオ</p>
+    </div>
+    <div class="section-card p-4 text-center">
+      <p class="text-3xl font-bold text-green-600">3</p>
+      <p class="text-xs text-gray-500 mt-1">PASS</p>
+    </div>
+    <div class="section-card p-4 text-center">
+      <p class="text-3xl font-bold text-red-500">1</p>
+      <p class="text-xs text-gray-500 mt-1">WARNING</p>
+    </div>
+    <div class="section-card p-4 text-center">
+      <p class="text-3xl font-bold text-gray-400">0</p>
+      <p class="text-xs text-gray-500 mt-1">FAIL</p>
+    </div>
+  </div>
+
+  <!-- テストケース一覧 -->
+  <div class="section-card overflow-hidden">
+    <table class="w-full text-sm border-collapse">
+      <thead>
+        <tr style="background:var(--brand);" class="text-white text-xs">
+          <th class="px-4 py-3 text-left">No</th>
+          <th class="px-4 py-3 text-left">テストシナリオ</th>
+          <th class="px-4 py-3 text-left">操作</th>
+          <th class="px-4 py-3 text-left">期待結果</th>
+          <th class="px-4 py-3 text-left">実際の結果</th>
+          <th class="px-4 py-3 text-center">判定</th>
+          <th class="px-4 py-3 text-left">traceId</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- TC-001 -->
+        <tr class="border-b border-gray-100">
+          <td class="px-4 py-3 font-mono text-xs">TC-001</td>
+          <td class="px-4 py-3 font-bold">初期表示確認</td>
+          <td class="px-4 py-3 text-gray-600">画面を開く</td>
+          <td class="px-4 py-3 text-gray-600">全条件空・結果非表示</td>
+          <td class="px-4 py-3 text-gray-600">INITIAL_SNAPSHOTで全空を確認<br>スクリーンショット取得成功</td>
+          <td class="px-4 py-3 text-center"><span class="badge-pass text-xs px-2 py-0.5 rounded-full font-bold">PASS</span></td>
+          <td class="px-4 py-3 mono text-xs text-gray-400">yqqy</td>
+        </tr>
+        <!-- TC-002 -->
+        <tr class="border-b border-gray-100 bg-gray-50">
+          <td class="px-4 py-3 font-mono text-xs">TC-002</td>
+          <td class="px-4 py-3 font-bold">部品ID検索</td>
+          <td class="px-4 py-3 text-gray-600">部品ID=5112 入力→検索</td>
+          <td class="px-4 py-3 text-gray-600">該当レコード表示</td>
+          <td class="px-4 py-3 text-gray-600">検索結果7件表示<br>スクリーンショット取得成功</td>
+          <td class="px-4 py-3 text-center"><span class="badge-pass text-xs px-2 py-0.5 rounded-full font-bold">PASS</span></td>
+          <td class="px-4 py-3 mono text-xs text-gray-400">ebzo/7wa7</td>
+        </tr>
+        <!-- TC-003 -->
+        <tr class="border-b border-gray-100">
+          <td class="px-4 py-3 font-mono text-xs">TC-003</td>
+          <td class="px-4 py-3 font-bold">閲覧ボタン動作</td>
+          <td class="px-4 py-3 text-gray-600">加工ID=210検索後、2行目の閲覧クリック</td>
+          <td class="px-4 py-3 text-gray-600">詳細画面へ遷移</td>
+          <td class="px-4 py-3 text-gray-600">行データ取得OK（部品ID:1953, MCID:1026）<br>スクリーンショット取得成功</td>
+          <td class="px-4 py-3 text-center"><span class="badge-pass text-xs px-2 py-0.5 rounded-full font-bold">PASS</span></td>
+          <td class="px-4 py-3 mono text-xs text-gray-400">ezjy</td>
+        </tr>
+        <!-- TC-004 -->
+        <tr class="border-b border-gray-100 bg-gray-50">
+          <td class="px-4 py-3 font-mono text-xs">TC-004</td>
+          <td class="px-4 py-3 font-bold">クリアボタン動作</td>
+          <td class="px-4 py-3 text-gray-600">クリアボタンクリック</td>
+          <td class="px-4 py-3 text-gray-600">全条件クリア・画面リセット</td>
+          <td class="px-4 py-3 text-gray-600 text-red-600">クリックイベントが<strong>4回重複発火</strong><br>機能自体はPASS</td>
+          <td class="px-4 py-3 text-center"><span class="badge-warn text-xs px-2 py-0.5 rounded-full font-bold">WARN</span></td>
+          <td class="px-4 py-3 mono text-xs text-gray-400">kl57/z80t/a9ml/jht1</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- タイムライン -->
+  <div class="section-card p-6 mt-6">
+    <h3 class="font-bold text-base mb-4 text-gray-700">⏱️ 操作タイムライン（06:03:22 〜 06:04:10）</h3>
+    <div class="space-y-3">
+
+      <div class="flex gap-3">
+        <div class="timeline-dot mt-1" style="background:#0093d9"></div>
+        <div class="text-sm flex-1">
+          <span class="mono text-xs text-gray-400">06:03:22</span>
+          <span class="ml-2 badge-info text-xs px-2 py-0.5 rounded font-bold">SCREEN_LOAD</span>
+          <span class="ml-2 text-gray-600">初期表示（全条件空）</span>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="timeline-dot mt-1 bg-gray-300"></div>
+        <div class="text-sm flex-1">
+          <span class="mono text-xs text-gray-400">06:03:28</span>
+          <span class="ml-2 badge-info text-xs px-2 py-0.5 rounded font-bold">INPUT</span>
+          <span class="ml-2 text-gray-600">部品ID = <code class="bg-gray-100 px-1 rounded">5112</code></span>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="timeline-dot mt-1" style="background:#16a34a"></div>
+        <div class="text-sm flex-1">
+          <span class="mono text-xs text-gray-400">06:03:32</span>
+          <span class="ml-2 badge-pass text-xs px-2 py-0.5 rounded font-bold">検索</span>
+          <span class="ml-2 text-gray-600">→ 検索結果7件</span>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="timeline-dot mt-1 bg-gray-300"></div>
+        <div class="text-sm flex-1">
+          <span class="mono text-xs text-gray-400">06:03:37</span>
+          <span class="ml-2 badge-info text-xs px-2 py-0.5 rounded font-bold">INPUT</span>
+          <span class="ml-2 text-gray-600">MCID = <code class="bg-gray-100 px-1 rounded">955</code></span>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="timeline-dot mt-1" style="background:#16a34a"></div>
+        <div class="text-sm flex-1">
+          <span class="mono text-xs text-gray-400">06:03:39</span>
+          <span class="ml-2 badge-pass text-xs px-2 py-0.5 rounded font-bold">検索</span>
+          <span class="ml-2 text-gray-600">→ 検索結果1件</span>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="timeline-dot mt-1 bg-gray-300"></div>
+        <div class="text-sm flex-1">
+          <span class="mono text-xs text-gray-400">06:03:46</span>
+          <span class="ml-2 badge-info text-xs px-2 py-0.5 rounded font-bold">INPUT</span>
+          <span class="ml-2 text-gray-600">加工ID = <code class="bg-gray-100 px-1 rounded">210</code></span>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="timeline-dot mt-1" style="background:#16a34a"></div>
+        <div class="text-sm flex-1">
+          <span class="mono text-xs text-gray-400">06:03:47</span>
+          <span class="ml-2 badge-pass text-xs px-2 py-0.5 rounded font-bold">検索</span>
+          <span class="ml-2 text-gray-600">→ 検索結果2件</span>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="timeline-dot mt-1" style="background:#f9e5e5;border:2px solid #cc0101"></div>
+        <div class="text-sm flex-1">
+          <span class="mono text-xs text-gray-400">06:03:52</span>
+          <span class="ml-2" style="background:#f9e5e5;color:#cc0101;font-size:0.7rem;padding:1px 6px;border-radius:4px;font-weight:700">閲覧</span>
+          <span class="ml-2 text-gray-600">2行目（部品ID:1953 / MCID:1026）→ 詳細画面遷移</span>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="timeline-dot mt-1 bg-yellow-400"></div>
+        <div class="text-sm flex-1">
+          <span class="mono text-xs text-gray-400">06:04:04</span>
+          <span class="ml-2 badge-warn text-xs px-2 py-0.5 rounded font-bold">⚠️ クリア×4</span>
+          <span class="ml-2 text-gray-600">クリアボタンが4回重複発火（BUG-001）</span>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="timeline-dot mt-1" style="background:#0093d9"></div>
+        <div class="text-sm flex-1">
+          <span class="mono text-xs text-gray-400">06:04:07</span>
+          <span class="ml-2 badge-info text-xs px-2 py-0.5 rounded font-bold">SCREEN_LOAD</span>
+          <span class="ml-2 text-gray-600">クリア後の初期状態に戻る</span>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="timeline-dot mt-1 bg-gray-400"></div>
+        <div class="text-sm flex-1">
+          <span class="mono text-xs text-gray-400">06:04:10</span>
+          <span class="ml-2 badge-info text-xs px-2 py-0.5 rounded font-bold">閉じる</span>
+          <span class="ml-2 text-gray-600">ウィンドウクローズ → 親画面へ</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ====================================================
+     🐛 セクション4: 不具合管理
+     ==================================================== -->
+<section id="bugs">
+  <h2 class="text-xl font-bold mb-6 flex items-center gap-2" style="color:var(--brand)">
+    <span class="text-2xl">🐛</span> 不具合管理
+  </h2>
+
+  <!-- BUG-001 -->
+  <div class="section-card p-6 mb-4 bug-warn">
+    <div class="flex items-start justify-between mb-3">
+      <div class="flex items-center gap-3">
+        <span class="mono text-sm font-bold text-gray-500">BUG-001</span>
+        <span class="badge-warn text-xs px-2 py-0.5 rounded-full font-bold">調査中</span>
+      </div>
+      <span class="text-xs text-gray-400">発見日：2026-02-25</span>
+    </div>
+    <h4 class="font-bold text-base mb-2">クリアボタンのクリックイベントが4回重複発火する</h4>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+      <div>
+        <p class="text-xs text-gray-400 mb-1">影響画面</p>
+        <p class="font-bold">MC_PRODUCTS_LIST</p>
+      </div>
+      <div>
+        <p class="text-xs text-gray-400 mb-1">影響ボタン</p>
+        <p class="mono">BUTTON_MDL_R:1:POS_CLEAR_BTN</p>
+      </div>
+      <div>
+        <p class="text-xs text-gray-400 mb-1">業務への影響</p>
+        <p class="text-yellow-700">軽微（機能は正常）</p>
+      </div>
+    </div>
+    <div class="mt-4 bg-gray-50 rounded-lg p-4 text-sm">
+      <p class="font-bold text-gray-700 mb-2">📋 再現手順</p>
+      <ol class="list-decimal list-inside space-y-1 text-gray-600">
+        <li>検索条件に何か入力して検索実行</li>
+        <li>「クリア」ボタンをクリック</li>
+        <li>ログに <code class="bg-white px-1 rounded mono">CLEAR_BUTTON</code> が4回記録される</li>
+      </ol>
+    </div>
+    <div class="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
+      <p class="font-bold text-yellow-800 mb-1">🔍 推定原因</p>
+      <p class="text-yellow-700"><code class="bg-white px-1 rounded mono">TLogAutoInstrument.init()</code> の BUTTON セレクタが、TALONが内部的に複製したクリアボタンの DOM 要素（4つ）すべてに addEventListener を付与している可能性。</p>
+    </div>
+    <div class="mt-3">
+      <p class="text-xs text-gray-400 mb-1">証拠ログ（traceId）</p>
+      <div class="flex flex-wrap gap-2">
+        <span class="mono text-xs bg-gray-100 px-2 py-1 rounded">TR-1771999444838-kl57</span>
+        <span class="mono text-xs bg-gray-100 px-2 py-1 rounded">TR-1771999444837-z80t</span>
+        <span class="mono text-xs bg-gray-100 px-2 py-1 rounded">TR-1771999444838-a9ml</span>
+        <span class="mono text-xs bg-gray-100 px-2 py-1 rounded">TR-1771999444838-jht1</span>
+      </div>
+    </div>
+    <div class="mt-4 border-t pt-3">
+      <p class="text-xs text-gray-400 mb-2">修正履歴</p>
+      <p class="text-sm text-gray-500 italic">未着手</p>
+    </div>
+  </div>
+
+  <!-- BUG-002 -->
+  <div class="section-card p-6 mb-4 bug-closed">
+    <div class="flex items-start justify-between mb-3">
+      <div class="flex items-center gap-3">
+        <span class="mono text-sm font-bold text-gray-500">BUG-002</span>
+        <span class="badge-pass text-xs px-2 py-0.5 rounded-full font-bold">修正済</span>
+      </div>
+      <span class="text-xs text-gray-400">発見日：2026-02-25 / 修正日：2026-02-25</span>
+    </div>
+    <h4 class="font-bold text-base mb-2">画面初期表示時のスクリーンショットが撮影されない</h4>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+      <div><p class="text-xs text-gray-400 mb-1">影響</p><p>SCREEN_LOADトリガーのSSなし</p></div>
+      <div><p class="text-xs text-gray-400 mb-1">根本原因</p><p>html2canvas非同期ロード競合</p></div>
+      <div><p class="text-xs text-gray-400 mb-1">業務影響</p><p class="text-green-700">なし（ログ記録のみ）</p></div>
+    </div>
+    <div class="mt-3 bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
+      <p class="font-bold text-green-800 mb-1">✅ 修正内容</p>
+      <p class="text-green-700"><code class="bg-white px-1 rounded mono">takeScreenshot()</code> に html2canvas 未ロード時の500msリトライ機能を追加（v1.4）。最大10秒待機後に撮影を実行。</p>
+    </div>
+  </div>
+
+  <!-- BUG-003 -->
+  <div class="section-card p-6 bug-closed">
+    <div class="flex items-start justify-between mb-3">
+      <div class="flex items-center gap-3">
+        <span class="mono text-sm font-bold text-gray-500">BUG-003</span>
+        <span class="badge-pass text-xs px-2 py-0.5 rounded-full font-bold">修正済</span>
+      </div>
+      <span class="text-xs text-gray-400">発見日：2026-02-25 / 修正日：2026-02-25</span>
+    </div>
+    <h4 class="font-bold text-base mb-2">server.js 重複定義による ReferenceError クラッシュ</h4>
+    <div class="mt-3 bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
+      <p class="font-bold text-green-800 mb-1">✅ 修正内容</p>
+      <p class="text-green-700"><code class="bg-white px-1 rounded mono">filename</code> 変数の宣言順序を修正。<code class="bg-white px-1 rounded mono">app.listen</code> の重複・<code class="bg-white px-1 rounded mono">app.use</code> の重複を整理し完全版 server.js で上書き（limit: 50mb）。</p>
+    </div>
+  </div>
+
+</section>
+
+</div><!-- /max-w-7xl -->
+
+<!-- FOOTER -->
+<footer class="mt-16 border-t border-gray-200 bg-white py-6 text-center text-xs text-gray-400">
+  <p>本ドキュメントは TLog v1.4 のログデータとスクリーンショットから自動生成されました</p>
+  <p class="mt-1">画面ID: MC_PRODUCTS_LIST ／ 生成日: 2026-02-25 ／ バージョン: v1.0</p>
+</footer>
+
+</body>
+</html>

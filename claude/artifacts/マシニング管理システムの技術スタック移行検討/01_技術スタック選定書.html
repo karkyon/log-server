@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>技術スタック選定書 - マシニング加工管理システム</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@400;600;700&display=swap');
+
+  :root {
+    --primary: #1a1f36;
+    --accent: #3b82f6;
+    --accent2: #10b981;
+    --accent3: #f59e0b;
+    --danger: #ef4444;
+    --surface: #ffffff;
+    --surface2: #f8fafc;
+    --surface3: #f1f5f9;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text2: #475569;
+    --text3: #94a3b8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--surface2);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* ヘッダー */
+  .doc-header {
+    background: var(--primary);
+    color: white;
+    padding: 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .doc-header::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .doc-header::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: 30%;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(16,185,129,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .header-tag {
+    display: inline-block;
+    background: rgba(59,130,246,0.3);
+    border: 1px solid rgba(59,130,246,0.5);
+    color: #93c5fd;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }
+  .doc-header h1 {
+    font-size: 2.6em;
+    font-weight: 900;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+  }
+  .doc-header .subtitle {
+    font-size: 1.1em;
+    color: #94a3b8;
+    position: relative;
+    z-index: 1;
+  }
+  .header-meta {
+    display: flex;
+    gap: 32px;
+    margin-top: 32px;
+    position: relative;
+    z-index: 1;
+  }
+  .header-meta-item {
+    display: flex;
+    flex-direction: column;
+  }
+  .header-meta-item span:first-child {
+    font-size: 10px;
+    color: #64748b;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .header-meta-item span:last-child {
+    font-size: 15px;
+    color: #e2e8f0;
+    font-weight: 500;
+  }
+
+  /* ナビゲーション */
+  .toc {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 0 80px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  }
+  .toc ul {
+    display: flex;
+    list-style: none;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .toc ul li a {
+    display: block;
+    padding: 16px 20px;
+    text-decoration: none;
+    color: var(--text2);
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .toc ul li a:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* メインコンテンツ */
+  .content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 40px;
+  }
+
+  /* セクション */
+  .section {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 48px;
+    margin-bottom: 32px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    font-size: 1.6em;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--surface3);
+  }
+
+  h3 {
+    font-size: 1.15em;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 32px 0 16px;
+  }
+
+  p {
+    color: var(--text2);
+    margin-bottom: 16px;
+  }
+
+  /* 問題点カード */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .problem-card {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .problem-card .icon {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  .problem-card h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #b91c1c;
+    margin-bottom: 8px;
+  }
+  .problem-card p {
+    font-size: 12px;
+    color: #7f1d1d;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /* スタック比較テーブル */
+  .compare-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin: 24px 0;
+  }
+  .compare-table th {
+    background: var(--primary);
+    color: white;
+    padding: 14px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+  }
+  .compare-table th.recommended {
+    background: var(--accent);
+  }
+  .compare-table td {
+    padding: 12px 18px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    vertical-align: top;
+  }
+  .compare-table tr:last-child td {
+    border-bottom: none;
+  }
+  .compare-table tr:nth-child(even) td {
+    background: var(--surface2);
+  }
+  .compare-table td.highlight {
+    background: #eff6ff !important;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .compare-table td.category {
+    font-weight: 700;
+    color: var(--primary);
+    background: var(--surface3) !important;
+    font-size: 12px;
+  }
+
+  /* バッジ */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .badge-high { background: #dcfce7; color: #166534; }
+  .badge-med { background: #fef9c3; color: #854d0e; }
+  .badge-low { background: #fee2e2; color: #991b1b; }
+  .badge-best { background: #dbeafe; color: #1e40af; }
+  .badge-new { background: #f3e8ff; color: #6b21a8; }
+
+  /* アーキテクチャ図 */
+  .arch-diagram {
+    background: var(--primary);
+    border-radius: 12px;
+    padding: 40px;
+    margin: 24px 0;
+    color: white;
+  }
+  .arch-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .arch-layer {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .arch-layer-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #64748b;
+    min-width: 90px;
+  }
+  .arch-layer-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .tech-pill {
+    background: rgba(59,130,246,0.2);
+    border: 1px solid rgba(59,130,246,0.4);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    color: #93c5fd;
+  }
+  .tech-pill.green {
+    background: rgba(16,185,129,0.2);
+    border-color: rgba(16,185,129,0.4);
+    color: #6ee7b7;
+  }
+  .tech-pill.amber {
+    background: rgba(245,158,11,0.2);
+    border-color: rgba(245,158,11,0.4);
+    color: #fcd34d;
+  }
+  .tech-pill.purple {
+    background: rgba(139,92,246,0.2);
+    border-color: rgba(139,92,246,0.4);
+    color: #c4b5fd;
+  }
+  .arch-arrow {
+    text-align: center;
+    color: #475569;
+    font-size: 20px;
+  }
+
+  /* 解決策マッピング */
+  .solution-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin: 24px 0;
+  }
+  .solution-table th {
+    background: var(--surface3);
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+  }
+  .solution-table td {
+    padding: 14px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .solution-table tr:last-child td { border-bottom: none; }
+  .problem-cell {
+    color: #b91c1c;
+    font-weight: 500;
+  }
+  .solution-cell {
+    color: #166534;
+  }
+  .tech-cell {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #1e40af;
+    background: #eff6ff;
+  }
+
+  /* ロードマップ */
+  .roadmap {
+    margin: 24px 0;
+  }
+  .phase {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 20px;
+    align-items: flex-start;
+  }
+  .phase-num {
+    min-width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .phase-content {
+    flex: 1;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 20px 24px;
+    border: 1px solid var(--border);
+  }
+  .phase-title {
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 6px;
+    font-size: 15px;
+  }
+  .phase-period {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .phase-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .phase-item {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  /* 工数表 */
+  .effort-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin: 24px 0;
+  }
+  .effort-table th {
+    background: var(--primary);
+    color: white;
+    padding: 12px 16px;
+    font-size: 13px;
+    text-align: left;
+  }
+  .effort-table td {
+    padding: 12px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+  }
+  .effort-table tr:last-child td {
+    border-bottom: none;
+    background: #eff6ff;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .effort-bar {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+    min-width: 100px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 10px;
+  }
+  .effort-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+  }
+
+  /* ポイントボックス */
+  .info-box {
+    background: #eff6ff;
+    border-left: 4px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-size: 14px;
+    color: #1e40af;
+  }
+  .warn-box {
+    background: #fffbeb;
+    border-left: 4px solid var(--accent3);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-size: 14px;
+    color: #92400e;
+  }
+  .success-box {
+    background: #f0fdf4;
+    border-left: 4px solid var(--accent2);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-size: 14px;
+    color: #14532d;
+  }
+
+  /* フッター */
+  .doc-footer {
+    background: var(--primary);
+    color: #64748b;
+    text-align: center;
+    padding: 32px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* プリント対応 */
+  @media print {
+    .toc { position: static; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div class="doc-header">
+  <div class="header-tag">TECH STACK SELECTION DOCUMENT</div>
+  <h1>技術スタック選定書<br>マシニング加工管理システム</h1>
+  <p class="subtitle">TALONローコードプラットフォームからの移行計画 — Next.js + NestJS 採用根拠</p>
+  <div class="header-meta">
+    <div class="header-meta-item">
+      <span>Document Version</span>
+      <span>1.0</span>
+    </div>
+    <div class="header-meta-item">
+      <span>作成日</span>
+      <span>2025年</span>
+    </div>
+    <div class="header-meta-item">
+      <span>プロジェクトID</span>
+      <span>MC-REBUILD-001</span>
+    </div>
+    <div class="header-meta-item">
+      <span>ステータス</span>
+      <span>審議中</span>
+    </div>
+  </div>
+</div>
+
+<!-- ナビゲーション -->
+<nav class="toc">
+  <ul>
+    <li><a href="#problems">1. 現状課題</a></li>
+    <li><a href="#candidates">2. 候補スタック比較</a></li>
+    <li><a href="#selected">3. 選定スタック詳細</a></li>
+    <li><a href="#architecture">4. システムアーキテクチャ</a></li>
+    <li><a href="#solutions">5. 課題解決マッピング</a></li>
+    <li><a href="#effort">6. 開発工数見積</a></li>
+    <li><a href="#roadmap">7. 移行ロードマップ</a></li>
+    <li><a href="#risks">8. リスクと対策</a></li>
+  </ul>
+</nav>
+
+<div class="content">
+
+  <!-- 1. 現状課題 -->
+  <div class="section" id="problems">
+    <div class="section-label">SECTION 01</div>
+    <h2>現状課題 — なぜTALONから移行するか</h2>
+    <p>現行TALONプラットフォームで開発されたマシニング加工管理システムは、22機能・20画面・23テーブルの規模に成長した結果、ローコードの制約による以下の問題が顕在化しています。</p>
+
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="icon">📊</div>
+        <h4>帳票出力の硬直性</h4>
+        <p>ExcelマクロとVBAに依存。PrimeFaces経由の複雑なダウンロード制御。テンプレート変更のたびにTALON設定とVBAを両方変更必要。レイアウト自由度が極めて低い。</p>
+      </div>
+      <div class="problem-card">
+        <div class="icon">📝</div>
+        <h4>ログ収集の貧弱さ</h4>
+        <p>MC_OPERATION_LOGテーブルへの手動記録のみ。構造化ログ未対応。エラートレース、パフォーマンス計測、監査証跡の自動収集が不可能。</p>
+      </div>
+      <div class="problem-card">
+        <div class="icon">🖥️</div>
+        <h4>画面遷移の問題</h4>
+        <p>ポップアップウィンドウを多用する設計。window.open()管理が複雑。ブラウザバック不対応。モバイル対応困難。URLベースの状態管理なし。</p>
+      </div>
+      <div class="problem-card">
+        <div class="icon">🔒</div>
+        <h4>権限管理の柔軟性不足</h4>
+        <p>TALONの権限機能はメニュー単位の粗い制御のみ。フィールドレベル・機能レベルの細かい権限設定が不可能。動的なロール割当なし。</p>
+      </div>
+      <div class="problem-card">
+        <div class="icon">🔧</div>
+        <h4>JavaScript保守困難</h4>
+        <p>Client-side JSとTALON Server-side JSが混在。MutationObserver・PrimeFaces AJAXへの依存が強く、TALONバージョンアップで頻繁に破壊的変更が発生。</p>
+      </div>
+      <div class="problem-card">
+        <div class="icon">🔗</div>
+        <h4>外部連携の制約</h4>
+        <p>図面管理API（Ridoc/http://192.168.1.9:8080/v1）、ImotoAP DBへの連携がTALONの制約内でのみ可能。新規API追加が困難でカスタム認証も制限あり。</p>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      ⚠️ <strong>経営リスク:</strong> 現在のTALONプラットフォームへの依存継続は、帳票改修・権限拡張・新機能追加のたびに多大な工数を要し、システムの競争力低下につながります。早期の技術刷新を推奨します。
+    </div>
+  </div>
+
+  <!-- 2. 候補スタック比較 -->
+  <div class="section" id="candidates">
+    <div class="section-label">SECTION 02</div>
+    <h2>候補スタック比較</h2>
+    <p>3つの技術スタックを評価軸に沿って比較検討しました。</p>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:18%">評価軸</th>
+          <th class="recommended" style="width:27%">🥇 案A: Next.js + NestJS<br><small style="font-weight:400;opacity:0.8">【推奨】</small></th>
+          <th style="width:27%">案B: ASP.NET Core + Blazor</th>
+          <th style="width:28%">案C: Laravel + Vue.js</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="category">言語統一性</td>
+          <td class="highlight">◎ TypeScriptで全統一<br>型安全・IDE補完強力</td>
+          <td>◎ C#で全統一<br>型安全・ASP.NET統合</td>
+          <td>△ PHP+JS の2言語<br>型安全弱め</td>
+        </tr>
+        <tr>
+          <td class="category">帳票出力</td>
+          <td class="highlight">◎ ExcelJS（Excel完全生成）<br>Puppeteer（PDF高品質）</td>
+          <td>◎ ClosedXML / FastReport<br>RDLC帳票デザイナあり</td>
+          <td>○ PhpSpreadsheet / DomPDF<br>機能は十分だが設計工数高</td>
+        </tr>
+        <tr>
+          <td class="category">権限管理</td>
+          <td class="highlight">◎ NestJS Guards + CASL<br>フィールドレベルまで可能</td>
+          <td>◎ Policy-based Authorization<br>ASP.NET Identity統合</td>
+          <td>◎ Spatie Permission<br>成熟したRBACライブラリ</td>
+        </tr>
+        <tr>
+          <td class="category">ログ・監査</td>
+          <td class="highlight">◎ Winston + Pino<br>構造化JSON、ELK Stack連携</td>
+          <td>◎ Serilog + Seq<br>SQL Server Sink対応</td>
+          <td>○ Laravel Telescope<br>管理画面付き・拡張性限定</td>
+        </tr>
+        <tr>
+          <td class="category">外部API連携</td>
+          <td class="highlight">◎ Axios/Fetch、OpenAPI Generator<br>型付きHTTPクライアント自動生成</td>
+          <td>○ HttpClient / Refit<br>.NET標準だが設定複雑</td>
+          <td>○ Guzzle HTTP<br>機能は十分</td>
+        </tr>
+        <tr>
+          <td class="category">SQL Server対応</td>
+          <td class="highlight">◎ TypeORM / Prisma<br>どちらも完全対応</td>
+          <td>◎ Entity Framework Core<br>ネイティブ・最も成熟</td>
+          <td>○ Laravel Eloquent<br>SQL Serverドライバあり</td>
+        </tr>
+        <tr>
+          <td class="category">画面遷移・SPA</td>
+          <td class="highlight">◎ Next.js App Router<br>URLベース状態管理、SSR/CSR切替</td>
+          <td>○ Blazor Server<br>SignalRリアルタイム通信依存</td>
+          <td>○ Inertia.js + Vue Router<br>SPAの感覚でMVC構築</td>
+        </tr>
+        <tr>
+          <td class="category">開発生産性</td>
+          <td class="highlight">◎ Turbopack、Hot Reload<br>社内JSスキル活用可</td>
+          <td>○ Visual Studio統合<br>C#学習コスト必要</td>
+          <td>◎ Laravel Artisan<br>スキャフォールディング強力</td>
+        </tr>
+        <tr>
+          <td class="category">コミュニティ規模</td>
+          <td class="highlight">◎ 最大規模<br>npm エコシステム豊富</td>
+          <td>○ 大規模<br>企業向け実績豊富</td>
+          <td>◎ 大規模<br>情報量豊富</td>
+        </tr>
+        <tr>
+          <td class="category">インフラコスト</td>
+          <td class="highlight">○ Node.js サーバ<br>Dockerで容易にデプロイ</td>
+          <td>△ Windowsサーバ推奨<br>IIS or Linux .NET</td>
+          <td>○ PHP実行環境<br>安価なホスティング多数</td>
+        </tr>
+        <tr>
+          <td class="category">総合評価</td>
+          <td class="highlight"><span class="badge badge-best">★★★★★ 採用決定</span></td>
+          <td><span class="badge badge-med">★★★★☆ 次点</span></td>
+          <td><span class="badge badge-med">★★★☆☆ 候補外</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="success-box">
+      ✅ <strong>選定理由まとめ:</strong> チームのJavaScript/TypeScript経験を最大活用できる点、帳票・権限・ログすべてで最高評価、Next.jsのURLベース画面遷移でTALONのポップアップ依存を根本解決できる点から、<strong>案A（Next.js + NestJS）を採用</strong>します。
+    </div>
+  </div>
+
+  <!-- 3. 選定スタック詳細 -->
+  <div class="section" id="selected">
+    <div class="section-label">SECTION 03</div>
+    <h2>選定スタック詳細仕様</h2>
+
+    <h3>📦 採用パッケージ一覧</h3>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:15%">カテゴリ</th>
+          <th style="width:25%">採用技術・パッケージ</th>
+          <th style="width:15%">バージョン</th>
+          <th>採用理由・用途</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="category" colspan="4">🖥️ フロントエンド（Next.js）</td>
+        </tr>
+        <tr>
+          <td>フレームワーク</td>
+          <td><code>next</code></td>
+          <td>14.x (App Router)</td>
+          <td class="highlight">SSR/SSG/CSR切替。URLベース画面遷移でポップアップ問題を根本解決</td>
+        </tr>
+        <tr>
+          <td>UI コンポーネント</td>
+          <td><code>shadcn/ui + Radix UI</code></td>
+          <td>最新</td>
+          <td>アクセシブルなヘッドレスUI。完全カスタマイズ可能。TALONのグリッドをDataTableで置換</td>
+        </tr>
+        <tr>
+          <td>スタイリング</td>
+          <td><code>tailwindcss</code></td>
+          <td>3.x</td>
+          <td>ユーティリティファーストCSS。保守性高・一貫したデザイン</td>
+        </tr>
+        <tr>
+          <td>フォーム管理</td>
+          <td><code>react-hook-form + zod</code></td>
+          <td>最新</td>
+          <td>型安全なバリデーション。TALONのクライアントサイドJS検証を置換</td>
+        </tr>
+        <tr>
+          <td>データ取得</td>
+          <td><code>TanStack Query (React Query)</code></td>
+          <td>5.x</td>
+          <td>サーバー状態管理。キャッシュ、再取得、ローディング状態を自動管理</td>
+        </tr>
+        <tr>
+          <td>テーブル</td>
+          <td><code>TanStack Table</code></td>
+          <td>8.x</td>
+          <td>高機能データグリッド。ソート・フィルタ・ページング。TALONグリッドを完全置換</td>
+        </tr>
+        <tr>
+          <td>マルチセレクト</td>
+          <td><code>react-select</code></td>
+          <td>5.x</td>
+          <td>現行Select2を置換。作業者・段取作業者の複数選択</td>
+        </tr>
+        <tr>
+          <td>日付ピッカー</td>
+          <td><code>react-day-picker</code></td>
+          <td>8.x</td>
+          <td>日本語カレンダー対応</td>
+        </tr>
+        <tr>
+          <td>グラフ</td>
+          <td><code>recharts</code></td>
+          <td>2.x</td>
+          <td>稼働実績グラフ表示。軽量・カスタマイズ容易</td>
+        </tr>
+        <tr>
+          <td class="category" colspan="4">⚙️ バックエンド（NestJS）</td>
+        </tr>
+        <tr>
+          <td>フレームワーク</td>
+          <td><code>@nestjs/core</code></td>
+          <td>10.x</td>
+          <td class="highlight">モジュール構成、DI（依存性注入）、デコレータベース。保守性・テスタビリティ高</td>
+        </tr>
+        <tr>
+          <td>ORM</td>
+          <td><code>typeorm + mssql</code></td>
+          <td>0.3.x</td>
+          <td>SQL Server完全対応。現行テーブルをEntityクラスで表現。マイグレーション管理</td>
+        </tr>
+        <tr>
+          <td>認証</td>
+          <td><code>@nestjs/jwt + passport</code></td>
+          <td>最新</td>
+          <td>JWT認証。Active Directory(LDAP)連携は<code>ldapjs</code>で追加実装</td>
+        </tr>
+        <tr>
+          <td>権限管理</td>
+          <td><code>@casl/nestjs</code></td>
+          <td>最新</td>
+          <td class="highlight">フィールドレベルまで対応できるRBAC。Guardデコレータで宣言的権限制御</td>
+        </tr>
+        <tr>
+          <td>バリデーション</td>
+          <td><code>class-validator + class-transformer</code></td>
+          <td>最新</td>
+          <td>DTOベースの入力検証。型変換自動化</td>
+        </tr>
+        <tr>
+          <td>ログ</td>
+          <td><code>winston + nest-winston</code></td>
+          <td>最新</td>
+          <td class="highlight">構造化JSON ログ。DBへの書込み、ファイル出力、将来的なELK連携に対応</td>
+        </tr>
+        <tr>
+          <td>帳票: Excel</td>
+          <td><code>exceljs</code></td>
+          <td>4.x</td>
+          <td class="highlight">Excelファイルをサーバーサイドで完全生成。スタイル・数式・画像も制御可能</td>
+        </tr>
+        <tr>
+          <td>帳票: PDF</td>
+          <td><code>puppeteer</code></td>
+          <td>21.x</td>
+          <td>HTMLをPDFに変換。段取シートのPDF化に使用</td>
+        </tr>
+        <tr>
+          <td>ファイル転送</td>
+          <td><code>multer + @nestjs/serve-static</code></td>
+          <td>最新</td>
+          <td>写真・図面ファイルのアップロード・サーブ</td>
+        </tr>
+        <tr>
+          <td>HTTP クライアント</td>
+          <td><code>@nestjs/axios</code></td>
+          <td>最新</td>
+          <td>図面管理API（Ridoc）、外部サービスへのHTTP通信</td>
+        </tr>
+        <tr>
+          <td class="category" colspan="4">🗄️ データベース・インフラ</td>
+        </tr>
+        <tr>
+          <td>メインDB</td>
+          <td><code>SQL Server 2019</code></td>
+          <td>現行維持</td>
+          <td class="highlight">現行資産を完全移行。テーブル定義・データを引き継ぎ</td>
+        </tr>
+        <tr>
+          <td>セッション/キャッシュ</td>
+          <td><code>Redis</code></td>
+          <td>7.x</td>
+          <td>JWTブラックリスト、セッション管理、帳票生成キュー</td>
+        </tr>
+        <tr>
+          <td>コンテナ</td>
+          <td><code>Docker + Docker Compose</code></td>
+          <td>最新</td>
+          <td>開発・本番環境を統一。デプロイの再現性確保</td>
+        </tr>
+        <tr>
+          <td>リバースプロキシ</td>
+          <td><code>Nginx</code></td>
+          <td>最新</td>
+          <td>HTTPS終端、静的ファイル配信、ロードバランシング</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 4. アーキテクチャ図 -->
+  <div class="section" id="architecture">
+    <div class="section-label">SECTION 04</div>
+    <h2>システムアーキテクチャ</h2>
+
+    <div class="arch-diagram">
+      <div style="text-align:center; margin-bottom:28px;">
+        <span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#64748b; letter-spacing:2px;">SYSTEM ARCHITECTURE OVERVIEW</span>
+      </div>
+      <div class="arch-layers">
+
+        <div class="arch-layer">
+          <div class="arch-layer-label">クライアント</div>
+          <div class="arch-layer-content">
+            <span class="tech-pill">ブラウザ (Chrome)</span>
+            <span class="tech-pill">Next.js 14 (App Router)</span>
+            <span class="tech-pill">React 18</span>
+            <span class="tech-pill">TanStack Query</span>
+            <span class="tech-pill">shadcn/ui</span>
+            <span class="tech-pill">Tailwind CSS</span>
+          </div>
+        </div>
+
+        <div class="arch-arrow">↕ HTTPS / REST API + JWT</div>
+
+        <div class="arch-layer">
+          <div class="arch-layer-label">バックエンド</div>
+          <div class="arch-layer-content">
+            <span class="tech-pill green">NestJS 10 (API Server)</span>
+            <span class="tech-pill green">TypeORM</span>
+            <span class="tech-pill green">CASL (権限管理)</span>
+            <span class="tech-pill green">Winston (ログ)</span>
+            <span class="tech-pill green">ExcelJS (帳票)</span>
+            <span class="tech-pill green">Puppeteer (PDF)</span>
+          </div>
+        </div>
+
+        <div class="arch-arrow">↕ SQL / Cache</div>
+
+        <div class="arch-layer">
+          <div class="arch-layer-label">データ層</div>
+          <div class="arch-layer-content">
+            <span class="tech-pill amber">SQL Server 2019（メインDB）</span>
+            <span class="tech-pill amber">ImotoAP DB（部品情報参照）</span>
+            <span class="tech-pill amber">Redis（セッション/キュー）</span>
+            <span class="tech-pill amber">ファイルサーバ（\\Server\d\MC\）</span>
+          </div>
+        </div>
+
+        <div class="arch-arrow">↕ HTTP / LDAP</div>
+
+        <div class="arch-layer">
+          <div class="arch-layer-label">外部システム</div>
+          <div class="arch-layer-content">
+            <span class="tech-pill purple">Ridoc 図面管理API</span>
+            <span class="tech-pill purple">Active Directory (AD認証)</span>
+            <span class="tech-pill purple">Nginx (リバースプロキシ)</span>
+            <span class="tech-pill purple">Docker / Docker Compose</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <h3>🗂️ ディレクトリ構成（推奨）</h3>
+    <div style="background:#0f172a; border-radius:10px; padding:28px; font-family:'JetBrains Mono',monospace; font-size:13px; color:#94a3b8; line-height:2;">
+      <div style="color:#e2e8f0; margin-bottom:8px; font-weight:700;">mc-machining-system/</div>
+      <div>├── <span style="color:#93c5fd;">apps/</span></div>
+      <div>│&nbsp;&nbsp; ├── <span style="color:#6ee7b7;">frontend/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#475569;"># Next.js アプリケーション</span></div>
+      <div>│&nbsp;&nbsp; │&nbsp;&nbsp; ├── <span style="color:#fcd34d;">app/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#475569;"># App Router ページ</span></div>
+      <div>│&nbsp;&nbsp; │&nbsp;&nbsp; ├── <span style="color:#fcd34d;">components/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#475569;"># 共通UIコンポーネント</span></div>
+      <div>│&nbsp;&nbsp; │&nbsp;&nbsp; └── <span style="color:#fcd34d;">lib/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#475569;"># API クライアント、ユーティリティ</span></div>
+      <div>│&nbsp;&nbsp; └── <span style="color:#6ee7b7;">backend/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#475569;"># NestJS アプリケーション</span></div>
+      <div>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── <span style="color:#fcd34d;">src/modules/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#475569;"># 機能モジュール (machining, tooling...)</span></div>
+      <div>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── <span style="color:#fcd34d;">src/common/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#475569;"># Guards, Decorators, Interceptors</span></div>
+      <div>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; └── <span style="color:#fcd34d;">src/reports/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#475569;"># Excel/PDF 帳票生成サービス</span></div>
+      <div>├── <span style="color:#93c5fd;">packages/</span></div>
+      <div>│&nbsp;&nbsp; ├── <span style="color:#fcd34d;">shared-types/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#475569;"># 共通TypeScript型定義</span></div>
+      <div>│&nbsp;&nbsp; └── <span style="color:#fcd34d;">database/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#475569;"># TypeORM エンティティ・マイグレーション</span></div>
+      <div>├── <span style="color:#93c5fd;">docker/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#475569;"># Dockerfile, docker-compose.yml</span></div>
+      <div>└── <span style="color:#93c5fd;">docs/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#475569;"># 設計書、API仕様書</span></div>
+    </div>
+  </div>
+
+  <!-- 5. 課題解決マッピング -->
+  <div class="section" id="solutions">
+    <div class="section-label">SECTION 05</div>
+    <h2>課題解決マッピング</h2>
+    <p>TALONで発生していた各課題に対して、新スタックがどのように解決するかを示します。</p>
+
+    <table class="solution-table">
+      <thead>
+        <tr>
+          <th style="width:20%">課題</th>
+          <th style="width:35%">TALON での問題</th>
+          <th style="width:25%">新スタックでの解決策</th>
+          <th style="width:20%">採用技術</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>帳票出力</strong></td>
+          <td class="problem-cell">VBAマクロに依存。テンプレート変更が困難。ダウンロード制御が複雑（window.open監視、MutationObserver）</td>
+          <td class="solution-cell">サーバーサイドでExcelファイルを完全生成・ストリーミング配信。ブラウザダウンロードAPIで完結</td>
+          <td class="tech-cell">ExcelJS + NestJS StreamableFile</td>
+        </tr>
+        <tr>
+          <td><strong>ログ収集</strong></td>
+          <td class="problem-cell">手動でMC_OPERATION_LOGに記録。エラートレースなし。IP/ユーザーエージェント記録なし</td>
+          <td class="solution-cell">NestJS Interceptorで全APIリクエストを自動記録。構造化JSONログ。DBとファイルの両方に出力</td>
+          <td class="tech-cell">Winston + AuditLogInterceptor</td>
+        </tr>
+        <tr>
+          <td><strong>画面遷移</strong></td>
+          <td class="problem-cell">ポップアップウィンドウ多用。ブラウザバック不対応。URLに状態が含まれない</td>
+          <td class="solution-cell">Next.js App Routerによるフルページ遷移。URLベースの状態管理。ブラウザ履歴完全対応</td>
+          <td class="tech-cell">Next.js App Router + useSearchParams</td>
+        </tr>
+        <tr>
+          <td><strong>権限管理</strong></td>
+          <td class="problem-cell">メニュー単位の粗い制御のみ。フィールドレベル制御不可。動的ロール変更不可</td>
+          <td class="solution-cell">RBACで役割定義（管理者/一般/閲覧）。フィールドレベルまで制御可能。APIレベルとUI両方で適用</td>
+          <td class="tech-cell">CASL + NestJS Guards + Next.js middleware</td>
+        </tr>
+        <tr>
+          <td><strong>JavaScript保守</strong></td>
+          <td class="problem-cell">Client/Server JS混在。PrimeFaces AJAXへの強依存。TALONバージョンアップで破壊的変更頻発</td>
+          <td class="solution-cell">TypeScriptで全コードを型安全に統一。フレームワーク非依存のコンポーネント設計</td>
+          <td class="tech-cell">TypeScript + React + NestJS</td>
+        </tr>
+        <tr>
+          <td><strong>外部API連携</strong></td>
+          <td class="problem-cell">図面管理API(Ridoc)連携がTALON制約内のみ。カスタム認証ヘッダー設定困難</td>
+          <td class="solution-cell">NestJS HttpModule で自由にHTTPクライアント実装。リトライ、タイムアウト、エラーハンドリングを統一管理</td>
+          <td class="tech-cell">@nestjs/axios + Axios Interceptor</td>
+        </tr>
+        <tr>
+          <td><strong>DB連携</strong></td>
+          <td class="problem-cell">ImotoAP DB（Access MDB→PostgreSQL）への直接クエリに制限。ADODB経由のExcel VBAのみ対応</td>
+          <td class="solution-cell">TypeORMのMultiple Connection機能で複数DB同時接続。トランザクション管理も一元化</td>
+          <td class="tech-cell">TypeORM Multiple DataSource</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 6. 開発工数見積 -->
+  <div class="section" id="effort">
+    <div class="section-label">SECTION 06</div>
+    <h2>開発工数見積（新規構築）</h2>
+    <p>現行TALONシステム（245人日）と比較した新スタックでの工数見積です。</p>
+
+    <table class="effort-table">
+      <thead>
+        <tr>
+          <th>フェーズ / カテゴリ</th>
+          <th>工数（人日）</th>
+          <th>比率</th>
+          <th>備考</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>🏗️ プロジェクト基盤構築（Monorepo、Docker、CI/CD）</td>
+          <td>15</td>
+          <td><div class="effort-bar"><div class="effort-fill" style="width:9%"></div></div> 9%</td>
+          <td>初回のみ。以降の機能追加コスト削減に直結</td>
+        </tr>
+        <tr>
+          <td>🔒 認証・権限システム（JWT + CASL + AD連携）</td>
+          <td>20</td>
+          <td><div class="effort-bar"><div class="effort-fill" style="width:12%"></div></div> 12%</td>
+          <td>TALON比で細かい権限設定が可能になる分、設計工数が増加</td>
+        </tr>
+        <tr>
+          <td>📊 マシニング情報管理画面（最重要・最大規模）</td>
+          <td>35</td>
+          <td><div class="effort-bar"><div class="effort-fill" style="width:21%"></div></div> 21%</td>
+          <td>4ブロック構成、6編集モード。TALONより保守性向上</td>
+        </tr>
+        <tr>
+          <td>📋 段取シート管理（一覧・新規・リピート・SP通知）</td>
+          <td>25</td>
+          <td><div class="effort-bar"><div class="effort-fill" style="width:15%"></div></div> 15%</td>
+          <td>ExcelJSによる帳票生成でVBA依存を完全排除</td>
+        </tr>
+        <tr>
+          <td>📁 工具・治具管理（ツーリング・生爪・ワークオフセット）</td>
+          <td>20</td>
+          <td><div class="effort-bar"><div class="effort-fill" style="width:12%"></div></div> 12%</td>
+          <td>グリッド編集コンポーネントの再利用で工数削減</td>
+        </tr>
+        <tr>
+          <td>📈 作業実績管理・設備稼働実績</td>
+          <td>15</td>
+          <td><div class="effort-bar"><div class="effort-fill" style="width:9%"></div></div> 9%</td>
+          <td>Select2 → react-select移行。グラフ表示追加</td>
+        </tr>
+        <tr>
+          <td>🔍 各種一覧・検索画面（部品・設備・図面・写真）</td>
+          <td>18</td>
+          <td><div class="effort-bar"><div class="effort-fill" style="width:11%"></div></div> 11%</td>
+          <td>TanStack Tableで高機能グリッドを統一実装</td>
+        </tr>
+        <tr>
+          <td>📝 システム操作ログ・監査証跡</td>
+          <td>8</td>
+          <td><div class="effort-bar"><div class="effort-fill" style="width:5%"></div></div> 5%</td>
+          <td>Interceptorで自動記録。TALONより大幅に少ない工数</td>
+        </tr>
+        <tr>
+          <td>🗃️ マスタ管理・インデックスプログラム編集</td>
+          <td>10</td>
+          <td><div class="effort-bar"><div class="effort-fill" style="width:6%"></div></div> 6%</td>
+          <td>CRUD共通コンポーネントの再利用</td>
+        </tr>
+        <tr>
+          <td>🧪 テスト・品質保証・デプロイ</td>
+          <td>10</td>
+          <td><div class="effort-bar"><div class="effort-fill" style="width:6%"></div></div> 6%</td>
+          <td>Jest（単体）+ Playwright（E2E）。TALONでは不可能だったテスト自動化</td>
+        </tr>
+        <tr>
+          <td>合計</td>
+          <td>176 人日</td>
+          <td>—</td>
+          <td>TALON比 <strong>28%削減</strong>（245人日→176人日）。再利用コンポーネントと型安全設計による効果</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-box">
+      💡 <strong>工数削減の根拠:</strong> TypeScriptの型安全設計によりデバッグ工数が削減。共通コンポーネント（DataGrid、Form、Modal）の再利用で繰り返し作業を排除。TALONのJavaScript難読化・デバッグ困難問題が解消されます。
+    </div>
+  </div>
+
+  <!-- 7. ロードマップ -->
+  <div class="section" id="roadmap">
+    <div class="section-label">SECTION 07</div>
+    <h2>移行ロードマップ</h2>
+    <p>段階的移行によりリスクを最小化します。TALONシステムは移行完了まで並行稼働させます。</p>
+
+    <div class="roadmap">
+      <div class="phase">
+        <div class="phase-num">1</div>
+        <div class="phase-content">
+          <div class="phase-title">基盤構築フェーズ</div>
+          <div class="phase-period">Month 1 — 約 15人日</div>
+          <div class="phase-items">
+            <span class="phase-item">Monorepoセットアップ</span>
+            <span class="phase-item">Docker/Nginx構成</span>
+            <span class="phase-item">SQL Server接続確認</span>
+            <span class="phase-item">認証基盤（JWT + CASL）</span>
+            <span class="phase-item">ログ基盤（Winston）</span>
+            <span class="phase-item">CI/CD パイプライン</span>
+            <span class="phase-item">共通UIコンポーネントライブラリ</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-num">2</div>
+        <div class="phase-content">
+          <div class="phase-title">コア機能開発フェーズ</div>
+          <div class="phase-period">Month 2〜3 — 約 70人日</div>
+          <div class="phase-items">
+            <span class="phase-item">マシニング情報管理（最重要）</span>
+            <span class="phase-item">段取シート発行（新規・リピート）</span>
+            <span class="phase-item">ExcelJS帳票実装</span>
+            <span class="phase-item">段取シート一覧</span>
+            <span class="phase-item">ツーリング編集</span>
+            <span class="phase-item">マシニング情報更新確認</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-num">3</div>
+        <div class="phase-content">
+          <div class="phase-title">周辺機能開発フェーズ</div>
+          <div class="phase-period">Month 4 — 約 55人日</div>
+          <div class="phase-items">
+            <span class="phase-item">生爪検索・編集</span>
+            <span class="phase-item">ワークオフセット編集</span>
+            <span class="phase-item">作業実績登録・一覧</span>
+            <span class="phase-item">設備稼働実績</span>
+            <span class="phase-item">部品一覧・設備一覧</span>
+            <span class="phase-item">図面一覧・写真一覧</span>
+            <span class="phase-item">SP段取シート通知</span>
+            <span class="phase-item">インデックスプログラム編集</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-num">4</div>
+        <div class="phase-content">
+          <div class="phase-title">テスト・移行・本番リリースフェーズ</div>
+          <div class="phase-period">Month 5 — 約 36人日</div>
+          <div class="phase-items">
+            <span class="phase-item">システム操作ログ画面</span>
+            <span class="phase-item">マスタ管理</span>
+            <span class="phase-item">データ移行スクリプト</span>
+            <span class="phase-item">結合テスト・UAT</span>
+            <span class="phase-item">本番環境デプロイ</span>
+            <span class="phase-item">ユーザートレーニング</span>
+            <span class="phase-item">TALON並行稼働終了</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. リスクと対策 -->
+  <div class="section" id="risks">
+    <div class="section-label">SECTION 08</div>
+    <h2>リスクと対策</h2>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:5%">No</th>
+          <th style="width:30%">リスク内容</th>
+          <th style="width:15%">発生可能性</th>
+          <th style="width:15%">影響度</th>
+          <th>対策</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>R1</td>
+          <td>ImotoAP DB（Access MDB）との接続互換性問題</td>
+          <td><span class="badge badge-med">中</span></td>
+          <td><span class="badge badge-high">高</span></td>
+          <td>Phase1でTypeORM Multi DataSourceの接続検証を最優先実施。必要に応じてSQL Server Linked Serverを経由</td>
+        </tr>
+        <tr>
+          <td>R2</td>
+          <td>Ridoc図面管理API（http://192.168.1.9:8080）の仕様変更</td>
+          <td><span class="badge badge-low">低</span></td>
+          <td><span class="badge badge-med">中</span></td>
+          <td>APIクライアントをAdapterパターンで抽象化。仕様変更時はAdapterのみ修正で対応</td>
+        </tr>
+        <tr>
+          <td>R3</td>
+          <td>ExcelJS での段取シート複雑なレイアウト再現困難</td>
+          <td><span class="badge badge-med">中</span></td>
+          <td><span class="badge badge-high">高</span></td>
+          <td>Phase1でExcelJSプロトタイプを先行作成。不可能な場合はExcelテンプレート + データ埋込み方式に切替</td>
+        </tr>
+        <tr>
+          <td>R4</td>
+          <td>チームのNestJS学習コスト</td>
+          <td><span class="badge badge-high">高</span></td>
+          <td><span class="badge badge-med">中</span></td>
+          <td>Express.jsに近い設計思想で学習曲線は緩やか。Week1でハンズオン研修実施。モジュール単位で開発分担</td>
+        </tr>
+        <tr>
+          <td>R5</td>
+          <td>TALON並行稼働期間中のデータ二重管理</td>
+          <td><span class="badge badge-high">高</span></td>
+          <td><span class="badge badge-low">低</span></td>
+          <td>新システムはTALONと同一SQL Serverに接続。DBは共有するため二重管理は発生しない</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="success-box">
+      ✅ <strong>最終判断:</strong> 現行TALONシステムの問題点は技術的な構造課題であり、部分的な改修では解決不可能です。Next.js + NestJSへの移行により、帳票の完全自由化・フィールドレベル権限管理・構造化ログ収集・URLベース画面遷移をすべて実現できます。社内のJavaScript/TypeScript経験者でのスタート、SQL Server資産の完全継承、176人日（約5.5ヶ月）での完成が見込まれます。
+    </div>
+  </div>
+
+</div>
+
+<div class="doc-footer">
+  マシニング加工管理システム / 技術スタック選定書 v1.0 / MC-REBUILD-001<br>
+  © 2025 Machining System Project — Confidential
+</div>
+
+</body>
+</html>
