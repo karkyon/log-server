@@ -120,7 +120,7 @@ app.post('/consolelog', (req, res) => {
     fs.appendFileSync(logFile, JSON.stringify(entry) + '\n', 'utf8');
     res.sendStatus(200);
   } catch (err) {
-    console.error('[CONSOLELOG ERROR]', err.message);
+    console.error('[CONSOLELOG ERROR]', err.message, err.stack);
     res.status(500).json({ error: err.message });
   }
 });
