@@ -910,7 +910,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cl-msg{color:#e2e8f0;word-break:break-all;flex:1;}
 .cl-stack{margin-top:4px;padding:4px 8px;background:rgba(0,0,0,.3);border-radius:4px;font-size:10px;color:#94a3b8;width:100%;word-break:break-all;}
 .flow-canvas{padding:16px 24px 32px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:24px;}
-.flow-row{display:flex;align-items:center;gap:0;flex-wrap:nowrap;}
+.flow-row{display:flex;align-items:center;gap:0;flex-wrap:nowrap;justify-content:space-between;}
 .flow-row.rtl{flex-direction:row-reverse;}
 .flow-uturn{height:44px;width:100%;margin:0;display:block;overflow:visible;position:relative;}
 .flow-node{display:flex;flex-direction:column;align-items:center;flex-shrink:0;position:relative;}
@@ -928,7 +928,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .flow-box-label{font-size:11px;font-weight:700;color:#1e293b;line-height:1.3;}
 .flow-box-sub{font-size:9px;color:#64748b;margin-top:2px;line-height:1.3;}
 .flow-node-verdict{font-size:10px;margin-top:3px;min-height:16px;}
-.flow-arrow{display:flex;align-items:center;flex-shrink:0;width:60px;position:relative;}
+.flow-arrow{display:flex;align-items:center;flex:1 1 0;min-width:40px;position:relative;}
 .flow-arrow-line{width:100%;height:3px;background:#475569;position:relative;}
 .flow-arrow-line::after{content:'';position:absolute;right:-1px;top:50%;transform:translateY(-50%);border:7px solid transparent;border-left-color:#475569;border-right:none;}
 .flow-row.rtl .flow-arrow-line::after{right:auto;left:-1px;border-left:none;border-right-color:#475569;}
@@ -1552,11 +1552,10 @@ function initFlowPage(fid){
       +'<div class="flow-arrow-line"></div>'
       +'</div>';
   }
-  function uturnConnector(isRtl,COLS){
-    // CSS absolute positioning - 横矢印と同スタイル(#475569, 3px solid)
-    // LTR行末: 右端BOX中心 xc=(COLS-1)*180+60
-    // RTL行末: 左端BOX中心 xc=60
-    var xc=isRtl?60:(COLS-1)*180+60;
+  function uturnConnector(isRtl,cW){
+    // space-between でBOXが等間隔配置されるため端BOX中心は常に固定
+    // LTR右端BOX中心: cW-60  RTL左端BOX中心: 60
+    var xc=isRtl?60:(cW-60);
     var sw=3,arr=8,lh=34;
     return '<div class="flow-uturn">'
       +'<div style="position:absolute;left:'+(xc-1)+'px;top:2px;width:'+sw+'px;height:'+lh+'px;background:#475569;"></div>'
@@ -1593,7 +1592,7 @@ function initFlowPage(fid){
       if(ci<chunk.length-1) inner+=farrow(ns);
     }
     html2+='<div class="flow-row'+(isRtl?' rtl':'')+'" >'+inner+'</div>';
-    if(!isLast) html2+=uturnConnector(isRtl,COLS);
+    if(!isLast) html2+=uturnConnector(isRtl,cW);
   }
   canvas.innerHTML=html2;
   Object.keys(window.META||{}).forEach(function(k){
