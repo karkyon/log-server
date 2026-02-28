@@ -1278,7 +1278,7 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '  var containerEl=document.getElementById("tl-container");',
     '  var containerW=containerEl ? Math.max(containerEl.offsetWidth-40, 300) : 900;',
     '  var SLOT=180;',
-    '  var TL_COLS=Math.max(1, Math.floor(containerW/SLOT));',
+    '  var TL_COLS=Math.max(2, Math.floor(containerW/SLOT));',
     '  var data=tlVisible?TL_DATA.filter(function(s){ return tlVisible.indexOf(s.featureId)>=0; }):TL_DATA;',
     '  var lbl=document.getElementById("tl-total-label"); if(lbl) lbl.textContent=data.length+" seq";',
     '  var cards=data.map(function(s,idx){',
@@ -1521,7 +1521,7 @@ function initFlowPage(fid){
   var W=canvas.offsetWidth||900;
   var cW=Math.max(W-48,180);
   var SLOT=180;
-  var COLS=Math.max(1,Math.floor(cW/SLOT));
+  var COLS=Math.max(2,Math.floor(cW/SLOT));
   if(canvas._cols===COLS) return;
   canvas._cols=COLS;
   var seqs=dat.seqs;
