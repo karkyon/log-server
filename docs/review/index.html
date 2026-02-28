@@ -89,7 +89,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .flow-canvas{padding:16px 24px 32px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:24px;}
 .flow-row{display:flex;align-items:center;gap:0;flex-wrap:nowrap;}
 .flow-row.rtl{flex-direction:row-reverse;}
-.flow-uturn{height:44px;width:100%;margin:0;display:block;overflow:visible;}
+.flow-uturn{height:44px;width:100%;margin:0;display:block;overflow:visible;position:relative;}
 .flow-node{display:flex;flex-direction:column;align-items:center;flex-shrink:0;position:relative;}
 .flow-node-seq{font-size:10px;color:#94a3b8;font-weight:600;position:absolute;top:calc(100% + 2px);left:0;width:100%;text-align:center;}
 .flow-box{border:2px solid #3b82f6;border-radius:10px;background:white;cursor:pointer;text-align:center;width:120px;overflow:hidden;transition:box-shadow .18s,transform .18s;}
@@ -3218,8 +3218,9 @@ function initFlowPage(fid){
   var dat=(window.FLOW_PAGE_DATA||{})[fid];
   if(!dat) return;
   var W=canvas.offsetWidth||900;
+  var cW=Math.max(W-48,180);
   var SLOT=180;
-  var COLS=Math.max(1,Math.floor(W/SLOT));
+  var COLS=Math.max(1,Math.floor(cW/SLOT));
   if(canvas._cols===COLS) return;
   canvas._cols=COLS;
   var seqs=dat.seqs;
@@ -3254,27 +3255,18 @@ function initFlowPage(fid){
       +'<div class="flow-arrow-line"></div>'
       +'</div>';
   }
-  function uturnSvg(isRtl, W, COLS, rowIdx){
-    // BOX=120px Arrow=60px SLOT=180px
-    // LTR右端BOX中心: (COLS-1)*180 + 60
-    // RTL左端BOX中心: 60
-    var H=44, sw=3, col='#475569', arr=7;
-    var xc = isRtl ? 60 : (COLS-1)*180 + 60;
-    // marker IDをrow毎にユニーク化（同一IDが複数あるとmarkerが描画されない）
-    var mid = 'mu'+rowIdx;
-    var mk = '<defs>'
-      + '<marker id="'+mid+'" markerWidth="'+arr+'" markerHeight="'+arr
-      + '" refX="'+Math.round(arr/2)+'" refY="'+arr+'" orient="auto">'
-      + '<polygon points="0 0,'+arr+' 0,'+Math.round(arr/2)+' '+arr+'" fill="'+col+'"/>'
-      + '</marker>'
-      + '</defs>';
-    var d = 'M'+xc+' 2 L'+xc+' '+(H-arr-1);
-    var path = '<path d="'+d+'" stroke="'+col+'" stroke-width="'+sw
-      +'" fill="none" marker-end="url(#'+mid+')" />';
-    // SVG幅はcanvas全幅(W)にする
-    var svg = '<svg width="'+W+'" height="'+H+'" style="display:block;" xmlns="http://www.w3.org/2000/svg">'
-      + mk + path + '</svg>';
-    return '<div class="flow-uturn" style="width:'+W+'px;">'+svg+'</div>';
+  function uturnConnector(isRtl,COLS){
+    // CSS absolute positioning - 横矢印と同スタイル(#475569, 3px solid)
+    // LTR行末: 右端BOX中心 xc=(COLS-1)*180+60
+    // RTL行末: 左端BOX中心 xc=60
+    var xc=isRtl?60:(COLS-1)*180+60;
+    var sw=3,arr=8,lh=34;
+    return '<div class="flow-uturn">'
+      +'<div style="position:absolute;left:'+(xc-1)+'px;top:2px;width:'+sw+'px;height:'+lh+'px;background:#475569;"></div>'
+      +'<div style="position:absolute;left:'+(xc-arr)+'px;top:'+(lh+2)+'px;width:0;height:0;'
+      +'border-left:'+arr+'px solid transparent;border-right:'+arr+'px solid transparent;'
+      +'border-top:'+arr+'px solid #475569;"></div>'
+      +'</div>';
   }
   if(!canvas._ev){
     canvas._ev=true;
@@ -3304,7 +3296,7 @@ function initFlowPage(fid){
       if(ci<chunk.length-1) inner+=farrow(ns);
     }
     html2+='<div class="flow-row'+(isRtl?' rtl':'')+'" >'+inner+'</div>';
-    if(!isLast) html2+=uturnSvg(isRtl,totalW,COLS,row);
+    if(!isLast) html2+=uturnConnector(isRtl,COLS);
   }
   canvas.innerHTML=html2;
   Object.keys(window.META||{}).forEach(function(k){
