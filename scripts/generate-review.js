@@ -528,9 +528,10 @@ function renderFlowPage(featureId, seqs) {
     const lbl2cls   = isOkTrans ? 'flow-arrow-label ok' : 'flow-arrow-label';
 
     // ノードHTML（flow-node + flow-box）— FLW-02: サムネイル追加, TIM-04: BOX中心に線が来るよう構造整理
-    const sht = s.shots && s.shots[0];
-    const thumbInBox = sht
-      ? '<div class="flow-box-thumb"><img src="' + esc(sht) + '" loading="lazy" alt="seq' + s.seqNo + '"></div>'
+    const shotObj = s.shots && s.shots[0];
+    const shotPath = shotObj ? ('../screenshots/' + esc(featureId) + '/' + esc(shotObj.fname)) : null;
+    const thumbInBox = shotPath
+      ? '<div class="flow-box-thumb"><img src="' + shotPath + '" loading="lazy" alt="seq' + s.seqNo + '"></div>'
       : '<div class="flow-box-thumb"><span class="flow-box-thumb-none">📷</span></div>';
 
     const nodeHtml =
@@ -924,8 +925,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .flow-uturn-line{width:36px;height:32px;border:2px dashed #475569;border-top:none;}
 .flow-uturn.uturn-right .flow-uturn-line{border-radius:0 0 10px 0;border-left:none;}
 .flow-uturn.uturn-left .flow-uturn-line{border-radius:0 0 0 10px;border-right:none;}
-.flow-node{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;}
-.flow-node-seq{font-size:10px;color:#94a3b8;font-weight:600;}
+.flow-node{display:flex;flex-direction:column;align-items:center;flex-shrink:0;position:relative;}
+.flow-node-seq{font-size:10px;color:#94a3b8;font-weight:600;position:absolute;top:calc(100% + 2px);left:0;width:100%;text-align:center;}
 .flow-box{border:2px solid #3b82f6;border-radius:10px;background:white;cursor:pointer;text-align:center;width:120px;overflow:hidden;transition:box-shadow .18s,transform .18s;}
 .flow-box:hover{box-shadow:0 4px 14px rgba(59,130,246,.35);transform:translateY(-1px);}
 .flow-box.start{border-color:#16a34a;background:#f0fdf4;}
