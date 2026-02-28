@@ -912,14 +912,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cl-msg{color:#e2e8f0;word-break:break-all;flex:1;}
 .cl-stack{margin-top:4px;padding:4px 8px;background:rgba(0,0,0,.3);border-radius:4px;font-size:10px;color:#94a3b8;width:100%;word-break:break-all;}
 .flow-canvas{padding:16px 24px 32px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:24px;}
-.flow-row{display:flex;align-items:center;gap:0;flex-wrap:nowrap;}
+.flow-row{display:flex;align-items:center;gap:0;flex-wrap:nowrap;width:100%;justify-content:space-between;}
 .flow-row.rtl{flex-direction:row-reverse;}
-.flow-uturn{display:flex;align-items:center;height:32px;margin:0 4px;}
-.flow-uturn.uturn-right{justify-content:flex-end;padding-right:28px;}
-.flow-uturn.uturn-left{justify-content:flex-start;padding-left:28px;}
-.flow-uturn-line{width:36px;height:32px;border:2px dashed #475569;border-top:none;}
-.flow-uturn.uturn-right .flow-uturn-line{border-radius:0 0 10px 0;border-left:none;}
-.flow-uturn.uturn-left .flow-uturn-line{border-radius:0 0 0 10px;border-right:none;}
+.flow-uturn{height:44px;width:100%;margin:0;display:block;overflow:visible;}
 .flow-node{display:flex;flex-direction:column;align-items:center;flex-shrink:0;position:relative;}
 .flow-node-seq{font-size:10px;color:#94a3b8;font-weight:600;position:absolute;top:calc(100% + 2px);left:0;width:100%;text-align:center;}
 .flow-box{border:2px solid #3b82f6;border-radius:10px;background:white;cursor:pointer;text-align:center;width:120px;overflow:hidden;transition:box-shadow .18s,transform .18s;}
@@ -935,7 +930,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .flow-box-label{font-size:11px;font-weight:700;color:#1e293b;line-height:1.3;}
 .flow-box-sub{font-size:9px;color:#64748b;margin-top:2px;line-height:1.3;}
 .flow-node-verdict{font-size:10px;margin-top:3px;min-height:16px;}
-.flow-arrow{display:flex;align-items:center;flex:1 1 50px;min-width:50px;max-width:100px;position:relative;}
+.flow-arrow{display:flex;align-items:center;flex:1 1 0;min-width:30px;position:relative;}
 .flow-arrow-line{width:100%;height:3px;background:#475569;position:relative;}
 .flow-arrow-line::after{content:'';position:absolute;right:-1px;top:50%;transform:translateY(-50%);border:7px solid transparent;border-left-color:#475569;border-right:none;}
 .flow-row.rtl .flow-arrow-line::after{right:auto;left:-1px;border-left:none;border-right-color:#475569;}
@@ -1312,9 +1307,9 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '  var html="";',
     '  for(var r=0; r*TL_COLS<cards.length; r++){',
     '    var chunk=cards.slice(r*TL_COLS, (r+1)*TL_COLS);',
-    '    var isRtl=r%2===1;',
+    '    var isRtl=false;',
     '    var isLast=(r+1)*TL_COLS>=cards.length;',
-    '    var rowDir=isRtl?"flex-direction:row-reverse;":"";',
+    '    var rowDir="";',
     '    html+=\'<div style="display:flex;align-items:flex-start;gap:0;flex-wrap:nowrap;\'+rowDir+\'">\'+chunk.join(sep)+\'</div>\';',
     '    if(!isLast){',
     '      var uStyle=isRtl',
@@ -1558,18 +1553,30 @@ function initFlowPage(fid){
       +'<div class="flow-arrow-line"></div>'
       +'</div>';
   }
-  function uturnSvg(isRtl,W){
-    // isRtl=false: LTR行末→右端にコネクタ（次RTL行の先頭も右端）
-    // isRtl=true : RTL行末→左端にコネクタ（次LTR行の先頭も左端）
-    var H=44, sw=3, col='#475569', arr=8;
-    var xc = isRtl ? 40 : (W-40);
-    var mk='<defs><marker id="mu" markerWidth="'+arr+'" markerHeight="'+arr
-      +'" refX="'+Math.round(arr/2)+'" refY="'+arr+'" orient="auto">'
-      +'<polygon points="0 0,'+arr+' 0,'+Math.round(arr/2)+' '+arr+'" fill="'+col+'"/>'
-      +'</marker></defs>';
-    var line='<line x1="'+xc+'" y1="0" x2="'+xc+'" y2="'+H
-      +'" stroke="'+col+'" stroke-width="'+sw+'" marker-end="url(#mu)" />';
-    var svg='<svg width="'+W+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg">'+mk+line+'</svg>';
+  function uturnSvg(isRtl, W){
+    // BOX幅=120px → 各行端BOXの中心 = 60px(左) or W-60px(右)
+    // LTR行末: 右端BOX中心=W-60 → 右端まで水平→下へ→次行へ
+    // RTL行末: 左端BOX中心=60  → 左端まで水平→下へ→次行へ
+    var H=44, sw=3, col='#475569', arr=7;
+    var xBox = isRtl ? 60 : (W - 60); // BOX中心X
+    var xEdge = isRtl ? 0 : W;        // 画面端X（水平ブリッジ終端）
+    var arrowDir = isRtl ? 1 : -1;    // 矢印方向: RTL→右向き(+1) LTR→左向き(-1)
+    // マーカー（下向き矢印）
+    var mk = '<defs>'
+      + '<marker id="mua" markerWidth="'+arr+'" markerHeight="'+arr
+      + '" refX="'+Math.round(arr/2)+'" refY="'+arr+'" orient="auto">'
+      + '<polygon points="0 0,'+arr+' 0,'+Math.round(arr/2)+' '+arr+'" fill="'+col+'"/>'
+      + '</marker>'
+      + '</defs>';
+    // パス: BOX中心(x=xBox, y=0) → 画面端(x=xEdge, y=0) → 画面端(x=xEdge, y=H) → BOX中心(x=xBox, y=H)
+    var d = 'M'+xBox+' 2'
+      + ' L'+xEdge+' 2'
+      + ' L'+xEdge+' '+(H-2)
+      + ' L'+(xBox + arrowDir*arr)+' '+(H-2);
+    var path = '<path d="'+d+'" stroke="'+col+'" stroke-width="'+sw
+      +'" fill="none" stroke-linejoin="round" marker-end="url(#mua)" />';
+    var svg = '<svg width="'+W+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg">'
+      + mk + path + '</svg>';
     return '<div class="flow-uturn">'+svg+'</div>';
   }
   if(!canvas._ev){
