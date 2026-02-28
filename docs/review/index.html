@@ -105,7 +105,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .flow-box-label{font-size:11px;font-weight:700;color:#1e293b;line-height:1.3;}
 .flow-box-sub{font-size:9px;color:#64748b;margin-top:2px;line-height:1.3;}
 .flow-node-verdict{font-size:10px;margin-top:3px;min-height:16px;}
+<<<<<<< HEAD
 .flow-arrow{display:flex;align-items:center;flex:1 1 0;min-width:30px;position:relative;}
+=======
+.flow-arrow{display:flex;align-items:center;flex:1 1 50px;min-width:50px;max-width:100px;position:relative;}
+>>>>>>> 6c7746cc0214a6f3ea2b56c4654d3facfa234ec1
 .flow-arrow-line{width:100%;height:3px;background:#475569;position:relative;}
 .flow-arrow-line::after{content:'';position:absolute;right:-1px;top:50%;transform:translateY(-50%);border:7px solid transparent;border-left-color:#475569;border-right:none;}
 .flow-row.rtl .flow-arrow-line::after{right:auto;left:-1px;border-left:none;border-right-color:#475569;}
@@ -3259,6 +3263,7 @@ function initFlowPage(fid){
       +'<div class="flow-arrow-line"></div>'
       +'</div>';
   }
+<<<<<<< HEAD
   function uturnSvg(isRtl, W){
     // BOX幅=120px → 各行端BOXの中心 = 60px(左) or W-60px(右)
     // LTR行末: 右端BOX中心=W-60 → 右端まで水平→下へ→次行へ
@@ -3283,6 +3288,20 @@ function initFlowPage(fid){
       +'" fill="none" stroke-linejoin="round" marker-end="url(#mua)" />';
     var svg = '<svg width="'+W+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg">'
       + mk + path + '</svg>';
+=======
+  function uturnSvg(isRtl,W){
+    // isRtl=false: LTR行末→右端にコネクタ（次RTL行の先頭も右端）
+    // isRtl=true : RTL行末→左端にコネクタ（次LTR行の先頭も左端）
+    var H=44, sw=3, col='#475569', arr=8;
+    var xc = isRtl ? 40 : (W-40);
+    var mk='<defs><marker id="mu" markerWidth="'+arr+'" markerHeight="'+arr
+      +'" refX="'+Math.round(arr/2)+'" refY="'+arr+'" orient="auto">'
+      +'<polygon points="0 0,'+arr+' 0,'+Math.round(arr/2)+' '+arr+'" fill="'+col+'"/>'
+      +'</marker></defs>';
+    var line='<line x1="'+xc+'" y1="0" x2="'+xc+'" y2="'+H
+      +'" stroke="'+col+'" stroke-width="'+sw+'" marker-end="url(#mu)" />';
+    var svg='<svg width="'+W+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg">'+mk+line+'</svg>';
+>>>>>>> 6c7746cc0214a6f3ea2b56c4654d3facfa234ec1
     return '<div class="flow-uturn">'+svg+'</div>';
   }
   if(!canvas._ev){
