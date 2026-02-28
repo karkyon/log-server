@@ -648,9 +648,7 @@ function renderFlowPage(featureId, seqs) {
 
   <div class="card">
     <div class="card-title">操作フロー — ${esc(featureId)}</div>
-    <div class="flow-canvas">
-      ${serpentineHtml}
-    </div>
+    <div id="flow-canvas-${esc(featureId)}" class="flow-canvas" style="min-height:200px;"></div>
     <div class="flow-legend">
       <div class="flow-legend-item">
         <div class="flow-legend-box" style="border-color:#16a34a;background:#f0fdf4;"></div>開始
@@ -1639,6 +1637,25 @@ function buildHtml(fids, allLogs, allShots, issData, allConsoleLogs) {
     return renderFlowPage(fid, seqs);
   }).join('\n');
 
+  // FLOW_PAGE_DATA生成
+  const flowPageDataEntries = fids.map(fid => {
+    const fi = (issData.issues||[]).filter(i=>i.featureId===fid);
+    const cl = allConsoleLogs[fid]||[];
+    const seqs = buildSequences(allLogs[fid]||[], allShots[fid]||[], fi, cl);
+    const light = seqs.map(s=>({
+      seqNo: s.seqNo,
+      screenId: s.screenId,
+      summary: (s.summary||'').slice(0,16),
+      opContent: (s.opContent||'').slice(0,16),
+      autoNG: s.autoNG,
+      thumbPath: s.shots&&s.shots[0] ? ('../screenshots/'+fid+'/'+s.shots[0].fname) : null
+    }));
+    return [fid, {fid, seqs: light}];
+  });
+  const flowDataScript = '<script>window.FLOW_PAGE_DATA='+
+    JSON.stringify(Object.fromEntries(flowPageDataEntries)).replace(/<\//g,'<\\/')+
+    ';<\/script>';
+
   return `<!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -1665,6 +1682,7 @@ ${renderIssuesPage()}
     <div id="modal-ss" style="border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;background:#f8fafc;min-height:200px;display:flex;align-items:center;justify-content:center;"></div>
   </div>
 </div>
+${flowDataScript}
 ${renderFlowScript()}
 ${renderScript(fids, allLogs, allShots, issData, allSeqs)}
 </body>
