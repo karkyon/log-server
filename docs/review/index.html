@@ -3259,25 +3259,27 @@ function initFlowPage(fid){
       +'<div class="flow-arrow-line"></div>'
       +'</div>';
   }
-  function uturnSvg(isRtl, W, COLS){
-    // 実際のrow幅 = COLS*120 + (COLS-1)*60 = COLS*180 - 60
-    // LTR右端BOX中心X = (COLS-1)*180 + 60
-    // RTL左端BOX中心X = 60
+  function uturnSvg(isRtl, W, COLS, rowIdx){
+    // BOX=120px Arrow=60px SLOT=180px
+    // LTR右端BOX中心: (COLS-1)*180 + 60
+    // RTL左端BOX中心: 60
     var H=44, sw=3, col='#475569', arr=7;
-    var rowW = COLS*180 - 60;
     var xc = isRtl ? 60 : (COLS-1)*180 + 60;
+    // marker IDをrow毎にユニーク化（同一IDが複数あるとmarkerが描画されない）
+    var mid = 'mu'+rowIdx;
     var mk = '<defs>'
-      + '<marker id="mua" markerWidth="'+arr+'" markerHeight="'+arr
+      + '<marker id="'+mid+'" markerWidth="'+arr+'" markerHeight="'+arr
       + '" refX="'+Math.round(arr/2)+'" refY="'+arr+'" orient="auto">'
       + '<polygon points="0 0,'+arr+' 0,'+Math.round(arr/2)+' '+arr+'" fill="'+col+'"/>'
       + '</marker>'
       + '</defs>';
-    var d = 'M'+xc+' 0 L'+xc+' '+(H-arr);
+    var d = 'M'+xc+' 2 L'+xc+' '+(H-arr-1);
     var path = '<path d="'+d+'" stroke="'+col+'" stroke-width="'+sw
-      +'" fill="none" marker-end="url(#mua)" />';
-    var svg = '<svg width="'+rowW+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg">'
+      +'" fill="none" marker-end="url(#'+mid+')" />';
+    // SVG幅はcanvas全幅(W)にする
+    var svg = '<svg width="'+W+'" height="'+H+'" style="display:block;" xmlns="http://www.w3.org/2000/svg">'
       + mk + path + '</svg>';
-    return '<div class="flow-uturn" style="width:'+rowW+'px;">'+svg+'</div>';
+    return '<div class="flow-uturn" style="width:'+W+'px;">'+svg+'</div>';
   }
   if(!canvas._ev){
     canvas._ev=true;
@@ -3307,7 +3309,7 @@ function initFlowPage(fid){
       if(ci<chunk.length-1) inner+=farrow(ns);
     }
     html2+='<div class="flow-row'+(isRtl?' rtl':'')+'" >'+inner+'</div>';
-    if(!isLast) html2+=uturnSvg(isRtl,totalW,COLS);
+    if(!isLast) html2+=uturnSvg(isRtl,totalW,COLS,row);
   }
   canvas.innerHTML=html2;
   Object.keys(window.META||{}).forEach(function(k){
