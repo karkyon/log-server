@@ -89,8 +89,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .flow-canvas{padding:16px 24px 32px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:24px;}
 .flow-row{display:flex;align-items:center;gap:0;flex-wrap:nowrap;}
 .flow-row.rtl{flex-direction:row-reverse;}
-.flow-uturn{height:48px;position:relative;width:100%;margin:0;}
-.flow-uturn svg{position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible;}
+.flow-uturn{display:flex;align-items:center;height:32px;margin:0 4px;}
+.flow-uturn.uturn-right{justify-content:flex-end;padding-right:28px;}
+.flow-uturn.uturn-left{justify-content:flex-start;padding-left:28px;}
+.flow-uturn-line{width:36px;height:32px;border:2px dashed #475569;border-top:none;}
+.flow-uturn.uturn-right .flow-uturn-line{border-radius:0 0 10px 0;border-left:none;}
+.flow-uturn.uturn-left .flow-uturn-line{border-radius:0 0 0 10px;border-right:none;}
 .flow-node{display:flex;flex-direction:column;align-items:center;flex-shrink:0;position:relative;}
 .flow-node-seq{font-size:10px;color:#94a3b8;font-weight:600;position:absolute;top:calc(100% + 2px);left:0;width:100%;text-align:center;}
 .flow-box{border:2px solid #3b82f6;border-radius:10px;background:white;cursor:pointer;text-align:center;width:120px;overflow:hidden;transition:box-shadow .18s,transform .18s;}
@@ -2981,17 +2985,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="flow_MC_MACHINING" class="page">
   <div style="margin-bottom:22px;">
     <h1 style="font-size:21px;font-weight:700;color:#0f172a;">🗺️ 画面遷移図 — MC_MACHINING</h1>
-    <p style="font-size:13px;color:#64748b;margin-top:4px;">2 seq | ボックスをクリックするとアクションレビューにジャンプします</p>
+    <p style="font-size:13px;color:#64748b;margin-top:4px;">2 seq | 操作フロー（上段）とスクリーンショット一覧（下段）</p>
   </div>
+
   <div class="card">
     <div class="card-title">操作フロー — MC_MACHINING</div>
-    <script>if(!window.FLOW_PAGE_DATA)window.FLOW_PAGE_DATA={};window.FLOW_PAGE_DATA["MC_MACHINING"]={"seqs":[{"seqNo":1,"screenId":"MC_MACHINING","summary":"","opContent":"","autoNG":false,"thumbPath":"../screenshots/MC_MACHINING/2026-02-27T00-50-39-522Z_MC_MACHINING_SCREEN_LOAD_TR-1772153438712-mbv4.jpg"},{"seqNo":2,"screenId":"MC_MACHINING","summary":"仮登録","opContent":"仮登録","autoNG":false,"thumbPath":"../screenshots/MC_MACHINING/2026-02-27T00-50-50-636Z_MC_MACHINING_TLN_2_ADDLINE_BTN_AFTER_TR-1772153448537-vjlp.jpg"}],"fid":"MC_MACHINING"};</script>
-    <div class="flow-canvas" id="flow-canvas-MC_MACHINING"></div>
+    <div class="flow-canvas">
+      <div class="flow-row"><div class="flow-node"><div class="flow-box start" id="fbox-MC_MACHINING_seq1" onclick="showPage('MC_MACHINING');setTimeout(function(){scrollToActionLog('MC_MACHINING',1);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_MACHINING/2026-02-27T00-50-39-522Z_MC_MACHINING_SCREEN_LOAD_TR-1772153438712-mbv4.jpg" loading="lazy" alt="seq1"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_MACHINING</div><div class="flow-box-label"></div><div class="flow-box-sub"></div><div class="flow-node-verdict" id="fv-MC_MACHINING_seq1"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 1</div></div><div class="flow-arrow" id="farrow-MC_MACHINING_seq1"><div class="flow-arrow-label ok" id="falbl-MC_MACHINING_seq1">仮登録</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box end" id="fbox-MC_MACHINING_seq2" onclick="showPage('MC_MACHINING');setTimeout(function(){scrollToActionLog('MC_MACHINING',2);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_MACHINING/2026-02-27T00-50-50-636Z_MC_MACHINING_TLN_2_ADDLINE_BTN_AFTER_TR-1772153448537-vjlp.jpg" loading="lazy" alt="seq2"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_MACHINING</div><div class="flow-box-label">仮登録</div><div class="flow-box-sub">仮登録</div><div class="flow-node-verdict" id="fv-MC_MACHINING_seq2"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 2</div></div></div>
+    </div>
     <div class="flow-legend">
-      <div class="flow-legend-item"><div class="flow-legend-box" style="border-color:#16a34a;background:#f0fdf4;"></div>開始</div>
-      <div class="flow-legend-item"><div class="flow-legend-box" style="border-color:#3b82f6;background:white;"></div>通常</div>
-      <div class="flow-legend-item"><div class="flow-legend-box" style="border-color:#dc2626;background:#fff5f5;"></div>終端/NG</div>
-      <div style="margin-left:auto;font-size:11px;color:#94a3b8;">※ ボックスをクリックするとアクションレビューにジャンプします</div>
+      <div class="flow-legend-item">
+        <div class="flow-legend-box" style="border-color:#16a34a;background:#f0fdf4;"></div>開始
+      </div>
+      <div class="flow-legend-item">
+        <div class="flow-legend-box" style="border-color:#3b82f6;background:white;"></div>通常
+      </div>
+      <div class="flow-legend-item">
+        <div class="flow-legend-box" style="border-color:#dc2626;background:#fff5f5;"></div>終端/NG
+      </div>
+      <div style="margin-left:auto;font-size:11px;color:#94a3b8;">
+        ※ ボックスをクリックするとアクションレビューにジャンプします
+      </div>
     </div>
   </div>
 </div>
@@ -2999,17 +3013,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="flow_MC_OPERATOR_AUTHENTICATION" class="page">
   <div style="margin-bottom:22px;">
     <h1 style="font-size:21px;font-weight:700;color:#0f172a;">🗺️ 画面遷移図 — ユーザ認証</h1>
-    <p style="font-size:13px;color:#64748b;margin-top:4px;">8 seq | ボックスをクリックするとアクションレビューにジャンプします</p>
+    <p style="font-size:13px;color:#64748b;margin-top:4px;">8 seq | 操作フロー（上段）とスクリーンショット一覧（下段）</p>
   </div>
+
   <div class="card">
     <div class="card-title">操作フロー — MC_OPERATOR_AUTHENTICATION</div>
-    <script>if(!window.FLOW_PAGE_DATA)window.FLOW_PAGE_DATA={};window.FLOW_PAGE_DATA["MC_OPERATOR_AUTHENTICATION"]={"seqs":[{"seqNo":1,"screenId":"MC_OPERATOR_AUTHENTICATION","summary":"ユーザ認証","opContent":"ユーザ認証 — 初期状態","autoNG":false,"thumbPath":"../screenshots/MC_OPERATOR_AUTHENTICATION/2026-02-27T00-49-41-643Z_MC_OPERATOR_AUTHENTICATION_SCREEN_LOAD_TR-1772153381197-dvzl.jpg"},{"seqNo":2,"screenId":"MC_OPERATOR_AUTHENTICATION","summary":"","opContent":"","autoNG":false,"thumbPath":"../screenshots/MC_OPERATOR_AUTHENTICATION/2026-02-27T00-49-41-428Z_MC_OPERATOR_AUTHENTICATION_SCREEN_LOAD_TR-1772153381089-r4ch.jpg"},{"seqNo":3,"screenId":"MC_OPERATOR_AUTHENTICATION","summary":"1_password","opContent":"1_password","autoNG":false,"thumbPath":null},{"seqNo":4,"screenId":"MC_OPERATOR_AUTHENTICATION","summary":"1_password","opContent":"1_password","autoNG":true,"thumbPath":null},{"seqNo":5,"screenId":"MC_OPERATOR_AUTHENTICATION","summary":"ユーザー認証","opContent":"ユーザー認証","autoNG":false,"thumbPath":"../screenshots/MC_OPERATOR_AUTHENTICATION/2026-02-27T00-50-20-880Z_MC_OPERATOR_AUTHENTICATION_TLN_1_password_CALL_JAVASCRIPT_AFTER_TR-1772153419024-k4o6.jpg"},{"seqNo":6,"screenId":"MC_OPERATOR_AUTHENTICATION","summary":"ユーザー認証","opContent":"ユーザー認証","autoNG":true,"thumbPath":"../screenshots/MC_OPERATOR_AUTHENTICATION/2026-02-27T00-50-20-874Z_MC_OPERATOR_AUTHENTICATION_TLN_1_password_CALL_JAVASCRIPT_AFTER_TR-1772153419024-5116.jpg"},{"seqNo":7,"screenId":"MC_OPERATOR_AUTHENTICATION","summary":"マシニング情報","opContent":"マシニング情報","autoNG":false,"thumbPath":null},{"seqNo":8,"screenId":"MC_OPERATOR_AUTHENTICATION","summary":"マシニング情報","opContent":"マシニング情報","autoNG":true,"thumbPath":null}],"fid":"MC_OPERATOR_AUTHENTICATION"};</script>
-    <div class="flow-canvas" id="flow-canvas-MC_OPERATOR_AUTHENTICATION"></div>
+    <div class="flow-canvas">
+      <div class="flow-row"><div class="flow-node"><div class="flow-box start" id="fbox-MC_OPERATOR_AUTHENTICATION_seq1" onclick="showPage('MC_OPERATOR_AUTHENTICATION');setTimeout(function(){scrollToActionLog('MC_OPERATOR_AUTHENTICATION',1);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_OPERATOR_AUTHENTICATION/2026-02-27T00-49-41-643Z_MC_OPERATOR_AUTHENTICATION_SCREEN_LOAD_TR-1772153381197-dvzl.jpg" loading="lazy" alt="seq1"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_OPERATOR_AUTHENTICATION</div><div class="flow-box-label">ユーザ認証</div><div class="flow-box-sub">ユーザ認証 — 初期状態</div><div class="flow-node-verdict" id="fv-MC_OPERATOR_AUTHENTICATION_seq1"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 1</div></div><div class="flow-arrow" id="farrow-MC_OPERATOR_AUTHENTICATION_seq1"><div class="flow-arrow-label ok" id="falbl-MC_OPERATOR_AUTHENTICATION_seq1"></div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box" id="fbox-MC_OPERATOR_AUTHENTICATION_seq2" onclick="showPage('MC_OPERATOR_AUTHENTICATION');setTimeout(function(){scrollToActionLog('MC_OPERATOR_AUTHENTICATION',2);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_OPERATOR_AUTHENTICATION/2026-02-27T00-49-41-428Z_MC_OPERATOR_AUTHENTICATION_SCREEN_LOAD_TR-1772153381089-r4ch.jpg" loading="lazy" alt="seq2"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_OPERATOR_AUTHENTICATION</div><div class="flow-box-label"></div><div class="flow-box-sub"></div><div class="flow-node-verdict" id="fv-MC_OPERATOR_AUTHENTICATION_seq2"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 2</div></div><div class="flow-arrow" id="farrow-MC_OPERATOR_AUTHENTICATION_seq2"><div class="flow-arrow-label ok" id="falbl-MC_OPERATOR_AUTHENTICATION_seq2">1_password</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box" id="fbox-MC_OPERATOR_AUTHENTICATION_seq3" onclick="showPage('MC_OPERATOR_AUTHENTICATION');setTimeout(function(){scrollToActionLog('MC_OPERATOR_AUTHENTICATION',3);},300);"><div class="flow-box-thumb"><span class="flow-box-thumb-none">📷</span></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_OPERATOR_AUTHENTICATION</div><div class="flow-box-label">1_password</div><div class="flow-box-sub">1_password</div><div class="flow-node-verdict" id="fv-MC_OPERATOR_AUTHENTICATION_seq3"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 3</div></div><div class="flow-arrow" id="farrow-MC_OPERATOR_AUTHENTICATION_seq3"><div class="flow-arrow-label" id="falbl-MC_OPERATOR_AUTHENTICATION_seq3">1_password</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box is-ng" id="fbox-MC_OPERATOR_AUTHENTICATION_seq4" onclick="showPage('MC_OPERATOR_AUTHENTICATION');setTimeout(function(){scrollToActionLog('MC_OPERATOR_AUTHENTICATION',4);},300);"><div class="flow-box-thumb"><span class="flow-box-thumb-none">📷</span></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_OPERATOR_AUTHENTICATION</div><div class="flow-box-label">1_password</div><div class="flow-box-sub">1_password</div><div class="flow-node-verdict" id="fv-MC_OPERATOR_AUTHENTICATION_seq4"><span style="color:#dc2626;font-size:10px;font-weight:700;">❌ NG</span></div></div></div><div class="flow-node-seq">seq 4</div></div><div class="flow-arrow" id="farrow-MC_OPERATOR_AUTHENTICATION_seq4"><div class="flow-arrow-label ok" id="falbl-MC_OPERATOR_AUTHENTICATION_seq4">ユーザー認証</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box" id="fbox-MC_OPERATOR_AUTHENTICATION_seq5" onclick="showPage('MC_OPERATOR_AUTHENTICATION');setTimeout(function(){scrollToActionLog('MC_OPERATOR_AUTHENTICATION',5);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_OPERATOR_AUTHENTICATION/2026-02-27T00-50-20-880Z_MC_OPERATOR_AUTHENTICATION_TLN_1_password_CALL_JAVASCRIPT_AFTER_TR-1772153419024-k4o6.jpg" loading="lazy" alt="seq5"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_OPERATOR_AUTHENTICATION</div><div class="flow-box-label">ユーザー認証</div><div class="flow-box-sub">ユーザー認証</div><div class="flow-node-verdict" id="fv-MC_OPERATOR_AUTHENTICATION_seq5"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 5</div></div><div class="flow-arrow" id="farrow-MC_OPERATOR_AUTHENTICATION_seq5"><div class="flow-arrow-label" id="falbl-MC_OPERATOR_AUTHENTICATION_seq5">ユーザー認証</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box is-ng" id="fbox-MC_OPERATOR_AUTHENTICATION_seq6" onclick="showPage('MC_OPERATOR_AUTHENTICATION');setTimeout(function(){scrollToActionLog('MC_OPERATOR_AUTHENTICATION',6);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_OPERATOR_AUTHENTICATION/2026-02-27T00-50-20-874Z_MC_OPERATOR_AUTHENTICATION_TLN_1_password_CALL_JAVASCRIPT_AFTER_TR-1772153419024-5116.jpg" loading="lazy" alt="seq6"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_OPERATOR_AUTHENTICATION</div><div class="flow-box-label">ユーザー認証</div><div class="flow-box-sub">ユーザー認証</div><div class="flow-node-verdict" id="fv-MC_OPERATOR_AUTHENTICATION_seq6"><span style="color:#dc2626;font-size:10px;font-weight:700;">❌ NG</span></div></div></div><div class="flow-node-seq">seq 6</div></div></div><div class="flow-uturn uturn-right"><div class="flow-uturn-line"></div></div><div class="flow-row rtl"><div class="flow-node"><div class="flow-box" id="fbox-MC_OPERATOR_AUTHENTICATION_seq7" onclick="showPage('MC_OPERATOR_AUTHENTICATION');setTimeout(function(){scrollToActionLog('MC_OPERATOR_AUTHENTICATION',7);},300);"><div class="flow-box-thumb"><span class="flow-box-thumb-none">📷</span></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_OPERATOR_AUTHENTICATION</div><div class="flow-box-label">マシニング情報</div><div class="flow-box-sub">マシニング情報</div><div class="flow-node-verdict" id="fv-MC_OPERATOR_AUTHENTICATION_seq7"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 7</div></div><div class="flow-arrow" id="farrow-MC_OPERATOR_AUTHENTICATION_seq7"><div class="flow-arrow-label" id="falbl-MC_OPERATOR_AUTHENTICATION_seq7">マシニング情報</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box end is-ng" id="fbox-MC_OPERATOR_AUTHENTICATION_seq8" onclick="showPage('MC_OPERATOR_AUTHENTICATION');setTimeout(function(){scrollToActionLog('MC_OPERATOR_AUTHENTICATION',8);},300);"><div class="flow-box-thumb"><span class="flow-box-thumb-none">📷</span></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_OPERATOR_AUTHENTICATION</div><div class="flow-box-label">マシニング情報</div><div class="flow-box-sub">マシニング情報</div><div class="flow-node-verdict" id="fv-MC_OPERATOR_AUTHENTICATION_seq8"><span style="color:#dc2626;font-size:10px;font-weight:700;">❌ NG</span></div></div></div><div class="flow-node-seq">seq 8</div></div></div>
+    </div>
     <div class="flow-legend">
-      <div class="flow-legend-item"><div class="flow-legend-box" style="border-color:#16a34a;background:#f0fdf4;"></div>開始</div>
-      <div class="flow-legend-item"><div class="flow-legend-box" style="border-color:#3b82f6;background:white;"></div>通常</div>
-      <div class="flow-legend-item"><div class="flow-legend-box" style="border-color:#dc2626;background:#fff5f5;"></div>終端/NG</div>
-      <div style="margin-left:auto;font-size:11px;color:#94a3b8;">※ ボックスをクリックするとアクションレビューにジャンプします</div>
+      <div class="flow-legend-item">
+        <div class="flow-legend-box" style="border-color:#16a34a;background:#f0fdf4;"></div>開始
+      </div>
+      <div class="flow-legend-item">
+        <div class="flow-legend-box" style="border-color:#3b82f6;background:white;"></div>通常
+      </div>
+      <div class="flow-legend-item">
+        <div class="flow-legend-box" style="border-color:#dc2626;background:#fff5f5;"></div>終端/NG
+      </div>
+      <div style="margin-left:auto;font-size:11px;color:#94a3b8;">
+        ※ ボックスをクリックするとアクションレビューにジャンプします
+      </div>
     </div>
   </div>
 </div>
@@ -3017,17 +3041,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="flow_MC_PRODUCTS_LIST" class="page">
   <div style="margin-bottom:22px;">
     <h1 style="font-size:21px;font-weight:700;color:#0f172a;">🗺️ 画面遷移図 — 部品一覧</h1>
-    <p style="font-size:13px;color:#64748b;margin-top:4px;">16 seq | ボックスをクリックするとアクションレビューにジャンプします</p>
+    <p style="font-size:13px;color:#64748b;margin-top:4px;">16 seq | 操作フロー（上段）とスクリーンショット一覧（下段）</p>
   </div>
+
   <div class="card">
     <div class="card-title">操作フロー — MC_PRODUCTS_LIST</div>
-    <script>if(!window.FLOW_PAGE_DATA)window.FLOW_PAGE_DATA={};window.FLOW_PAGE_DATA["MC_PRODUCTS_LIST"]={"seqs":[{"seqNo":1,"screenId":"MC_PRODUCTS_LIST","summary":"","opContent":"","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-35-50-920Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772152550525-b3ew.jpg"},{"seqNo":2,"screenId":"MC_PRODUCTS_LIST","summary":"","opContent":"","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-35-50-931Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772152550491-cvuj.jpg"},{"seqNo":3,"screenId":"MC_PRODUCTS_LIST","summary":"CNDTN_parts_id","opContent":"CNDTN_parts_id","autoNG":false,"thumbPath":null},{"seqNo":4,"screenId":"MC_PRODUCTS_LIST","summary":"検索","opContent":"検索","autoNG":true,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-35-57-468Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_BEFORE_TR-1772152557168-678k.jpg"},{"seqNo":5,"screenId":"MC_PRODUCTS_LIST","summary":"マシニング部品一覧","opContent":"マシニング部品一覧 — 初期状態","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-35-58-264Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772152557653-ybnd.jpg"},{"seqNo":6,"screenId":"MC_PRODUCTS_LIST","summary":"マシニング部品一覧","opContent":"マシニング部品一覧 — 初期状態","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-35-58-233Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772152557697-tjyi.jpg"},{"seqNo":7,"screenId":"MC_PRODUCTS_LIST","summary":"BACK_BUTTON","opContent":"BACK_BUTTON","autoNG":false,"thumbPath":null},{"seqNo":8,"screenId":"MC_PRODUCTS_LIST","summary":"BACK_BUTTON","opContent":"BACK_BUTTON","autoNG":true,"thumbPath":null},{"seqNo":9,"screenId":"MC_PRODUCTS_LIST","summary":"閉じる","opContent":"閉じる","autoNG":false,"thumbPath":null},{"seqNo":10,"screenId":"MC_PRODUCTS_LIST","summary":"","opContent":"","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-49-23-209Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772153362275-o34o.jpg"},{"seqNo":11,"screenId":"MC_PRODUCTS_LIST","summary":"","opContent":"","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-49-23-222Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772153362272-o6ho.jpg"},{"seqNo":12,"screenId":"MC_PRODUCTS_LIST","summary":"CNDTN_parts_id","opContent":"CNDTN_parts_id","autoNG":false,"thumbPath":null},{"seqNo":13,"screenId":"MC_PRODUCTS_LIST","summary":"検索","opContent":"検索","autoNG":true,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-49-28-187Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_BEFORE_TR-1772153367854-en3w.jpg"},{"seqNo":14,"screenId":"MC_PRODUCTS_LIST","summary":"マシニング部品一覧","opContent":"マシニング部品一覧 — 初期状態","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-49-28-745Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772153368176-gx24.jpg"},{"seqNo":15,"screenId":"MC_PRODUCTS_LIST","summary":"マシニング部品一覧","opContent":"マシニング部品一覧 — 初期状態","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-49-28-731Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772153368229-mm1l.jpg"},{"seqNo":16,"screenId":"MC_PRODUCTS_LIST","summary":"編集","opContent":"編集","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-49-38-030Z_MC_PRODUCTS_LIST_TLN_1_編集_0_AFTER_TR-1772153377172-a62t.jpg"}],"fid":"MC_PRODUCTS_LIST"};</script>
-    <div class="flow-canvas" id="flow-canvas-MC_PRODUCTS_LIST"></div>
+    <div class="flow-canvas">
+      <div class="flow-row"><div class="flow-node"><div class="flow-box start" id="fbox-MC_PRODUCTS_LIST_seq1" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',1);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-35-50-920Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772152550525-b3ew.jpg" loading="lazy" alt="seq1"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label"></div><div class="flow-box-sub"></div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq1"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 1</div></div><div class="flow-arrow" id="farrow-MC_PRODUCTS_LIST_seq1"><div class="flow-arrow-label ok" id="falbl-MC_PRODUCTS_LIST_seq1"></div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box" id="fbox-MC_PRODUCTS_LIST_seq2" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',2);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-35-50-931Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772152550491-cvuj.jpg" loading="lazy" alt="seq2"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label"></div><div class="flow-box-sub"></div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq2"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 2</div></div><div class="flow-arrow" id="farrow-MC_PRODUCTS_LIST_seq2"><div class="flow-arrow-label ok" id="falbl-MC_PRODUCTS_LIST_seq2">CNDTN_parts_id</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box" id="fbox-MC_PRODUCTS_LIST_seq3" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',3);},300);"><div class="flow-box-thumb"><span class="flow-box-thumb-none">📷</span></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label">CNDTN_parts_id</div><div class="flow-box-sub">CNDTN_parts_id</div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq3"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 3</div></div><div class="flow-arrow" id="farrow-MC_PRODUCTS_LIST_seq3"><div class="flow-arrow-label" id="falbl-MC_PRODUCTS_LIST_seq3">検索</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box is-ng" id="fbox-MC_PRODUCTS_LIST_seq4" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',4);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-35-57-468Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_BEFORE_TR-1772152557168-678k.jpg" loading="lazy" alt="seq4"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label">検索</div><div class="flow-box-sub">検索</div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq4"><span style="color:#dc2626;font-size:10px;font-weight:700;">❌ NG</span></div></div></div><div class="flow-node-seq">seq 4</div></div><div class="flow-arrow" id="farrow-MC_PRODUCTS_LIST_seq4"><div class="flow-arrow-label ok" id="falbl-MC_PRODUCTS_LIST_seq4">マシニング部品一覧 — 初期</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box" id="fbox-MC_PRODUCTS_LIST_seq5" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',5);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-35-58-264Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772152557653-ybnd.jpg" loading="lazy" alt="seq5"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label">マシニング部品一覧</div><div class="flow-box-sub">マシニング部品一覧 — 初期状態</div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq5"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 5</div></div><div class="flow-arrow" id="farrow-MC_PRODUCTS_LIST_seq5"><div class="flow-arrow-label ok" id="falbl-MC_PRODUCTS_LIST_seq5">マシニング部品一覧 — 初期</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box" id="fbox-MC_PRODUCTS_LIST_seq6" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',6);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-35-58-233Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772152557697-tjyi.jpg" loading="lazy" alt="seq6"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label">マシニング部品一覧</div><div class="flow-box-sub">マシニング部品一覧 — 初期状態</div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq6"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 6</div></div></div><div class="flow-uturn uturn-right"><div class="flow-uturn-line"></div></div><div class="flow-row rtl"><div class="flow-node"><div class="flow-box" id="fbox-MC_PRODUCTS_LIST_seq7" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',7);},300);"><div class="flow-box-thumb"><span class="flow-box-thumb-none">📷</span></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label">BACK_BUTTON</div><div class="flow-box-sub">BACK_BUTTON</div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq7"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 7</div></div><div class="flow-arrow" id="farrow-MC_PRODUCTS_LIST_seq7"><div class="flow-arrow-label" id="falbl-MC_PRODUCTS_LIST_seq7">BACK_BUTTON</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box is-ng" id="fbox-MC_PRODUCTS_LIST_seq8" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',8);},300);"><div class="flow-box-thumb"><span class="flow-box-thumb-none">📷</span></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label">BACK_BUTTON</div><div class="flow-box-sub">BACK_BUTTON</div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq8"><span style="color:#dc2626;font-size:10px;font-weight:700;">❌ NG</span></div></div></div><div class="flow-node-seq">seq 8</div></div><div class="flow-arrow" id="farrow-MC_PRODUCTS_LIST_seq8"><div class="flow-arrow-label ok" id="falbl-MC_PRODUCTS_LIST_seq8">閉じる</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box" id="fbox-MC_PRODUCTS_LIST_seq9" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',9);},300);"><div class="flow-box-thumb"><span class="flow-box-thumb-none">📷</span></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label">閉じる</div><div class="flow-box-sub">閉じる</div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq9"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 9</div></div><div class="flow-arrow" id="farrow-MC_PRODUCTS_LIST_seq9"><div class="flow-arrow-label ok" id="falbl-MC_PRODUCTS_LIST_seq9"></div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box" id="fbox-MC_PRODUCTS_LIST_seq10" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',10);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-49-23-209Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772153362275-o34o.jpg" loading="lazy" alt="seq10"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label"></div><div class="flow-box-sub"></div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq10"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 10</div></div><div class="flow-arrow" id="farrow-MC_PRODUCTS_LIST_seq10"><div class="flow-arrow-label ok" id="falbl-MC_PRODUCTS_LIST_seq10"></div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box" id="fbox-MC_PRODUCTS_LIST_seq11" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',11);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-49-23-222Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772153362272-o6ho.jpg" loading="lazy" alt="seq11"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label"></div><div class="flow-box-sub"></div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq11"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 11</div></div><div class="flow-arrow" id="farrow-MC_PRODUCTS_LIST_seq11"><div class="flow-arrow-label ok" id="falbl-MC_PRODUCTS_LIST_seq11">CNDTN_parts_id</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box" id="fbox-MC_PRODUCTS_LIST_seq12" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',12);},300);"><div class="flow-box-thumb"><span class="flow-box-thumb-none">📷</span></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label">CNDTN_parts_id</div><div class="flow-box-sub">CNDTN_parts_id</div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq12"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 12</div></div></div><div class="flow-uturn uturn-left"><div class="flow-uturn-line"></div></div><div class="flow-row"><div class="flow-node"><div class="flow-box is-ng" id="fbox-MC_PRODUCTS_LIST_seq13" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',13);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-49-28-187Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_BEFORE_TR-1772153367854-en3w.jpg" loading="lazy" alt="seq13"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label">検索</div><div class="flow-box-sub">検索</div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq13"><span style="color:#dc2626;font-size:10px;font-weight:700;">❌ NG</span></div></div></div><div class="flow-node-seq">seq 13</div></div><div class="flow-arrow" id="farrow-MC_PRODUCTS_LIST_seq13"><div class="flow-arrow-label ok" id="falbl-MC_PRODUCTS_LIST_seq13">マシニング部品一覧 — 初期</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box" id="fbox-MC_PRODUCTS_LIST_seq14" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',14);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-49-28-745Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772153368176-gx24.jpg" loading="lazy" alt="seq14"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label">マシニング部品一覧</div><div class="flow-box-sub">マシニング部品一覧 — 初期状態</div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq14"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 14</div></div><div class="flow-arrow" id="farrow-MC_PRODUCTS_LIST_seq14"><div class="flow-arrow-label ok" id="falbl-MC_PRODUCTS_LIST_seq14">マシニング部品一覧 — 初期</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box" id="fbox-MC_PRODUCTS_LIST_seq15" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',15);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-49-28-731Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772153368229-mm1l.jpg" loading="lazy" alt="seq15"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label">マシニング部品一覧</div><div class="flow-box-sub">マシニング部品一覧 — 初期状態</div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq15"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 15</div></div><div class="flow-arrow" id="farrow-MC_PRODUCTS_LIST_seq15"><div class="flow-arrow-label ok" id="falbl-MC_PRODUCTS_LIST_seq15">編集</div><div class="flow-arrow-line"></div></div><div class="flow-node"><div class="flow-box end" id="fbox-MC_PRODUCTS_LIST_seq16" onclick="showPage('MC_PRODUCTS_LIST');setTimeout(function(){scrollToActionLog('MC_PRODUCTS_LIST',16);},300);"><div class="flow-box-thumb"><img src="../screenshots/MC_PRODUCTS_LIST/2026-02-27T00-49-38-030Z_MC_PRODUCTS_LIST_TLN_1_編集_0_AFTER_TR-1772153377172-a62t.jpg" loading="lazy" alt="seq16"></div><div class="flow-box-content"><div class="flow-box-screen-id">MC_PRODUCTS_LIST</div><div class="flow-box-label">編集</div><div class="flow-box-sub">編集</div><div class="flow-node-verdict" id="fv-MC_PRODUCTS_LIST_seq16"><span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span></div></div></div><div class="flow-node-seq">seq 16</div></div></div>
+    </div>
     <div class="flow-legend">
-      <div class="flow-legend-item"><div class="flow-legend-box" style="border-color:#16a34a;background:#f0fdf4;"></div>開始</div>
-      <div class="flow-legend-item"><div class="flow-legend-box" style="border-color:#3b82f6;background:white;"></div>通常</div>
-      <div class="flow-legend-item"><div class="flow-legend-box" style="border-color:#dc2626;background:#fff5f5;"></div>終端/NG</div>
-      <div style="margin-left:auto;font-size:11px;color:#94a3b8;">※ ボックスをクリックするとアクションレビューにジャンプします</div>
+      <div class="flow-legend-item">
+        <div class="flow-legend-box" style="border-color:#16a34a;background:#f0fdf4;"></div>開始
+      </div>
+      <div class="flow-legend-item">
+        <div class="flow-legend-box" style="border-color:#3b82f6;background:white;"></div>通常
+      </div>
+      <div class="flow-legend-item">
+        <div class="flow-legend-box" style="border-color:#dc2626;background:#fff5f5;"></div>終端/NG
+      </div>
+      <div style="margin-left:auto;font-size:11px;color:#94a3b8;">
+        ※ ボックスをクリックするとアクションレビューにジャンプします
+      </div>
     </div>
   </div>
 </div>
@@ -3225,7 +3259,6 @@ function showPage(id){
   var nav=document.getElementById("nav-"+id); if(nav) nav.classList.add("active");
   if(id==="timeline"){ setTimeout(initTimeline,50); }
   if(id==="patterns"){ setTimeout(renderPatternList,50); }
-  if(id.indexOf("flow_")===0){ var _fid=id.slice(5); setTimeout(function(){initFlowPage(_fid);},50); }
 }
 
 // ── Console 開閉 ─────────────────────────────────────────
@@ -3431,93 +3464,6 @@ function fmtTJ(ts){
 }
 
 // ── タイムライン ─────────────────────────────────────────
-// ── 画面遷移図（動的描画）─────────────────────────────────
-var _flowResizeTimer=null;
-window.addEventListener("resize",function(){
-  document.querySelectorAll(".page.active").forEach(function(p){
-    if(p.id&&p.id.indexOf("flow_")===0){
-      var fid=p.id.slice(5);
-      var c=document.getElementById("flow-canvas-"+fid);
-      if(c){ c._cols=null; initFlowPage(fid); }
-    }
-  });
-});
-function initFlowPage(fid){
-  var canvas=document.getElementById("flow-canvas-"+fid); if(!canvas) return;
-  var dat=(window.FLOW_PAGE_DATA||{})[fid]; if(!dat) return;
-  var containerW=canvas.offsetWidth||900;
-  var SLOT=182;
-  var COLS=Math.max(1,Math.floor(containerW/SLOT));
-  if(canvas._cols===COLS) return;
-  canvas._cols=COLS;
-  var seqs=dat.seqs; var fid2=dat.fid;
-  var colC="#475569";
-  function fbox(s,isStart,isEnd){
-    var cls="flow-box"+(isStart?" start":isEnd?" end":"")+(s.autoNG?" is-ng":"");
-    var sk=fid2+"_seq"+s.seqNo; var esk=sk.replace(/[^a-zA-Z0-9_]/g,"_");
-    var th=s.thumbPath
-      ?"<div class="flow-box-thumb"><img src=""+s.thumbPath+"" loading="lazy"></div>"
-      :"<div class="flow-box-thumb"><span class="flow-box-thumb-none">📷</span></div>";
-    var verdict=s.autoNG
-      ?"<span style="color:#dc2626;font-size:10px;font-weight:700;">❌ NG</span>"
-      :"<span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span>";
-    return "<div class="flow-node">"
-      +"<div class=""+cls+"" id="fbox-"+esk+"""
-      +" onclick="showPage(\""+(fid2)+"\");setTimeout(function(){scrollToActionLog(\""+(fid2)+"\","+(s.seqNo)+");},300);">"
-      +th
-      +"<div class="flow-box-content">"
-      +"<div class="flow-box-screen-id">"+(s.screenId||"")+"</div>"
-      +"<div class="flow-box-label">"+(s.summary||"")+"</div>"
-      +"<div class="flow-box-sub">"+(s.opContent||"")+"</div>"
-      +"<div class="flow-node-verdict" id="fv-"+esk+"">"+verdict+"</div>"
-      +"</div></div>"
-      +"<div class="flow-node-seq">seq "+s.seqNo+"</div>"
-      +"</div>";
-  }
-  function farrow(s,nextS,isRtl){
-    if(!nextS) return "";
-    var lbl=(nextS.opContent||"").slice(0,14);
-    var lblCls="flow-arrow-label"+(nextS.autoNG?" ng":" ok");
-    return "<div class="flow-arrow">"
-      +"<div class=""+lblCls+"">"+lbl+"</div>"
-      +"<div class="flow-arrow-line"></div>"
-      +"</div>";
-  }
-  function uturnSvg(isRtl, totalW){
-    var W=totalW, H=48, sw=3, arm=60, arr=7, col="#475569";
-    var mk, d, id, svg;
-    if(!isRtl){
-      id="al";
-      mk="<defs><marker id=\"al\" markerWidth=\""+arr+"\" markerHeight=\""+arr+"\" refX=\""+arr+"\" refY=\""+Math.round(arr/2)+"\" orient=\"auto\"><polygon points=\"0 0,"+arr+" "+Math.round(arr/2)+",0 "+arr+"\" fill=\""+col+"\"/></marker></defs>";
-      d="M"+(W-arm)+" "+sw/2+" L"+(W-sw/2)+" "+sw/2+" L"+(W-sw/2)+" "+(H-sw/2)+" L"+(W-arm+arr)+" "+(H-sw/2);
-    } else {
-      id="ar";
-      mk="<defs><marker id=\"ar\" markerWidth=\""+arr+"\" markerHeight=\""+arr+"\" refX=\"0\" refY=\""+Math.round(arr/2)+"\" orient=\"auto\"><polygon points=\""+arr+" 0,0 "+Math.round(arr/2)+","+arr+" "+arr+"\" fill=\""+col+"\"/></marker></defs>";
-      d="M"+arm+" "+sw/2+" L"+sw/2+" "+sw/2+" L"+sw/2+" "+(H-sw/2)+" L"+(arm-arr)+" "+(H-sw/2);
-    }
-    svg="<svg width=\""+W+"\" height=\""+H+"\" xmlns=\"http://www.w3.org/2000/svg\">"+mk+"<path d=\""+d+"\" stroke=\""+col+"\" stroke-width=\""+sw+"\" fill=\"none\" stroke-linejoin=\"round\" marker-end=\"url(#"+id+")\" /></svg>";
-    return "<div class=\"flow-uturn\">"+svg+"</div>";
-  }
-  var html2=""; var totalW=canvas.offsetWidth||900;
-  for(var row=0;row*COLS<seqs.length;row++){
-    var chunk=seqs.slice(row*COLS,(row+1)*COLS);
-    var isRtl=row%2===1;
-    var isLast=(row+1)*COLS>=seqs.length;
-    var inner="";
-    for(var ci=0;ci<chunk.length;ci++){
-      var si=row*COLS+ci;
-      var s=chunk[ci]; var ns=seqs[si+1]||null;
-      var isStart=si===0; var isEnd=si===seqs.length-1;
-      inner+=fbox(s,isStart,isEnd);
-      if(ci<chunk.length-1) inner+=farrow(s,ns,isRtl);
-    }
-    html2+="<div class=\"flow-row"+(isRtl?" rtl":"")+"\">"+inner+"</div>";
-    if(!isLast) html2+=uturnSvg(isRtl,totalW);
-  }
-  canvas.innerHTML=html2;
-  Object.keys(window.META||{}).forEach(function(k){ if(k.indexOf(fid2)===0) restoreVerdict(k); });
-}
-
 function initTimeline(){
   renderTlFilterBtns();
   renderTlCards();
@@ -3547,8 +3493,8 @@ function renderTlCards(){
   var cont=document.getElementById("tl-serpentine"); if(!cont) return;
   var containerEl=document.getElementById("tl-container");
   var containerW=containerEl ? Math.max(containerEl.offsetWidth-40, 300) : 900;
-  var CARD_SLOT=138;
-  var TL_COLS=Math.max(1, Math.floor(containerW/CARD_SLOT));
+  var CARD_SLOT=150;
+  var TL_COLS=Math.max(2, Math.floor(containerW/CARD_SLOT));
   var data=tlVisible?TL_DATA.filter(function(s){ return tlVisible.indexOf(s.featureId)>=0; }):TL_DATA;
   var lbl=document.getElementById("tl-total-label"); if(lbl) lbl.textContent=data.length+" seq";
   var cards=data.map(function(s,idx){
