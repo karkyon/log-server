@@ -1554,21 +1554,27 @@ function initFlowPage(fid){
       +'</div>';
   }
   function uturnSvg(isRtl, W, COLS){
-    // BOX=120px, Arrow=60px → 1スロット=180px
-    // LTR行末の右端BOX中心X = (COLS-1)*180 + 60  ← 行内実際の座標
-    // RTL行末の左端BOX中心X = 60
-    var H=48, sw=3, col='#475569', arr=7;
-    var xc = isRtl ? 60 : (COLS-1)*180 + 60;
+    // BOX=120px, Arrow=60px, 1slot=180px
+    // LTR右端BOX中心X = (COLS-1)*180 + 60
+    // RTL左端BOX中心X = 60
+    var H=44, sw=3, col='#475569', arr=7;
+    var BOX=120, ARW=60;
+    var ltrRightCenter = (COLS-1)*(BOX+ARW) + BOX/2;  // LTR行の右端BOX中心
+    var rtlLeftCenter  = BOX/2;                         // RTL行の左端BOX中心
+    var xc = isRtl ? rtlLeftCenter : ltrRightCenter;
+    // 矢印マーカー（下向き）
     var mk = '<defs>'
       + '<marker id="mua" markerWidth="'+arr+'" markerHeight="'+arr
       + '" refX="'+Math.round(arr/2)+'" refY="'+arr+'" orient="auto">'
       + '<polygon points="0 0,'+arr+' 0,'+Math.round(arr/2)+' '+arr+'" fill="'+col+'"/>'
       + '</marker>'
       + '</defs>';
-    var d = 'M'+xc+' 2 L'+xc+' '+(H-arr-1);
+    // パス: BOX中心から端まで水平 → 下へ → BOX中心へ水平（矢印付き）
+    var xEdge = isRtl ? (xc - sw) : (xc + sw);
+    var d = 'M'+xc+' 2 L'+xc+' '+(H-2);
     var path = '<path d="'+d+'" stroke="'+col+'" stroke-width="'+sw
       +'" fill="none" marker-end="url(#mua)" />';
-    var svg = '<svg width="'+(COLS*180)+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg">'
+    var svg = '<svg width="'+W+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg">'
       + mk + path + '</svg>';
     return '<div class="flow-uturn">'+svg+'</div>';
   }
