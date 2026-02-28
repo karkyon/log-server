@@ -952,6 +952,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ss-modal-inner{background:white;border-radius:14px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto;padding:24px;position:relative;}
 .ss-modal-close{position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;color:#94a3b8;background:none;border:none;}
 .tl-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.12)!important;}
+.tl-row{display:flex;align-items:center;gap:0;flex-wrap:nowrap;justify-content:space-between;}
+.tl-row.rtl{flex-direction:row-reverse;}
+.tl-arrow{display:flex;align-items:center;flex:1 1 0;min-width:30px;}
+.tl-arrow-line{width:100%;height:3px;background:#475569;position:relative;}
+.tl-arrow-line::after{content:'';position:absolute;right:-1px;top:50%;transform:translateY(-50%);border:7px solid transparent;border-left-color:#475569;border-right:none;}
+.tl-row.rtl .tl-arrow-line::after{right:auto;left:-1px;border-left:none;border-right-color:#475569;}
+.tl-uturn{height:44px;width:100%;position:relative;}
 </style>`;
 }
 
@@ -1270,8 +1277,8 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '  var cont=document.getElementById("tl-serpentine"); if(!cont) return;',
     '  var containerEl=document.getElementById("tl-container");',
     '  var containerW=containerEl ? Math.max(containerEl.offsetWidth-40, 300) : 900;',
-    '  var CARD_SLOT=128;', // カード120px + 矢印16px + gap14px
-    '  var TL_COLS=Math.max(1, Math.floor(containerW/CARD_SLOT));',
+    '  var SLOT=180;',
+    '  var TL_COLS=Math.max(1, Math.floor(containerW/SLOT));',
     '  var data=tlVisible?TL_DATA.filter(function(s){ return tlVisible.indexOf(s.featureId)>=0; }):TL_DATA;',
     '  var lbl=document.getElementById("tl-total-label"); if(lbl) lbl.textContent=data.length+" seq";',
     '  var cards=data.map(function(s,idx){',
@@ -1298,22 +1305,19 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '      \'  <div style="display:flex;gap:3px;margin-top:3px;flex-wrap:wrap;">\'+ng+eBdg+wBdg+\'</div>\'+',
     '      \'</div></div>\';',
     '  });',
-    '  var sep=\'<div style="flex:1 1 0;min-width:30px;display:flex;align-items:center;">\'+',
-    '    \'<div style="flex:1;height:3px;background:#475569;"></div>\'+',
-    '    \'<div style="width:0;height:0;border:7px solid transparent;border-left-color:#475569;border-right:none;flex-shrink:0;"></div>\'+',
-    '    \'</div>\';',
+    '  var sep=\'<div class="tl-arrow"><div class="tl-arrow-line"></div></div>\';',
     '  var html="";',
     '  for(var r=0; r*TL_COLS<cards.length; r++){',
     '    var chunk=cards.slice(r*TL_COLS, (r+1)*TL_COLS);',
+    '    var isRtl=r%2===1;',
     '    var isLast=(r+1)*TL_COLS>=cards.length;',
-    '    html+=\'<div style="display:flex;align-items:flex-start;gap:0;flex-wrap:nowrap;">\'+chunk.join(sep)+\'</div>\';',
+    '    html+=\'<div class="tl-row\'+(isRtl?\' rtl\':\'\')+\'">\'+chunk.join(sep)+\'</div>\';',
     '    if(!isLast){',
-    '      var lx=60,rx=containerW-60,hy=20,H=44,sw=3,arr=8;',
-    '      html+=\'<div style="height:\'+H+\'px;width:100%;position:relative;">\'+',
-    '        \'<div style="position:absolute;left:\'+(rx-1)+\'px;top:0;width:\'+sw+\'px;height:\'+hy+\'px;background:#475569;"></div>\'+',
-    '        \'<div style="position:absolute;left:\'+lx+\'px;top:\'+hy+\'px;width:\'+(rx-lx+sw)+\'px;height:\'+sw+\'px;background:#475569;"></div>\'+',
-    '        \'<div style="position:absolute;left:\'+lx+\'px;top:\'+hy+\'px;width:\'+sw+\'px;height:\'+(H-hy)+\'px;background:#475569;"></div>\'+',
-    '        \'<div style="position:absolute;left:\'+(lx-arr)+\'px;top:\'+(H-arr)+\'px;width:0;height:0;\'+',
+    '      var xc=isRtl?60:(containerW-60);',
+    '      var sw=3,arr=8,lh=28;',
+    '      html+=\'<div class="tl-uturn">\'+',
+    '        \'<div style="position:absolute;left:\'+(xc-1)+\'px;top:2px;width:\'+sw+\'px;height:\'+lh+\'px;background:#475569;"></div>\'+',
+    '        \'<div style="position:absolute;left:\'+(xc-arr)+\'px;top:\'+(lh+2)+\'px;width:0;height:0;\'+',
     '        \'border-left:\'+arr+\'px solid transparent;border-right:\'+arr+\'px solid transparent;\'+',
     '        \'border-top:\'+arr+\'px solid #475569;"></div>\'+',
     '        \'</div>\';',
