@@ -3617,25 +3617,26 @@ function renderTlCards(){
       '  <div style="display:flex;gap:3px;margin-top:3px;flex-wrap:wrap;">'+ng+eBdg+wBdg+'</div>'+
       '</div></div>';
   });
-  var sep='<div style="display:flex;align-items:center;padding:0 2px;">'+
-    '<svg width="14" height="14" viewBox="0 0 16 16">'+
-    '<line x1="0" y1="8" x2="10" y2="8" stroke="#cbd5e1" stroke-width="1.5"/>'+
-    '<polygon points="8,4 16,8 8,12" fill="#cbd5e1"/></svg></div>';
+  var sep='<div style="flex:1 1 0;min-width:20px;display:flex;align-items:center;">'+
+    '<div style="flex:1;height:3px;background:#475569;"></div>'+
+    '<div style="width:0;height:0;border:7px solid transparent;border-left-color:#475569;border-right:none;flex-shrink:0;"></div>'+
+    '</div>';
   var html="";
   for(var r=0; r*TL_COLS<cards.length; r++){
     var chunk=cards.slice(r*TL_COLS, (r+1)*TL_COLS);
     var isRtl=false;
     var isLast=(r+1)*TL_COLS>=cards.length;
     var rowDir="";
-    html+='<div style="display:flex;align-items:flex-start;gap:0;flex-wrap:nowrap;'+rowDir+'">'+chunk.join(sep)+'</div>';
+    html+='<div style="display:flex;align-items:center;gap:0;flex-wrap:nowrap;justify-content:space-between;">'+chunk.join(sep)+'</div>';
     if(!isLast){
-      var uStyle=isRtl
-        ?"display:flex;justify-content:flex-start;padding-left:28px;height:28px;align-items:flex-end;"
-        :"display:flex;justify-content:flex-end;padding-right:28px;height:28px;align-items:flex-end;";
-      var lStyle=isRtl
-        ?"width:36px;height:28px;border:2px dashed #cbd5e1;border-top:none;border-right:none;border-radius:0 0 0 10px;"
-        :"width:36px;height:28px;border:2px dashed #cbd5e1;border-top:none;border-left:none;border-radius:0 0 10px 0;";
-      html+='<div style="'+uStyle+'"><div style="'+lStyle+'"></div></div>';
+      var xc=containerW-60;
+      var sw=3,arr=8,lh=28;
+      html+='<div style="height:44px;width:100%;position:relative;">'+
+        '<div style="position:absolute;left:'+(xc-1)+'px;top:2px;width:'+sw+'px;height:'+lh+'px;background:#475569;"></div>'+
+        '<div style="position:absolute;left:'+(xc-arr)+'px;top:'+(lh+2)+'px;width:0;height:0;'+
+        'border-left:'+arr+'px solid transparent;border-right:'+arr+'px solid transparent;'+
+        'border-top:'+arr+'px solid #475569;"></div>'+
+        '</div>';
     }
   }
   cont.innerHTML=html;
