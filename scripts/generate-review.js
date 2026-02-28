@@ -506,38 +506,169 @@ function renderScreenPage(fid, entries, shots, issuesData, allConsoleLogs) {
 }
 
 function renderFlowPage(featureId, seqs) {
-  const name = SCREEN_NAME_MAP[featureId] || featureId;
-  const flowSeqs = seqs.map(s => {
+  const name    = SCREEN_NAME_MAP[featureId]||featureId;
+  const TL_COLS = 6; // 1行あたりの最大ノード数（調整可）
+
+  // ── ノード & 矢印を items 配列に蓄積 ──────────────────────────
+  const items = []; // {nodeHtml, arrowHtml}
+  for (let i = 0; i < seqs.length; i++) {
+    const s   = seqs[i];
+    const sk  = featureId + '_seq' + s.seqNo;
+    const esk = esc(sk);
+    const efid = esc(featureId);
+
+    const isStart = i === 0;
+    const isEnd   = i === seqs.length - 1;
+    const cls = isStart ? 'flow-box start' : (isEnd ? 'flow-box end' : 'flow-box');
+
+    // 遷移ラベル（次のseqとの差分）
+    const nextSeq   = seqs[i + 1];
+    const arrowLbl  = nextSeq ? esc((nextSeq.opContent || '').slice(0, 14)) : '';
+    const isOkTrans = nextSeq && !nextSeq.autoNG;
+    const lbl2cls   = isOkTrans ? 'flow-arrow-label ok' : 'flow-arrow-label';
+
+    // ノードHTML（flow-node + flow-box）— FLW-02: サムネイル追加, TIM-04: BOX中心に線が来るよう構造整理
     const shotObj = s.shots && s.shots[0];
-    return {
-      seqNo    : s.seqNo,
-      screenId : s.screenId,
-      summary  : (s.summary   || '').slice(0, 16),
-      opContent: (s.opContent || '').slice(0, 16),
-      autoNG   : s.autoNG || false,
-      thumbPath: shotObj ? ('../screenshots/' + featureId + '/' + shotObj.fname) : null
-    };
-  });
-  const flowJson = safeJson({ seqs: flowSeqs, fid: featureId });
+    const shotPath = shotObj ? ('../screenshots/' + esc(featureId) + '/' + esc(shotObj.fname)) : null;
+    const thumbInBox = shotPath
+      ? '<div class="flow-box-thumb"><img src="' + shotPath + '" loading="lazy" alt="seq' + s.seqNo + '"></div>'
+      : '<div class="flow-box-thumb"><span class="flow-box-thumb-none">📷</span></div>';
+
+    const nodeHtml =
+      '<div class="flow-node">' +
+        '<div class="' + cls + (s.autoNG ? ' is-ng' : '') + '" ' +
+          'id="fbox-' + esk + '" ' +
+          'onclick="showPage(\'' + efid + '\');setTimeout(function(){scrollToActionLog(\'' + efid + '\',' + s.seqNo + ');},300);">' +
+          thumbInBox +
+          '<div class="flow-box-content">' +
+            '<div class="flow-box-screen-id">' + esc(s.screenId) + '</div>' +
+            '<div class="flow-box-label">' + esc((s.summary || '').slice(0, 16)) + '</div>' +
+            '<div class="flow-box-sub">' + esc((s.opContent || '').slice(0, 16)) + '</div>' +
+            '<div class="flow-node-verdict" id="fv-' + esk + '">' +
+              (s.autoNG
+                ? '<span style="color:#dc2626;font-size:10px;font-weight:700;">❌ NG</span>'
+                : '<span style="color:#16a34a;font-size:10px;font-weight:700;">✅ OK</span>'
+              ) +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="flow-node-seq">seq ' + s.seqNo + '</div>' +
+      '</div>';
+
+    // 矢印HTML（最終seqには矢印なし）
+    const arrowHtml = !isEnd
+      ? '<div class="flow-arrow" id="farrow-' + esk + '">' +
+          '<div class="' + lbl2cls + '" id="falbl-' + esk + '">' + arrowLbl + '</div>' +
+          '<div class="flow-arrow-line"></div>' +
+        '</div>'
+      : '';
+
+    items.push({ nodeHtml, arrowHtml });
+  }
+
+  // ── 蛇行レイアウト構築 ──────────────────────────────────────
+  // 偶数行(0,2...): LTR (flex-direction:row)
+  // 奇数行(1,3...): RTL (flex-direction:row-reverse) ← CSS で反転
+  let serpentineHtml = '';
+  for (let r = 0; r * TL_COLS < items.length; r++) {
+    const chunk     = items.slice(r * TL_COLS, (r + 1) * TL_COLS);
+    const isRtl     = r % 2 === 1;
+    const isLastRow = (r + 1) * TL_COLS >= items.length;
+
+    // 行内のノード + 行内矢印（最後のノード以外）
+    let rowInner = '';
+    for (let c = 0; c < chunk.length; c++) {
+      rowInner += chunk[c].nodeHtml;
+      if (c < chunk.length - 1) {
+        // 同一行内の矢印
+        rowInner += chunk[c].arrowHtml;
+      }
+      // 行末ノードの矢印は U-ターンコネクタが代替 → 省略
+    }
+
+    serpentineHtml += '<div class="flow-row' + (isRtl ? ' rtl' : '') + '">' + rowInner + '</div>';
+
+    // U-ターンコネクタ（最終行以外）
+    if (!isLastRow) {
+      // 偶数行末は右側、奇数行末は左側に U ターン
+      const uturnCls = isRtl ? 'flow-uturn uturn-left' : 'flow-uturn uturn-right';
+      serpentineHtml +=
+        '<div class="' + uturnCls + '"><div class="flow-uturn-line"></div></div>';
+    }
+  }
+
+  // ── サムネイル一覧 ───────────────────────────────────────────
+  let thumbHtml = '';
+  for (const s of seqs) {
+    const sk   = featureId + '_seq' + s.seqNo;
+    const esk  = esc(sk);
+    const efid = esc(featureId);
+    const sht  = s.shots && s.shots[0];
+    const imgSrc = sht ? '../screenshots/' + efid + '/' + esc(sht.fname) : '';
+    const imgHtml = imgSrc
+      ? '<img src="' + imgSrc + '" ' +
+          'style="width:100%;height:120px;object-fit:cover;border-radius:6px;" ' +
+          'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';" />' +
+          '<div style="display:none;align-items:center;justify-content:center;height:120px;' +
+            'color:#94a3b8;font-size:12px;">No img</div>'
+      : '<div style="display:flex;align-items:center;justify-content:center;height:120px;' +
+          'color:#94a3b8;font-size:12px;">No img</div>';
+
+    thumbHtml +=
+      '<div class="thumb-card ' + (s.autoNG ? 'is-ng' : '') + '" id="thumb-' + esk + '" ' +
+        'onclick="showPage(\'' + efid + '\');' +
+          'setTimeout(function(){scrollToActionLog(\'' + efid + '\',' + s.seqNo + ');},300);">' +
+        '<div class="thumb-img-area">' +
+          '<div class="thumb-seq-badge">seq ' + s.seqNo + '</div>' +
+          imgHtml +
+        '</div>' +
+        '<div class="thumb-info">' +
+          '<div class="thumb-screen-id">' + esc(s.screenId) + '</div>' +
+          '<div class="thumb-title">' + esc(s.summary) + '</div>' +
+          '<div class="thumb-action">' +
+            '操作: <span>' + esc((s.opContent || '').slice(0, 20)) + '</span>' +
+            '&nbsp;' +
+            '<span id="tv-' + esk + '">' +
+              (s.autoNG
+                ? '<span style="color:#dc2626;font-weight:700;">❌ NG</span>'
+                : '<span style="color:#16a34a;font-weight:700;">✅ OK</span>'
+              ) +
+            '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
   return `
 <div id="flow_${esc(featureId)}" class="page">
   <div style="margin-bottom:22px;">
     <h1 style="font-size:21px;font-weight:700;color:#0f172a;">🗺️ 画面遷移図 — ${esc(name)}</h1>
-    <p style="font-size:13px;color:#64748b;margin-top:4px;">${seqs.length} seq | ボックスをクリックするとアクションレビューにジャンプします</p>
+    <p style="font-size:13px;color:#64748b;margin-top:4px;">${seqs.length} seq | 操作フロー（上段）とスクリーンショット一覧（下段）</p>
   </div>
+
   <div class="card">
     <div class="card-title">操作フロー — ${esc(featureId)}</div>
-    <script>if(!window.FLOW_PAGE_DATA)window.FLOW_PAGE_DATA={};window.FLOW_PAGE_DATA["${esc(featureId)}"]=${flowJson};<\/script>
-    <div class="flow-canvas" id="flow-canvas-${esc(featureId)}"></div>
+    <div class="flow-canvas">
+      ${serpentineHtml}
+    </div>
     <div class="flow-legend">
-      <div class="flow-legend-item"><div class="flow-legend-box" style="border-color:#16a34a;background:#f0fdf4;"></div>開始</div>
-      <div class="flow-legend-item"><div class="flow-legend-box" style="border-color:#3b82f6;background:white;"></div>通常</div>
-      <div class="flow-legend-item"><div class="flow-legend-box" style="border-color:#dc2626;background:#fff5f5;"></div>終端/NG</div>
-      <div style="margin-left:auto;font-size:11px;color:#94a3b8;">※ ボックスをクリックするとアクションレビューにジャンプします</div>
+      <div class="flow-legend-item">
+        <div class="flow-legend-box" style="border-color:#16a34a;background:#f0fdf4;"></div>開始
+      </div>
+      <div class="flow-legend-item">
+        <div class="flow-legend-box" style="border-color:#3b82f6;background:white;"></div>通常
+      </div>
+      <div class="flow-legend-item">
+        <div class="flow-legend-box" style="border-color:#dc2626;background:#fff5f5;"></div>終端/NG
+      </div>
+      <div style="margin-left:auto;font-size:11px;color:#94a3b8;">
+        ※ ボックスをクリックするとアクションレビューにジャンプします
+      </div>
     </div>
   </div>
 </div>`;
 }
+
 // タイムラインページ（HTML のみ、script タグなし）
 function renderTimelinePage() {
   return `
@@ -783,8 +914,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .flow-canvas{padding:16px 24px 32px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:24px;}
 .flow-row{display:flex;align-items:center;gap:0;flex-wrap:nowrap;}
 .flow-row.rtl{flex-direction:row-reverse;}
-.flow-uturn{height:48px;position:relative;width:100%;margin:0;}
-.flow-uturn svg{position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible;}
+.flow-uturn{display:flex;align-items:center;height:32px;margin:0 4px;}
+.flow-uturn.uturn-right{justify-content:flex-end;padding-right:28px;}
+.flow-uturn.uturn-left{justify-content:flex-start;padding-left:28px;}
+.flow-uturn-line{width:36px;height:32px;border:2px dashed #475569;border-top:none;}
+.flow-uturn.uturn-right .flow-uturn-line{border-radius:0 0 10px 0;border-left:none;}
+.flow-uturn.uturn-left .flow-uturn-line{border-radius:0 0 0 10px;border-right:none;}
 .flow-node{display:flex;flex-direction:column;align-items:center;flex-shrink:0;position:relative;}
 .flow-node-seq{font-size:10px;color:#94a3b8;font-weight:600;position:absolute;top:calc(100% + 2px);left:0;width:100%;text-align:center;}
 .flow-box{border:2px solid #3b82f6;border-radius:10px;background:white;cursor:pointer;text-align:center;width:120px;overflow:hidden;transition:box-shadow .18s,transform .18s;}
@@ -907,7 +1042,7 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '  var nav=document.getElementById("nav-"+id); if(nav) nav.classList.add("active");',
     '  if(id==="timeline"){ setTimeout(initTimeline,50); }',
     '  if(id==="patterns"){ setTimeout(renderPatternList,50); }',
-    '  if(id.indexOf("flow_")===0){ var _fid=id.slice(5); setTimeout(function(){initFlowPage(_fid);},50); }',
+  '  if(id.indexOf("flow_")===0){ var _fid=id.slice(5); setTimeout(function(){if(window.initFlowPage)initFlowPage(_fid);},50); }',
     '}',
     '',
     '// ── Console 開閉 ─────────────────────────────────────────',
@@ -1113,94 +1248,6 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '}',
     '',
     '// ── タイムライン ─────────────────────────────────────────',
-    '// ── 画面遷移図（動的描画）─────────────────────────────────',
-    'var _flowResizeTimer=null;',
-    'window.addEventListener("resize",function(){',
-    '  document.querySelectorAll(".page.active").forEach(function(p){',
-    '    if(p.id&&p.id.indexOf("flow_")===0){',
-    '      var fid=p.id.slice(5);',
-    '      var c=document.getElementById("flow-canvas-"+fid);',
-    '      if(c){ c._cols=null; initFlowPage(fid); }',
-    '    }',
-    '  });',
-    '});',
-    'function initFlowPage(fid){',
-    '  var canvas=document.getElementById("flow-canvas-"+fid); if(!canvas) return;',
-    '  var dat=(window.FLOW_PAGE_DATA||{})[fid]; if(!dat) return;',
-    '  var containerW=canvas.offsetWidth||900;',
-    '  var SLOT=182;', // 120(box)+62(arrow)
-    '  var COLS=Math.max(1,Math.floor(containerW/SLOT));',
-    '  if(canvas._cols===COLS) return;',
-    '  canvas._cols=COLS;',
-    '  var seqs=dat.seqs; var fid2=dat.fid;',
-    '  var colC="#475569";',
-    '  function fbox(s,isStart,isEnd){',
-    '    var cls="flow-box"+(isStart?" start":isEnd?" end":"")+(s.autoNG?" is-ng":"");',
-    '    var sk=fid2+"_seq"+s.seqNo; var esk=sk.replace(/[^a-zA-Z0-9_]/g,"_");',
-    '    var th=s.thumbPath',
-    '      ?"<div class=\"flow-box-thumb\"><img src=\""+s.thumbPath+"\" loading=\"lazy\"></div>"',
-    '      :"<div class=\"flow-box-thumb\"><span class=\"flow-box-thumb-none\">📷</span></div>";',
-    '    var verdict=s.autoNG',
-    '      ?"<span style=\"color:#dc2626;font-size:10px;font-weight:700;\">❌ NG</span>"',
-    '      :"<span style=\"color:#16a34a;font-size:10px;font-weight:700;\">✅ OK</span>";',
-    '    return "<div class=\"flow-node\">"',
-    '      +"<div class=\""+cls+"\" id=\"fbox-"+esk+"\""',
-    '      +" onclick=\"showPage(\\\""+(fid2)+"\\\");setTimeout(function(){scrollToActionLog(\\\""+(fid2)+"\\\","+(s.seqNo)+");},300);\">"',
-    '      +th',
-    '      +"<div class=\"flow-box-content\">"',
-    '      +"<div class=\"flow-box-screen-id\">"+(s.screenId||"")+"</div>"',
-    '      +"<div class=\"flow-box-label\">"+(s.summary||"")+"</div>"',
-    '      +"<div class=\"flow-box-sub\">"+(s.opContent||"")+"</div>"',
-    '      +"<div class=\"flow-node-verdict\" id=\"fv-"+esk+"\">"+verdict+"</div>"',
-    '      +"</div></div>"',
-    '      +"<div class=\"flow-node-seq\">seq "+s.seqNo+"</div>"',
-    '      +"</div>";',
-    '  }',
-    '  function farrow(s,nextS,isRtl){',
-    '    if(!nextS) return "";',
-    '    var lbl=(nextS.opContent||"").slice(0,14);',
-    '    var lblCls="flow-arrow-label"+(nextS.autoNG?" ng":" ok");',
-    '    return "<div class=\"flow-arrow\">"',
-    '      +"<div class=\""+lblCls+"\">"+lbl+"</div>"',
-    '      +"<div class=\"flow-arrow-line\"></div>"',
-    '      +"</div>";',
-    '  }',
-    '  function uturnSvg(isRtl, totalW){',
-    '    var W=totalW, H=48, sw=3, arm=60, arr=7, col="#475569";',
-    '    var mk, d, id, svg;',
-    '    if(!isRtl){',
-    '      id="al";',
-    '      mk="<defs><marker id=\\"al\\" markerWidth=\\""+arr+"\\" markerHeight=\\""+arr+"\\" refX=\\""+arr+"\\" refY=\\""+Math.round(arr/2)+"\\" orient=\\"auto\\"><polygon points=\\"0 0,"+arr+" "+Math.round(arr/2)+",0 "+arr+"\\" fill=\\""+col+"\\"/></marker></defs>";',
-    '      d="M"+(W-arm)+" "+sw/2+" L"+(W-sw/2)+" "+sw/2+" L"+(W-sw/2)+" "+(H-sw/2)+" L"+(W-arm+arr)+" "+(H-sw/2);',
-    '    } else {',
-    '      id="ar";',
-    '      mk="<defs><marker id=\\"ar\\" markerWidth=\\""+arr+"\\" markerHeight=\\""+arr+"\\" refX=\\"0\\" refY=\\""+Math.round(arr/2)+"\\" orient=\\"auto\\"><polygon points=\\""+arr+" 0,0 "+Math.round(arr/2)+","+arr+" "+arr+"\\" fill=\\""+col+"\\"/></marker></defs>";',
-    '      d="M"+arm+" "+sw/2+" L"+sw/2+" "+sw/2+" L"+sw/2+" "+(H-sw/2)+" L"+(arm-arr)+" "+(H-sw/2);',
-    '    }',
-    '    svg="<svg width=\\""+W+"\\" height=\\""+H+"\\" xmlns=\\"http://www.w3.org/2000/svg\\">"+mk+"<path d=\\""+d+"\\" stroke=\\""+col+"\\" stroke-width=\\""+sw+"\\" fill=\\"none\\" stroke-linejoin=\\"round\\" marker-end=\\"url(#"+id+")\\" /></svg>";',
-    '    return "<div class=\\"flow-uturn\\">"+svg+"</div>";',
-    '  }',
-    '  var html2=""; var totalW=canvas.offsetWidth||900;',
-    '  for(var row=0;row*COLS<seqs.length;row++){',
-    '    var chunk=seqs.slice(row*COLS,(row+1)*COLS);',
-    '    var isRtl=row%2===1;',
-    '    var isLast=(row+1)*COLS>=seqs.length;',
-    '    var inner="";',
-    '    for(var ci=0;ci<chunk.length;ci++){',
-    '      var si=row*COLS+ci;',
-    '      var s=chunk[ci]; var ns=seqs[si+1]||null;',
-    '      var isStart=si===0; var isEnd=si===seqs.length-1;',
-    '      inner+=fbox(s,isStart,isEnd);',
-    '      if(ci<chunk.length-1) inner+=farrow(s,ns,isRtl);',
-    '    }',
-    '    html2+="<div class=\\"flow-row"+(isRtl?" rtl":"")+"\\">"+inner+"</div>";',
-    '    if(!isLast) html2+=uturnSvg(isRtl,totalW);',
-    '  }',
-    '  canvas.innerHTML=html2;',
-    '  Object.keys(window.META||{}).forEach(function(k){ if(k.indexOf(fid2)===0) restoreVerdict(k); });',
-    '}',
-    '',
-
     'function initTimeline(){',
     '  renderTlFilterBtns();',
     '  renderTlCards();',
@@ -1230,8 +1277,8 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '  var cont=document.getElementById("tl-serpentine"); if(!cont) return;',
     '  var containerEl=document.getElementById("tl-container");',
     '  var containerW=containerEl ? Math.max(containerEl.offsetWidth-40, 300) : 900;',
-    '  var CARD_SLOT=138;', // カード120px + 矢印16px + gap14px
-    '  var TL_COLS=Math.max(1, Math.floor(containerW/CARD_SLOT));',
+    '  var CARD_SLOT=150;', // カード120px + 矢印16px + gap14px
+    '  var TL_COLS=Math.max(2, Math.floor(containerW/CARD_SLOT));',
     '  var data=tlVisible?TL_DATA.filter(function(s){ return tlVisible.indexOf(s.featureId)>=0; }):TL_DATA;',
     '  var lbl=document.getElementById("tl-total-label"); if(lbl) lbl.textContent=data.length+" seq";',
     '  var cards=data.map(function(s,idx){',
@@ -1460,6 +1507,131 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
 // ─────────────────────────────────────────────────────────────
 // HTML 組み立て
 // ─────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────
+// renderFlowScript: initFlowPage を独立templateリテラルで出力
+// lines配列を使わないのでクォートエスケープ問題を完全回避
+// ─────────────────────────────────────────────────────────────
+function renderFlowScript() {
+  return `<script>
+(function(){
+'use strict';
+function initFlowPage(fid){
+  var canvas=document.getElementById('flow-canvas-'+fid);
+  if(!canvas) return;
+  var dat=(window.FLOW_PAGE_DATA||{})[fid];
+  if(!dat) return;
+  var W=canvas.offsetWidth||900;
+  var SLOT=182;
+  var COLS=Math.max(1,Math.floor(W/SLOT));
+  if(canvas._cols===COLS) return;
+  canvas._cols=COLS;
+  var seqs=dat.seqs;
+  var fid2=dat.fid;
+  function fbox(s,isStart,isEnd){
+    var cls='flow-box'+(isStart?' start':isEnd?' end':'')+(s.autoNG?' is-ng':'');
+    var sk=fid2+'_seq'+s.seqNo;
+    var th=s.thumbPath
+      ? '<div class="flow-box-thumb"><img src="'+s.thumbPath+'" loading="lazy"></div>'
+      : '<div class="flow-box-thumb"><span class="flow-box-thumb-none">\u{1F4F7}</span></div>';
+    var verdict=s.autoNG
+      ? '<span style="color:#dc2626;font-size:10px;font-weight:700;">\u274C NG</span>'
+      : '<span style="color:#16a34a;font-size:10px;font-weight:700;">\u2705 OK</span>';
+    return '<div class="flow-node">'
+      +'<div class="'+cls+'" id="fbox-'+sk+'" data-fid="'+fid2+'" data-seq="'+s.seqNo+'">'
+      +th
+      +'<div class="flow-box-content">'
+      +'<div class="flow-box-screen-id">'+(s.screenId||'')+'</div>'
+      +'<div class="flow-box-label">'+(s.summary||'')+'</div>'
+      +'<div class="flow-box-sub">'+(s.opContent||'')+'</div>'
+      +'<div class="flow-node-verdict" id="fv-'+sk+'">'+verdict+'</div>'
+      +'</div></div>'
+      +'<div class="flow-node-seq">seq '+s.seqNo+'</div>'
+      +'</div>';
+  }
+  function farrow(ns){
+    if(!ns) return '';
+    var lbl=(ns.opContent||'').slice(0,14);
+    var lc='flow-arrow-label'+(ns.autoNG?' ng':' ok');
+    return '<div class="flow-arrow">'
+      +'<div class="'+lc+'">'+lbl+'</div>'
+      +'<div class="flow-arrow-line"></div>'
+      +'</div>';
+  }
+  function uturnSvg(isRtl,W){
+    var H=48,sw=3,arm=60,arr=7,col='#475569';
+    var mk,d,id;
+    if(!isRtl){
+      id='al';
+      mk='<defs><marker id="al" markerWidth="'+arr+'" markerHeight="'+arr
+        +'" refX="'+arr+'" refY="'+Math.round(arr/2)+'" orient="auto">'
+        +'<polygon points="0 0,'+arr+' '+Math.round(arr/2)+',0 '+arr+'" fill="'+col+'"/>'
+        +'</marker></defs>';
+      d='M'+(W-arm)+' '+(sw/2)+' L'+(W-sw/2)+' '+(sw/2)
+        +' L'+(W-sw/2)+' '+(H-sw/2)+' L'+(W-arm+arr)+' '+(H-sw/2);
+    } else {
+      id='ar';
+      mk='<defs><marker id="ar" markerWidth="'+arr+'" markerHeight="'+arr
+        +'" refX="0" refY="'+Math.round(arr/2)+'" orient="auto">'
+        +'<polygon points="'+arr+' 0,0 '+Math.round(arr/2)+','+arr+' '+arr+'" fill="'+col+'"/>'
+        +'</marker></defs>';
+      d='M'+arm+' '+(sw/2)+' L'+(sw/2)+' '+(sw/2)
+        +' L'+(sw/2)+' '+(H-sw/2)+' L'+(arm-arr)+' '+(H-sw/2);
+    }
+    var svg='<svg width="'+W+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg">'
+      +mk+'<path d="'+d+'" stroke="'+col+'" stroke-width="'+sw
+      +'" fill="none" stroke-linejoin="round" marker-end="url(#'+id+')" /></svg>';
+    return '<div class="flow-uturn">'+svg+'</div>';
+  }
+  if(!canvas._ev){
+    canvas._ev=true;
+    canvas.addEventListener('click',function(e){
+      var b=e.target.closest('[data-fid]');
+      if(!b) return;
+      var f=b.getAttribute('data-fid');
+      var n=parseInt(b.getAttribute('data-seq'),10);
+      if(window.showPage) showPage(f);
+      setTimeout(function(){if(window.scrollToActionLog) scrollToActionLog(f,n);},300);
+    });
+  }
+  var html2='';
+  var totalW=canvas.offsetWidth||900;
+  for(var row=0;row*COLS<seqs.length;row++){
+    var chunk=seqs.slice(row*COLS,(row+1)*COLS);
+    var isRtl=row%2===1;
+    var isLast=(row+1)*COLS>=seqs.length;
+    var inner='';
+    for(var ci=0;ci<chunk.length;ci++){
+      var si2=row*COLS+ci;
+      var s=chunk[ci];
+      var ns=seqs[si2+1]||null;
+      var isStart=si2===0;
+      var isEnd=si2===seqs.length-1;
+      inner+=fbox(s,isStart,isEnd);
+      if(ci<chunk.length-1) inner+=farrow(ns);
+    }
+    html2+='<div class="flow-row'+(isRtl?' rtl':'')+'" >'+inner+'</div>';
+    if(!isLast) html2+=uturnSvg(isRtl,totalW);
+  }
+  canvas.innerHTML=html2;
+  Object.keys(window.META||{}).forEach(function(k){
+    if(k.indexOf(fid2)===0 && window.restoreVerdict) restoreVerdict(k);
+  });
+}
+window.initFlowPage=initFlowPage;
+window.addEventListener('resize',function(){
+  document.querySelectorAll('.page.active').forEach(function(p){
+    if(p.id && p.id.indexOf('flow_')===0){
+      var fid=p.id.slice(5);
+      var c=document.getElementById('flow-canvas-'+fid);
+      if(c){ c._cols=null; initFlowPage(fid); }
+    }
+  });
+});
+})();
+<\/script>`;
+}
+
 function buildHtml(fids, allLogs, allShots, issData, allConsoleLogs) {
   const allSeqs = buildAllSeqs(fids, allLogs, allShots, issData, allConsoleLogs);
 
@@ -1501,6 +1673,7 @@ ${renderIssuesPage()}
     <div id="modal-ss" style="border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;background:#f8fafc;min-height:200px;display:flex;align-items:center;justify-content:center;"></div>
   </div>
 </div>
+${renderFlowScript()}
 ${renderScript(fids, allLogs, allShots, issData, allSeqs)}
 </body>
 </html>`;
