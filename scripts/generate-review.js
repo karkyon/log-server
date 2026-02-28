@@ -666,11 +666,6 @@ function renderFlowPage(featureId, seqs) {
       </div>
     </div>
   </div>
-
-  <div class="card">
-    <div class="card-title">スクリーンショット一覧</div>
-    <div class="thumb-grid">${thumbHtml}</div>
-  </div>
 </div>`;
 }
 
@@ -1072,7 +1067,7 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '  var ng=v==="NG";',
     '  var g=function(id){ return document.getElementById(id); };',
     '  var tog=g("vtog-"+k); var lbl=g("vlbl-"+k); var frm=g("iform-"+k);',
-    '  var none=g("issue-none-"+k); var al=g("al-"+k); var fbox=g("fbox-"+k);',
+    '  var none=g("issue-none-"+k); var al=g("al-"+k); var fv=g("fv-"+k);',
     '  var tv=g("tv-"+k); var tc=g("thumb-"+k);',
     '  if(tog) tog.className=ng?"toggle toggle-off":"toggle toggle-on";',
     '  if(lbl){ lbl.textContent=ng?"NG":"OK"; lbl.className=ng?"verdict-text-ng":"verdict-text-ok"; }',
@@ -1081,7 +1076,7 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '  if(al) al.classList[ng?"add":"remove"]("is-ng");',
     '  var ng_html=\'<span style="color:#dc2626;font-weight:700;">\u274c NG\u003c/span>\';',
     '  var ok_html=\'<span style="color:#16a34a;font-weight:700;">\u2705 OK\u003c/span>\';',
-    '  if(fbox) fbox.innerHTML=ng?ng_html:ok_html;',
+    '  if(fv) fv.innerHTML=ng?ng_html:ok_html;',
     '  if(tv) tv.innerHTML=ng?ng_html:ok_html;',
     '  if(tc) tc.classList[ng?"add":"remove"]("is-ng");',
     '  var fa=g("farr-"+k);',
