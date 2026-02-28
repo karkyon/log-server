@@ -3260,23 +3260,23 @@ function initFlowPage(fid){
       +'</div>';
   }
   function uturnSvg(isRtl, W, COLS){
-    // LTR行末: 右端BOX中心 = W - 60px (canvas幅基準)
-    // RTL行末: 左端BOX中心 = 60px
+    // BOX=120px, Arrow=60px → 1スロット=180px
+    // LTR行末の右端BOX中心X = (COLS-1)*180 + 60  ← 行内実際の座標
+    // RTL行末の左端BOX中心X = 60
     var H=48, sw=3, col='#475569', arr=7;
-    var xc = isRtl ? 60 : (W - 60);
+    var xc = isRtl ? 60 : (COLS-1)*180 + 60;
     var mk = '<defs>'
       + '<marker id="mua" markerWidth="'+arr+'" markerHeight="'+arr
       + '" refX="'+Math.round(arr/2)+'" refY="'+arr+'" orient="auto">'
       + '<polygon points="0 0,'+arr+' 0,'+Math.round(arr/2)+' '+arr+'" fill="'+col+'"/>'
       + '</marker>'
       + '</defs>';
-    // 垂直線: BOX中心真上から真下へ、下端に矢印
     var d = 'M'+xc+' 2 L'+xc+' '+(H-arr-1);
     var path = '<path d="'+d+'" stroke="'+col+'" stroke-width="'+sw
       +'" fill="none" marker-end="url(#mua)" />';
-    var svg = '<svg width="'+W+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg">'
+    var svg = '<svg width="'+(COLS*180)+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg">'
       + mk + path + '</svg>';
-    return '<div class="flow-uturn" style="position:relative;">'+svg+'</div>';
+    return '<div class="flow-uturn">'+svg+'</div>';
   }
   if(!canvas._ev){
     canvas._ev=true;
