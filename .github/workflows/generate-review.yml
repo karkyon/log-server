@@ -29,15 +29,20 @@
 name: アクションレビューHTML生成
 
 on:
-  # ── 1. logs/features/ または logs/screenshots/ への Push で直接起動 ──
-  push:
-    branches:
-      - main
-    paths:
-      - 'logs/features/*.jsonl'
-      - 'logs/screenshots/**'
+  # ── 1. analyze-issues 完了後にのみ起動（直列化）──────────────────────
+  workflow_run:
+    workflows: ['Analyze Issues & Publish Dashboard']
+    types: [completed]
+    branches: [main]
 
-  # ── 2. 手動実行 ──────────────────────────────────────────────────────
+  # ── 2. スクリプト修正時にも起動 ──────────────────────────────────────
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/generate-review.js'   # ← スクリプト修正で起動
+      # logs/ の push は analyze-issues 経由で起動するので不要
+
+  # ── 3. 手動実行 ──────────────────────────────────────────────────────
   workflow_dispatch:
     inputs:
       reason:
@@ -45,21 +50,17 @@ on:
         required: false
         default: '手動生成'
 
-  # ── 3. analyze-issues.yml 完了後に自動連鎖 ────────────────────────────
-  #       ★修正: workflow_run の workflows 名を analyze-issues.yml の
-  #              実際の name フィールド値に合わせる
-  workflow_run:
-    workflows: ['Analyze Issues & Publish Dashboard']
-    types: [completed]
-    branches: [main]
-
 jobs:
   generate-review:
+    # workflow_run で失敗扱いの場合はスキップ
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
     name: アクションレビューHTML生成
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
+      
     steps:
       # ── 1. チェックアウト ─────────────────────────────────────────────
       - name: Checkout
