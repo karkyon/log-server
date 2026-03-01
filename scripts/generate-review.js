@@ -12,6 +12,7 @@
 //                 → JSON中に </script> が含まれると script タグが壊れる問題を防止
 //          [修正] openSsModal() で innerHTML + onerror 属性を使わず DOM API に変更
 //                 → 属性値の二重エスケープによる SyntaxError を解消
+//   v3.2 - [追加] コンソールログの表示（AL内に折りたたみブロックで）
 // ============================================================
 'use strict';
 const fs   = require('fs');
@@ -279,16 +280,13 @@ function renderSidebar(fids) {
     <div style="font-size:15px;font-weight:700;color:#f1f5f9;">📋 画面レビュー資料</div>
     <div style="font-size:11px;color:#475569;margin-top:3px;" id="sidebar-date"></div>
   </div>
-  <div style="padding:10px 0 4px;">
-    <div class="nav-item active" onclick="showPage('dashboard')">🏠 ダッシュボード</div>
-  </div>
   <div class="nav-group">作業管理</div>
-  <div class="nav-item" onclick="showPage('timeline')">📊 作業タイムライン</div>
-  <div class="nav-item" onclick="showPage('patterns')">📌 作業パターン</div>
+  <div class="nav-item" id="nav-timeline" onclick="showPage('timeline')">📊 作業タイムライン</div>
+  <div class="nav-item" id="nav-patterns" onclick="showPage('patterns')">📌 作業パターン</div>
   <div class="nav-group">画面一覧（${fids.length}画面）</div>
   ${items}
   <div class="nav-group" style="margin-top:8px;">管理</div>
-  <div class="nav-item" onclick="showPage('issues')">🐛 課題一覧</div>
+  <div class="nav-item" id="nav-issues" onclick="showPage('issues')">🐛 課題一覧</div>
 </nav>`;
 }
 
@@ -820,6 +818,58 @@ function renderIssuesPage() {
     <span style="margin-left:auto;align-self:center;font-size:12px;color:#64748b;" id="iss-count-lbl"></span>
   </div>
   <div id="iss-table-area"><div class="card" style="color:#94a3b8;text-align:center;padding:32px;">確認中...</div></div>
+</div>
+
+<!-- ── 課題編集モーダル (ISS-02) ────────────────────────── -->
+<div id="iss-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:16px;max-width:520px;width:90%;padding:28px;max-height:90vh;overflow-y:auto;position:relative;">
+    <h2 style="font-size:17px;font-weight:700;color:#0f172a;margin-bottom:20px;">✏️ 課題編集</h2>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:700;color:#64748b;display:block;margin-bottom:5px;">タイトル</label>
+      <input id="iem-title" type="text" placeholder="課題タイトル"
+        style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:8px 12px;font-size:13px;box-sizing:border-box;">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;">
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#64748b;display:block;margin-bottom:5px;">種別</label>
+        <select id="iem-type" style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;font-size:12px;">
+          <option value="不具合">🐛 不具合</option>
+          <option value="仕様違い">📐 仕様違い</option>
+          <option value="改善提案">💡 改善提案</option>
+          <option value="未確認">❓ 未確認</option>
+          <option value="その他">📌 その他</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#64748b;display:block;margin-bottom:5px;">優先度</label>
+        <select id="iem-prio" style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;font-size:12px;">
+          <option value="高">🔴 高</option>
+          <option value="中">🟡 中</option>
+          <option value="低">🟢 低</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#64748b;display:block;margin-bottom:5px;">状態</label>
+        <select id="iem-status" style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;font-size:12px;">
+          <option value="未対応">⏸ 未対応</option>
+          <option value="対応中">🔄 対応中</option>
+          <option value="対応済">✅ 対応済</option>
+          <option value="クローズ">🔒 クローズ</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="font-size:12px;font-weight:700;color:#64748b;display:block;margin-bottom:5px;">内容・詳細</label>
+      <textarea id="iem-desc" rows="4" placeholder="課題の詳細・再現手順・修正案など"
+        style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:8px 12px;font-size:13px;box-sizing:border-box;resize:vertical;"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="closeIssueEditModal()"
+        style="padding:8px 20px;border-radius:8px;border:1px solid #cbd5e1;background:white;cursor:pointer;font-size:13px;">キャンセル</button>
+      <button onclick="saveIssueEdit()"
+        style="padding:8px 20px;border-radius:8px;border:none;background:#3b82f6;color:white;cursor:pointer;font-size:13px;font-weight:700;">💾 保存</button>
+    </div>
+  </div>
 </div>`;
 }
 
@@ -834,7 +884,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #main-content{margin-left:240px;flex:1;min-height:100vh;}
 .page{display:none;padding:32px 36px;}
 .page.active{display:block;}
-#dashboard{padding:32px 36px;}
 .nav-group{padding:6px 16px;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-top:8px;}
 .nav-item{padding:8px 16px;font-size:12px;color:#94a3b8;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .15s;}
 .nav-item:hover,.nav-item.active{background:#1e293b;color:#f1f5f9;}
@@ -1030,7 +1079,7 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '  var s2=document.getElementById("dash-date"); if(s2) s2.textContent=today+" 時点";',
     '  Object.keys(META).forEach(function(k){ restoreVerdict(k); });',
     '  updateDashboard();',
-    '  showPage("dashboard");',
+    '  showPage("timeline");',
     '});',
     '',
     '// ── ページ切替 ───────────────────────────────────────────',
@@ -1662,7 +1711,6 @@ ${renderCSS()}
 <body>
 ${renderSidebar(fids)}
 <div id="main-content">
-${renderDashboard(fids, allLogs, allShots, issData)}
 ${screenPages}
 ${flowPages}
 ${renderTimelinePage()}
