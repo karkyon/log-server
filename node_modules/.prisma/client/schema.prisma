@@ -1,0 +1,203 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  displayName  String
+  role         UserRole @default(MEMBER)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  projectMembers  ProjectMember[]
+  createdProjects Project[]       @relation("CreatedBy")
+  verdicts        Verdict[]       @relation("VerdictUpdatedBy")
+  patternsCreated Pattern[]       @relation("PatternCreatedBy")
+  issuesCreated   Issue[]         @relation("IssueCreatedBy")
+  issuesUpdated   Issue[]         @relation("IssueUpdatedBy")
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique
+  name        String
+  description String?
+  apiKey      String   @unique @default(cuid())
+  isActive    Boolean  @default(true)
+  createdById Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy   User            @relation("CreatedBy", fields: [createdById], references: [id])
+  members     ProjectMember[]
+  screens     Screen[]
+  logs        Log[]
+  screenshots Screenshot[]
+  consoleLogs ConsoleLog[]
+  verdicts    Verdict[]
+  patterns    Pattern[]
+  issues      Issue[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  projectId Int
+  userId    Int
+  role      MemberRole @default(MEMBER)
+  joinedAt  DateTime   @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, userId])
+  @@map("project_members")
+}
+
+enum MemberRole {
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model Screen {
+  id          Int      @id @default(autoincrement())
+  projectId   Int
+  screenId    String
+  screenName  String
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, screenId])
+  @@map("screens")
+}
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  featureId String
+  traceId   String
+  type      String
+  payload   Json
+  ts        DateTime
+  savedAt   DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, featureId])
+  @@index([projectId, ts])
+  @@index([traceId])
+  @@map("logs")
+}
+
+model Screenshot {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  featureId String
+  traceId   String
+  trigger   String
+  fileName  String
+  filePath  String
+  ts        DateTime
+  savedAt   DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, featureId])
+  @@index([traceId])
+  @@map("screenshots")
+}
+
+model ConsoleLog {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  featureId String
+  traceId   String?
+  level     String
+  args      Json
+  stack     String?
+  ts        DateTime
+  savedAt   DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, featureId])
+  @@index([projectId, level])
+  @@map("console_logs")
+}
+
+model Verdict {
+  id          Int      @id @default(autoincrement())
+  projectId   Int
+  seqKey      String
+  verdict     String
+  issueData   Json?
+  updatedById Int?
+  updatedAt   DateTime @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  updatedBy User?   @relation("VerdictUpdatedBy", fields: [updatedById], references: [id])
+
+  @@unique([projectId, seqKey])
+  @@map("verdicts")
+}
+
+model Pattern {
+  id          Int      @id @default(autoincrement())
+  projectId   Int
+  name        String
+  screenMode  String?
+  description String?
+  seqData     Json
+  status      String   @default("未評価")
+  memo        String?
+  createdById Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy User?   @relation("PatternCreatedBy", fields: [createdById], references: [id])
+
+  @@map("patterns")
+}
+
+model Issue {
+  id          Int      @id @default(autoincrement())
+  projectId   Int
+  featureId   String
+  seqKey      String
+  title       String
+  type        String
+  priority    String
+  status      String   @default("未対応")
+  description String?
+  createdById Int?
+  updatedById Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy User?   @relation("IssueCreatedBy", fields: [createdById], references: [id])
+  updatedBy User?   @relation("IssueUpdatedBy", fields: [updatedById], references: [id])
+
+  @@index([projectId, featureId])
+  @@index([projectId, status])
+  @@map("issues")
+}

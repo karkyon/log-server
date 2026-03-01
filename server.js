@@ -1,233 +1,718 @@
-// ~/projects/log-server/server.js  v2.2
+// ~/projects/log-server/server.js  v3.0
+// ============================================================
 // 変更履歴:
-//   v1.0 - 初版（/log, /screenshot, /ping）
-//   v2.0 - featureId別ディレクトリ保存、/features, /logs/:featureId API追加
-//   v2.1 - /screenshot に featureId を受け取り logs/screenshots/{featureId}/ に保存
-//          SHOTエントリを features/{featureId}.jsonl にも記録（analyze-logs.js紐付け用）
-//   v2.2 - /consolelog エンドポイント追加
-//          保存先: logs/features/<featureId>.console.jsonl
-//          /consolelogs/:featureId 取得エンドポイント追加
+//   v3.0 - PostgreSQL（Prisma）+ Redis + JWT認証 に全面移行
+//          認証API: /api/auth/login, /refresh, /logout, /me
+//          ログ受信: /api/log, /api/screenshot, /api/consolelog
+//                    ※ APIキー認証（talon_testcase_logger.js用）
+//          レビューAPI: /api/projects/:id/verdicts, patterns, issues
+//          後方互換: /log, /screenshot, /consolelog（APIキー認証）
+//          管理API: /api/users（ADMINのみ）
+// ============================================================
+'use strict';
 
-const express = require('express');
-const cors    = require('cors');
-const fs      = require('fs');
-const path    = require('path');
+require('dotenv').config();
 
-const app      = express();
-const PORT     = 3099;
-const LOGS_DIR = path.join(__dirname, 'logs');
-const FEAT_DIR = path.join(LOGS_DIR, 'features');   // 機能別ログ格納ディレクトリ
-const SS_DIR   = path.join(LOGS_DIR, 'screenshots'); // 機能別スクショ格納ディレクトリ
+const express     = require('express');
+const cors        = require('cors');
+const fs          = require('fs');
+const path        = require('path');
+const jwt         = require('jsonwebtoken');
+const bcrypt      = require('bcryptjs');
+const cookieParser = require('cookie-parser');
+const { v4: uuidv4 } = require('uuid');
+const Redis        = require('ioredis');
+const { prisma }   = require('./lib/prisma');
 
-// ── ベースディレクトリ作成 ──
-[LOGS_DIR, FEAT_DIR, SS_DIR].forEach(dir => {
+const app  = express();
+const PORT = parseInt(process.env.PORT || '3099', 10);
+const SS_BASE_DIR = process.env.SS_BASE_DIR || path.join(__dirname, 'logs', 'screenshots');
+
+const JWT_SECRET              = process.env.JWT_SECRET || 'change_me';
+const JWT_EXPIRES_IN          = process.env.JWT_EXPIRES_IN || '15m';
+const REFRESH_TOKEN_EXPIRES_DAYS = parseInt(process.env.REFRESH_TOKEN_EXPIRES_DAYS || '7', 10);
+
+// ── Redis クライアント ─────────────────────────────────────
+const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+  enableOfflineQueue: false,
+  lazyConnect: true,
+});
+redis.connect().catch(e => console.error('[REDIS] 接続失敗:', e.message));
+
+// ── ディレクトリ確保 ──────────────────────────────────────
+[SS_BASE_DIR].forEach(dir => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
-// ミドルウェア
-app.use(cors());
+// ── ミドルウェア ──────────────────────────────────────────
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '50mb' }));
+app.use(cookieParser());
 
-/* ------------------------------------------------------------------ *
- * 機能名（featureId）を正規化してファイルシステムで安全な文字列にする
- * 英数字・アンダースコア・ハイフン以外は _ に置換
- * ------------------------------------------------------------------ */
-function sanitizeFeatureId(featureId) {
-  if (!featureId || typeof featureId !== 'string') return 'UNKNOWN';
-  return featureId.replace(/[^A-Za-z0-9_\-]/g, '_').slice(0, 64);
+// ── ユーティリティ ────────────────────────────────────────
+function sanitizeId(id) {
+  if (!id || typeof id !== 'string') return 'UNKNOWN';
+  return id.replace(/[^A-Za-z0-9_\-]/g, '_').slice(0, 64);
 }
 
-/* ------------------------------------------------------------------ *
- * ログ受信
- * 保存先: logs/features/<featureId>.jsonl
- * ------------------------------------------------------------------ */
-app.post('/log', (req, res) => {
-  try {
-    const featureId = sanitizeFeatureId(req.body.featureId);
-    const logFile   = path.join(FEAT_DIR, `${featureId}.jsonl`);
-    const entry     = { ...req.body, _savedAt: new Date().toISOString() };
+// ============================================================
+// 認証ヘルパー
+// ============================================================
+function signAccessToken(payload) {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+}
 
-    fs.appendFileSync(logFile, JSON.stringify(entry) + '\n', 'utf8');
-    res.sendStatus(200);
-  } catch (err) {
-    console.error('[LOG ERROR]', err.message);
-    res.status(500).json({ error: err.message });
+async function saveRefreshToken(userId, token) {
+  const ttl = REFRESH_TOKEN_EXPIRES_DAYS * 24 * 60 * 60;
+  await redis.set(`rt:${token}`, String(userId), 'EX', ttl);
+}
+
+async function verifyRefreshToken(token) {
+  const userId = await redis.get(`rt:${token}`);
+  return userId ? parseInt(userId, 10) : null;
+}
+
+async function deleteRefreshToken(token) {
+  await redis.del(`rt:${token}`);
+}
+
+// ── JWT 認証ミドルウェア ───────────────────────────────────
+function authMiddleware(req, res, next) {
+  const auth = req.headers.authorization || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+  if (!token) return res.status(401).json({ error: '認証が必要です' });
+  try {
+    req.user = jwt.verify(token, JWT_SECRET);
+    next();
+  } catch {
+    return res.status(401).json({ error: 'トークンが無効または期限切れです' });
+  }
+}
+
+// ── ADMIN 権限チェック ─────────────────────────────────────
+function adminOnly(req, res, next) {
+  if (req.user?.role !== 'ADMIN') return res.status(403).json({ error: '管理者権限が必要です' });
+  next();
+}
+
+// ── APIキー認証ミドルウェア（TALONクライアント用）────────
+async function apiKeyMiddleware(req, res, next) {
+  // まず JWT を確認
+  const auth  = req.headers.authorization || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+  if (token) {
+    try {
+      req.user = jwt.verify(token, JWT_SECRET);
+      // プロジェクトIDをヘッダーまたはbodyから取得
+      req.projectId = parseInt(req.headers['x-project-id'] || req.body?.projectId || '1', 10);
+      return next();
+    } catch {}
+  }
+
+  // 次に APIキー を確認
+  const apiKey = req.headers['x-api-key'] || req.body?.apiKey;
+  if (apiKey) {
+    const project = await prisma.project.findUnique({ where: { apiKey } });
+    if (project && project.isActive) {
+      req.projectId = project.id;
+      return next();
+    }
+  }
+
+  return res.status(401).json({ error: 'JWT または APIキーが必要です' });
+}
+
+// ── プロジェクトアクセス権チェック ────────────────────────
+async function projectAccess(req, res, next) {
+  const projectId = parseInt(req.params.projectId || req.params.id, 10);
+  if (isNaN(projectId)) return res.status(400).json({ error: 'プロジェクトIDが不正です' });
+
+  if (req.user?.role === 'ADMIN') {
+    req.projectId = projectId;
+    return next();
+  }
+
+  const member = await prisma.projectMember.findUnique({
+    where: { projectId_userId: { projectId, userId: req.user.userId } }
+  });
+  if (!member) return res.status(403).json({ error: 'このプロジェクトへのアクセス権がありません' });
+
+  req.projectId = projectId;
+  req.memberRole = member.role;
+  next();
+}
+
+// ============================================================
+// 認証 API
+// ============================================================
+
+// POST /api/auth/login
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'username と password は必須です' });
+
+    const user = await prisma.user.findUnique({ where: { username } });
+    if (!user || !user.isActive) return res.status(401).json({ error: 'ユーザー名またはパスワードが違います' });
+
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) return res.status(401).json({ error: 'ユーザー名またはパスワードが違います' });
+
+    const accessToken    = signAccessToken({ userId: user.id, username: user.username, role: user.role });
+    const refreshToken   = uuidv4();
+    await saveRefreshToken(user.id, refreshToken);
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure:   process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge:   REFRESH_TOKEN_EXPIRES_DAYS * 24 * 60 * 60 * 1000,
+    });
+
+    // 参加プロジェクト一覧
+    const memberships = await prisma.projectMember.findMany({
+      where: { userId: user.id },
+      include: { project: { select: { id: true, slug: true, name: true } } },
+    });
+
+    res.json({
+      accessToken,
+      user: {
+        id:          user.id,
+        username:    user.username,
+        displayName: user.displayName,
+        role:        user.role,
+      },
+      projects: memberships.map(m => ({ ...m.project, memberRole: m.role })),
+    });
+  } catch (e) {
+    console.error('[LOGIN ERROR]', e.message);
+    res.status(500).json({ error: e.message });
   }
 });
 
-/* ------------------------------------------------------------------ *
- * スクリーンショット受信・保存
- * 保存先: logs/screenshots/<featureId>/<ts>_<screenId>_<trigger>_<traceId>.jpg
- * v2.1変更: featureId を body から受け取り featureId 別ディレクトリに保存
- *           SHOTエントリを features/{featureId}.jsonl にも記録
- * ------------------------------------------------------------------ */
-app.post('/screenshot', (req, res) => {
+// POST /api/auth/refresh
+app.post('/api/auth/refresh', async (req, res) => {
   try {
-    const { featureId: rawFeatureId, traceId, screenId, trigger, imageData } = req.body;
-    const featureId = sanitizeFeatureId(rawFeatureId);
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) return res.status(401).json({ error: 'リフレッシュトークンがありません' });
 
-    // 機能名別ディレクトリを動的作成
-    const featureSSDir = path.join(SS_DIR, featureId);
+    const userId = await verifyRefreshToken(refreshToken);
+    if (!userId) return res.status(401).json({ error: 'リフレッシュトークンが無効または期限切れです' });
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.isActive) return res.status(401).json({ error: 'ユーザーが無効です' });
+
+    // ローテーション: 古いトークンを削除して新しいものを発行
+    await deleteRefreshToken(refreshToken);
+    const newRefreshToken = uuidv4();
+    await saveRefreshToken(user.id, newRefreshToken);
+
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure:   process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge:   REFRESH_TOKEN_EXPIRES_DAYS * 24 * 60 * 60 * 1000,
+    });
+
+    const accessToken = signAccessToken({ userId: user.id, username: user.username, role: user.role });
+    res.json({ accessToken });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/auth/logout
+app.post('/api/auth/logout', async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) await deleteRefreshToken(refreshToken);
+    res.clearCookie('refreshToken');
+    res.json({ status: 'ok' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/auth/me
+app.get('/api/auth/me', authMiddleware, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: { id: true, username: true, displayName: true, role: true, isActive: true },
+    });
+    if (!user) return res.status(404).json({ error: 'ユーザーが見つかりません' });
+
+    const memberships = await prisma.projectMember.findMany({
+      where: { userId: user.id },
+      include: { project: { select: { id: true, slug: true, name: true } } },
+    });
+
+    res.json({
+      user,
+      projects: memberships.map(m => ({ ...m.project, memberRole: m.role })),
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/auth/change-password
+app.post('/api/auth/change-password', authMiddleware, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) return res.status(400).json({ error: '現在のパスワードと新しいパスワードは必須です' });
+    if (newPassword.length < 8) return res.status(400).json({ error: 'パスワードは8文字以上にしてください' });
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
+    const ok   = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!ok) return res.status(401).json({ error: '現在のパスワードが違います' });
+
+    await prisma.user.update({
+      where:  { id: req.user.userId },
+      data:   { passwordHash: await bcrypt.hash(newPassword, 12) },
+    });
+    res.json({ status: 'ok' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ============================================================
+// ユーザー管理 API（ADMIN のみ）
+// ============================================================
+
+// GET /api/users
+app.get('/api/users', authMiddleware, adminOnly, async (req, res) => {
+  const users = await prisma.user.findMany({
+    select: { id: true, username: true, displayName: true, role: true, isActive: true, createdAt: true }
+  });
+  res.json(users);
+});
+
+// POST /api/users
+app.post('/api/users', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { username, password, displayName, role } = req.body;
+    if (!username || !password || !displayName) return res.status(400).json({ error: 'username, password, displayName は必須です' });
+    const passwordHash = await bcrypt.hash(password, 12);
+    const user = await prisma.user.create({
+      data: { username, passwordHash, displayName, role: role || 'MEMBER' },
+      select: { id: true, username: true, displayName: true, role: true },
+    });
+    res.status(201).json(user);
+  } catch (e) {
+    if (e.code === 'P2002') return res.status(409).json({ error: 'そのユーザー名は既に使用されています' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// PUT /api/users/:id
+app.put('/api/users/:id', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { displayName, role, isActive } = req.body;
+    const user = await prisma.user.update({
+      where: { id: parseInt(req.params.id, 10) },
+      data:  { ...(displayName && { displayName }), ...(role && { role }), ...(isActive !== undefined && { isActive }) },
+      select: { id: true, username: true, displayName: true, role: true, isActive: true },
+    });
+    res.json(user);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ============================================================
+// プロジェクト API
+// ============================================================
+
+// GET /api/projects
+app.get('/api/projects', authMiddleware, async (req, res) => {
+  try {
+    const where = req.user.role === 'ADMIN'
+      ? { isActive: true }
+      : { isActive: true, members: { some: { userId: req.user.userId } } };
+    const projects = await prisma.project.findMany({
+      where,
+      include: { _count: { select: { logs: true, screens: true } } },
+    });
+    res.json(projects);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/projects（ADMINのみ）
+app.post('/api/projects', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { slug, name, description } = req.body;
+    const project = await prisma.project.create({
+      data: { slug, name, description, createdById: req.user.userId },
+    });
+    // 作成者をADMINメンバーとして追加
+    await prisma.projectMember.create({
+      data: { projectId: project.id, userId: req.user.userId, role: 'ADMIN' },
+    });
+    res.status(201).json(project);
+  } catch (e) {
+    if (e.code === 'P2002') return res.status(409).json({ error: 'そのスラッグは既に使用されています' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/projects/:id/features（画面一覧）
+app.get('/api/projects/:id/features', authMiddleware, projectAccess, async (req, res) => {
+  try {
+    const screens = await prisma.screen.findMany({ where: { projectId: req.projectId } });
+    const logCounts = await prisma.log.groupBy({
+      by: ['featureId'], where: { projectId: req.projectId }, _count: { id: true }
+    });
+    const logMap = Object.fromEntries(logCounts.map(r => [r.featureId, r._count.id]));
+    res.json(screens.map(s => ({ ...s, logCount: logMap[s.screenId] || 0 })));
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/projects/:id/members
+app.post('/api/projects/:id/members', authMiddleware, projectAccess, async (req, res) => {
+  try {
+    if (req.user.role !== 'ADMIN' && req.memberRole !== 'ADMIN')
+      return res.status(403).json({ error: 'プロジェクト管理者権限が必要です' });
+    const { userId, role } = req.body;
+    const member = await prisma.projectMember.upsert({
+      where: { projectId_userId: { projectId: req.projectId, userId } },
+      update: { role },
+      create: { projectId: req.projectId, userId, role: role || 'MEMBER' },
+    });
+    res.json(member);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/projects/:id/apikey（APIキー取得 - ADMINのみ）
+app.get('/api/projects/:id/apikey', authMiddleware, adminOnly, async (req, res) => {
+  const project = await prisma.project.findUnique({
+    where:  { id: parseInt(req.params.id, 10) },
+    select: { apiKey: true, name: true },
+  });
+  if (!project) return res.status(404).json({ error: 'プロジェクトが見つかりません' });
+  res.json(project);
+});
+
+// ============================================================
+// ログ受信 API（TALONクライアント → DB保存）
+// ============================================================
+
+// POST /api/log（新エンドポイント）
+app.post('/api/log', apiKeyMiddleware, async (req, res) => {
+  try {
+    const featureId = sanitizeId(req.body.featureId);
+    await prisma.log.create({
+      data: {
+        projectId: req.projectId,
+        featureId,
+        traceId:  req.body.traceId  || 'unknown',
+        type:     req.body.type     || 'UNKNOWN',
+        payload:  req.body,
+        ts:       new Date(req.body.ts || Date.now()),
+      },
+    });
+    res.sendStatus(200);
+  } catch (e) {
+    console.error('[LOG ERROR]', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/screenshot（新エンドポイント）
+app.post('/api/screenshot', apiKeyMiddleware, async (req, res) => {
+  try {
+    const { featureId: rawFid, traceId, screenId, trigger, imageData } = req.body;
+    const featureId = sanitizeId(rawFid);
+
+    // ファイル保存
+    const featureSSDir = path.join(SS_BASE_DIR, featureId);
     if (!fs.existsSync(featureSSDir)) fs.mkdirSync(featureSSDir, { recursive: true });
+    const ts      = new Date().toISOString().replace(/[:.]/g, '-');
+    const ext     = imageData.startsWith('data:image/jpeg') ? 'jpg' : 'png';
+    const safeT   = sanitizeId(trigger || 'UNKNOWN');
+    const safeTr  = sanitizeId(traceId || 'NOTRACE');
+    const fileName = `${ts}_${featureId}_${safeT}_${safeTr}.${ext}`;
+    const filePath  = path.join(featureSSDir, fileName);
+    const base64   = imageData.replace(/^data:image\/\w+;base64,/, '');
+    fs.writeFileSync(filePath, Buffer.from(base64, 'base64'));
 
-    const ts       = new Date().toISOString().replace(/[:.]/g, '-');
-    const ext      = imageData.startsWith('data:image/jpeg') ? 'jpg' : 'png';
-    const filename = `${ts}_${screenId}_${trigger}_${traceId}.${ext}`;
-    const filepath = path.join(featureSSDir, filename);
+    // DB保存
+    await prisma.screenshot.create({
+      data: {
+        projectId: req.projectId,
+        featureId,
+        traceId:  traceId  || 'unknown',
+        trigger:  trigger  || 'UNKNOWN',
+        fileName,
+        filePath,
+        ts: new Date(),
+      },
+    });
 
-    // base64 → ファイル保存
-    const base64 = imageData.replace(/^data:image\/(png|jpeg);base64,/, '');
-    fs.writeFileSync(filepath, base64, 'base64');
+    // Logにも SHOT エントリを記録（後方互換）
+    await prisma.log.create({
+      data: {
+        projectId: req.projectId,
+        featureId,
+        traceId: traceId || 'unknown',
+        type: 'SHOT',
+        payload: { type: 'SHOT', featureId, traceId, trigger, screenId, fileName },
+        ts: new Date(),
+      },
+    });
 
-    // analyze-logs.js がトレースIDで紐付けるための SCREENSHOT エントリ
-    // file パスは logs/ からの相対パスで統一（GitHub Pages では docs/screenshots/ に変換される）
-    const logFile = path.join(FEAT_DIR, `${featureId}.jsonl`);
-    const ssEntry = {
-      type     : 'SCREENSHOT',
-      featureId: featureId,
-      traceId  : traceId,
-      screenId : screenId,
-      trigger  : trigger,
-      file     : `logs/screenshots/${featureId}/${filename}`,
-      _savedAt : new Date().toISOString()
-    };
-    fs.appendFileSync(logFile, JSON.stringify(ssEntry) + '\n', 'utf8');
-
-    console.log(`[SS] 保存: logs/screenshots/${featureId}/${filename}`);
-    res.json({ saved: filename, featureId: featureId });
-
-  } catch (err) {
-    console.error('[SCREENSHOT ERROR]', err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-/* ------------------------------------------------------------------ *
- * コンソールログ受信                                         [v2.2追加]
- * 保存先: logs/features/<featureId>.console.jsonl
- *
- * クライアント側の _setupConsoleCapture() が console.log/warn/error/info/debug
- * を傍受してバッチ送信してくる。
- * 機能ログ（.jsonl）とは別ファイルに保存することで分析時に分離しやすくする。
- * featureId と ts、lastTraceId で機能ログ・スクショとの時系列照合が可能。
- * ------------------------------------------------------------------ */
-app.post('/consolelog', (req, res) => {
-  try {
-    const featureId = sanitizeFeatureId(req.body.featureId);
-    const logFile   = path.join(FEAT_DIR, `${featureId}.console.jsonl`);
-    const entry     = { ...req.body, _savedAt: new Date().toISOString() };
-
-    fs.appendFileSync(logFile, JSON.stringify(entry) + '\n', 'utf8');
     res.sendStatus(200);
-  } catch (err) {
-    console.error('[CONSOLELOG ERROR]', err.message, err.stack);
-    res.status(500).json({ error: err.message });
+  } catch (e) {
+    console.error('[SCREENSHOT ERROR]', e.message);
+    res.status(500).json({ error: e.message });
   }
 });
 
-/* ------------------------------------------------------------------ *
- * コンソールログ一覧取得（JSON配列で返す）                   [v2.2追加]
- * GET /consolelogs/:featureId
- * ------------------------------------------------------------------ */
-app.get('/consolelogs/:featureId', (req, res) => {
+// POST /api/consolelog（新エンドポイント）
+app.post('/api/consolelog', apiKeyMiddleware, async (req, res) => {
   try {
-    const featureId = sanitizeFeatureId(req.params.featureId);
-    const logFile   = path.join(FEAT_DIR, `${featureId}.console.jsonl`);
-
-    if (!fs.existsSync(logFile)) {
-      return res.status(404).json({ error: `Console log for "${featureId}" not found` });
-    }
-
-    const lines   = fs.readFileSync(logFile, 'utf8').split('\n').filter(Boolean);
-    const entries = lines.map(l => {
-      try { return JSON.parse(l); } catch { return null; }
-    }).filter(Boolean);
-
-    res.json({ featureId, count: entries.length, entries });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const featureId = sanitizeId(req.body.featureId);
+    await prisma.consoleLog.create({
+      data: {
+        projectId: req.projectId,
+        featureId,
+        traceId:  req.body.lastTraceId || null,
+        level:    req.body.level       || 'log',
+        args:     req.body.args        || [],
+        stack:    req.body.stack       || null,
+        ts:       new Date(req.body.ts || Date.now()),
+      },
+    });
+    res.sendStatus(200);
+  } catch (e) {
+    console.error('[CONSOLELOG ERROR]', e.message);
+    res.status(500).json({ error: e.message });
   }
 });
 
-/* ------------------------------------------------------------------ *
- * 機能一覧の取得
- * 記録済みの機能名（.jsonlファイル名から取得）を返す
- * .console.jsonl は除外し、純粋な機能IDのみ返す
- * ------------------------------------------------------------------ */
-app.get('/features', (req, res) => {
+// ============================================================
+// 後方互換エンドポイント（旧 /log, /screenshot, /consolelog）
+// ============================================================
+app.post('/log',        apiKeyMiddleware, (req, res, next) => { req.url = '/api/log';        next('route'); });
+app.post('/screenshot', apiKeyMiddleware, (req, res, next) => { req.url = '/api/screenshot'; next('route'); });
+app.post('/consolelog', apiKeyMiddleware, (req, res, next) => { req.url = '/api/consolelog'; next('route'); });
+
+// ============================================================
+// レビューデータ API
+// ============================================================
+
+// --- 判定（Verdicts）---
+app.get('/api/projects/:id/verdicts', authMiddleware, projectAccess, async (req, res) => {
+  const verdicts = await prisma.verdict.findMany({ where: { projectId: req.projectId } });
+  res.json(verdicts);
+});
+
+app.post('/api/projects/:id/verdicts', authMiddleware, projectAccess, async (req, res) => {
   try {
-    const files    = fs.readdirSync(FEAT_DIR)
-                       .filter(f => f.endsWith('.jsonl') && !f.endsWith('.console.jsonl'));
-    const features = files.map(f => f.replace('.jsonl', ''));
-    res.json({ features });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const { seqKey, verdict, issueData } = req.body;
+    const result = await prisma.verdict.upsert({
+      where:  { projectId_seqKey: { projectId: req.projectId, seqKey } },
+      update: { verdict, issueData: issueData || null, updatedById: req.user.userId },
+      create: { projectId: req.projectId, seqKey, verdict, issueData: issueData || null, updatedById: req.user.userId },
+    });
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-/* ------------------------------------------------------------------ *
- * 指定機能のログ一覧取得（JSON配列で返す）
- * GET /logs/:featureId
- * ------------------------------------------------------------------ */
-app.get('/logs/:featureId', (req, res) => {
+// 一括更新（判定を複数まとめて保存）
+app.put('/api/projects/:id/verdicts', authMiddleware, projectAccess, async (req, res) => {
   try {
-    const featureId = sanitizeFeatureId(req.params.featureId);
-    const logFile   = path.join(FEAT_DIR, `${featureId}.jsonl`);
-
-    if (!fs.existsSync(logFile)) {
-      return res.status(404).json({ error: `Feature "${featureId}" not found` });
+    const { verdicts } = req.body; // [{ seqKey, verdict, issueData }]
+    const results = [];
+    for (const v of verdicts) {
+      const result = await prisma.verdict.upsert({
+        where:  { projectId_seqKey: { projectId: req.projectId, seqKey: v.seqKey } },
+        update: { verdict: v.verdict, issueData: v.issueData || null, updatedById: req.user.userId },
+        create: { projectId: req.projectId, seqKey: v.seqKey, verdict: v.verdict, issueData: v.issueData || null, updatedById: req.user.userId },
+      });
+      results.push(result);
     }
-
-    const lines   = fs.readFileSync(logFile, 'utf8').split('\n').filter(Boolean);
-    const entries = lines.map(l => {
-      try { return JSON.parse(l); } catch { return null; }
-    }).filter(Boolean);
-
-    res.json({ featureId, count: entries.length, entries });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.json(results);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-/* ------------------------------------------------------------------ *
- * テスト用ログ一括削除                                    [開発用途限定]
- * GET /clean
- * logs/features/*.jsonl, logs/screenshots/ 配下をすべて削除し
- * ディレクトリ構造だけ再生成する
- * ⚠ 本番環境では必ずこのエンドポイントを削除またはコメントアウトすること
- * ------------------------------------------------------------------ */
-app.get('/clean', (req, res) => {
+// --- 作業パターン（Patterns）---
+app.get('/api/projects/:id/patterns', authMiddleware, projectAccess, async (req, res) => {
+  const patterns = await prisma.pattern.findMany({
+    where:   { projectId: req.projectId },
+    orderBy: { createdAt: 'desc' },
+  });
+  res.json(patterns);
+});
+
+app.post('/api/projects/:id/patterns', authMiddleware, projectAccess, async (req, res) => {
   try {
-    // features 配下の全 .jsonl を削除
-    if (fs.existsSync(FEAT_DIR)) {
-      fs.readdirSync(FEAT_DIR)
-        .filter(f => f.endsWith('.jsonl'))
-        .forEach(f => fs.unlinkSync(path.join(FEAT_DIR, f)));
-    }
-
-    // screenshots 配下のサブディレクトリごと削除 → 再生成
-    if (fs.existsSync(SS_DIR)) {
-      fs.rmSync(SS_DIR, { recursive: true, force: true });
-      fs.mkdirSync(SS_DIR, { recursive: true });
-    }
-
-    const msg = '[CLEAN] ログ・スクショを全削除しました';
-    console.log(msg);
-    res.json({ status: 'ok', message: msg });
-
-  } catch (err) {
-    console.error('[CLEAN ERROR]', err.message);
-    res.status(500).json({ error: err.message });
+    const { name, screenMode, description, seqData, memo } = req.body;
+    const pattern = await prisma.pattern.create({
+      data: { projectId: req.projectId, name, screenMode, description, seqData, memo, createdById: req.user.userId },
+    });
+    res.status(201).json(pattern);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// 死活確認
-app.get('/ping', (req, res) => res.json({ status: 'ok', port: PORT }));
+app.put('/api/projects/:id/patterns/:patternId', authMiddleware, projectAccess, async (req, res) => {
+  try {
+    const { name, screenMode, description, seqData, status, memo } = req.body;
+    const pattern = await prisma.pattern.update({
+      where: { id: parseInt(req.params.patternId, 10) },
+      data:  { name, screenMode, description, seqData, status, memo },
+    });
+    res.json(pattern);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
-// サーバ起動（1回のみ）
+app.delete('/api/projects/:id/patterns/:patternId', authMiddleware, projectAccess, async (req, res) => {
+  await prisma.pattern.delete({ where: { id: parseInt(req.params.patternId, 10) } });
+  res.json({ status: 'ok' });
+});
+
+// --- 課題（Issues）---
+app.get('/api/projects/:id/issues', authMiddleware, projectAccess, async (req, res) => {
+  const { featureId, status } = req.query;
+  const where = {
+    projectId: req.projectId,
+    ...(featureId && { featureId }),
+    ...(status    && { status }),
+  };
+  const issues = await prisma.issue.findMany({ where, orderBy: { createdAt: 'desc' } });
+  res.json(issues);
+});
+
+app.post('/api/projects/:id/issues', authMiddleware, projectAccess, async (req, res) => {
+  try {
+    const { featureId, seqKey, title, type, priority, description } = req.body;
+    const issue = await prisma.issue.create({
+      data: { projectId: req.projectId, featureId, seqKey, title, type, priority, description, createdById: req.user.userId },
+    });
+    res.status(201).json(issue);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.put('/api/projects/:id/issues/:issueId', authMiddleware, projectAccess, async (req, res) => {
+  try {
+    const { title, type, priority, status, description } = req.body;
+    const issue = await prisma.issue.update({
+      where: { id: parseInt(req.params.issueId, 10) },
+      data:  { title, type, priority, status, description, updatedById: req.user.userId },
+    });
+    res.json(issue);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete('/api/projects/:id/issues/:issueId', authMiddleware, projectAccess, async (req, res) => {
+  await prisma.issue.delete({ where: { id: parseInt(req.params.issueId, 10) } });
+  res.json({ status: 'ok' });
+});
+
+// ============================================================
+// ログ参照 API（generate-review.js 用）
+// ============================================================
+app.get('/api/projects/:id/logs', authMiddleware, projectAccess, async (req, res) => {
+  const { featureId, limit } = req.query;
+  const logs = await prisma.log.findMany({
+    where:   { projectId: req.projectId, ...(featureId && { featureId }) },
+    orderBy: { ts: 'asc' },
+    take:    parseInt(limit || '5000', 10),
+  });
+  res.json(logs);
+});
+
+app.get('/api/projects/:id/screenshots', authMiddleware, projectAccess, async (req, res) => {
+  const { featureId } = req.query;
+  const ss = await prisma.screenshot.findMany({
+    where:   { projectId: req.projectId, ...(featureId && { featureId }) },
+    orderBy: { ts: 'asc' },
+  });
+  res.json(ss);
+});
+
+app.get('/api/projects/:id/consolelogs', authMiddleware, projectAccess, async (req, res) => {
+  const { featureId } = req.query;
+  const logs = await prisma.consoleLog.findMany({
+    where:   { projectId: req.projectId, ...(featureId && { featureId }) },
+    orderBy: { ts: 'asc' },
+  });
+  res.json(logs);
+});
+
+// ============================================================
+// ユーティリティ・後方互換
+// ============================================================
+
+// GET /ping
+app.get('/ping', (req, res) => res.json({ status: 'ok', port: PORT, version: '3.0' }));
+
+// GET /api/health
+app.get('/api/health', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    const redisPong = await redis.ping().catch(() => 'FAIL');
+    res.json({ status: 'ok', db: 'ok', redis: redisPong === 'PONG' ? 'ok' : 'fail', version: '3.0' });
+  } catch (e) {
+    res.status(500).json({ status: 'error', error: e.message });
+  }
+});
+
+// GET /clean（開発用 — 本番では削除推奨）
+app.get('/clean', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    await prisma.log.deleteMany({ where: { projectId: 1 } });
+    await prisma.screenshot.deleteMany({ where: { projectId: 1 } });
+    await prisma.consoleLog.deleteMany({ where: { projectId: 1 } });
+    res.json({ status: 'ok', message: 'DB のログデータを削除しました' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── 旧 GET 系エンドポイント（後方互換）────────────────────
+app.get('/features', authMiddleware, async (req, res) => {
+  const screens = await prisma.screen.findMany({ where: { projectId: 1 } });
+  res.json(screens.map(s => s.screenId));
+});
+
+app.get('/logs/:featureId', authMiddleware, async (req, res) => {
+  const featureId = sanitizeId(req.params.featureId);
+  const logs = await prisma.log.findMany({
+    where: { projectId: 1, featureId }, orderBy: { ts: 'asc' }
+  });
+  res.json({ featureId, count: logs.length, entries: logs.map(l => l.payload) });
+});
+
+// ============================================================
+// サーバ起動
+// ============================================================
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[LOG SERVER v2.2] 起動中 → http://0.0.0.0:${PORT}`);
-  console.log(`  ログ保存先          : ${FEAT_DIR}/<featureId>.jsonl`);
-  console.log(`  コンソールログ保存先: ${FEAT_DIR}/<featureId>.console.jsonl`);
-  console.log(`  スクショ保存先      : ${SS_DIR}/<featureId>/`);
+  console.log(`[LOG SERVER v3.0] 起動 → http://0.0.0.0:${PORT}`);
+  console.log(`  認証API  : POST /api/auth/login, /refresh, /logout, /me`);
+  console.log(`  ログ受信 : POST /api/log, /api/screenshot, /api/consolelog`);
+  console.log(`  レビュー : GET/POST /api/projects/:id/verdicts, patterns, issues`);
+  console.log(`  後方互換 : POST /log, /screenshot, /consolelog`);
 });
+
+module.exports = app;
