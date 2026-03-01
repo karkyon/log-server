@@ -1023,7 +1023,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .user-menu a:hover{background:#f8fafc;}
 .user-menu .menu-divider{border-top:1px solid #e2e8f0;margin:4px 0;}
 body{padding-top:48px;}
-.sidebar{top:48px;height:calc(100vh - 48px);}
+#sidebar{position:fixed;top:48px;left:0;width:220px;height:calc(100vh - 48px);overflow-y:auto;background:#fff;border-right:1px solid #e2e8f0;z-index:100;}
 /* ===== ログインモーダル ===== */
 .login-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:center;justify-content:center;}
 .login-box{background:#fff;border-radius:16px;padding:40px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.2);}
