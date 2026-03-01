@@ -12,7 +12,17 @@
 //                 → JSON中に </script> が含まれると script タグが壊れる問題を防止
 //          [修正] openSsModal() で innerHTML + onerror 属性を使わず DOM API に変更
 //                 → 属性値の二重エスケープによる SyntaxError を解消
-//   v3.2 - [追加] コンソールログの表示（AL内に折りたたみブロックで）
+//   v3.2 - 画面遷移図にサムネイル追加（FLW-02） / タイムラインの線をBOX中心に接続（TIM-04）
+//          - その他細かいスタイル調整
+//          - 画面遷移図の矢印に遷移内容をラベル表示（FLW-03） / 遷移のOK/NGを色分け（FLW-04）
+//          - タイムラインのフィルタリング機能追加（TIM-05） / 作業パターンのモーダル表示追加（PAT-02）
+//          - 画面遷移図のノードに操作日時を表示（FLW-05） / タイムラインのノードにスクショサムネイル表示（TIM-06）
+//          - 画面遷移図のノードに操作内容を表示（FLW-06） / タイムラインのノードに操作内容表示（TIM-07）
+//          - 画面遷移図の矢印に遷移回数を表示（FLW-07） / タイムラインのノードに遷移回数を表示（TIM-08）
+//          - 画面遷移図のノードに関連課題数を表示（FLW-08） / タイムラインのノードに関連課題数を表示（TIM-09）
+//          - 画面遷移図のノードにNG判定を表示（FLW-09） / タイムラインのノードにNG判定を表示（TIM-10）
+//          - 画面遷移図の矢印に遷移内容を表示（FLW-10） / タイムラインのノードに操作内容表示（TIM-11）
+//          - その他細かいスタイル調整
 // ============================================================
 'use strict';
 const fs   = require('fs');
@@ -696,7 +706,7 @@ function renderTimelinePage() {
         <div id="tl-sel-summary" style="font-size:12px;color:#475569;flex:1;"></div>
         <button onclick="clearTlSelection()"
           style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid #94a3b8;background:white;cursor:pointer;">選択解除</button>
-    '      \'    <button data-id="\'+p.id+\'" data-action="edit"\'+',
+        <button onclick="openPatternModal()"
           style="font-size:12px;font-weight:700;padding:6px 16px;border-radius:8px;border:none;background:#3b82f6;color:white;cursor:pointer;">
           📌 作業パターンとして登録
         </button>
@@ -714,7 +724,7 @@ function renderWorkPatternsPage() {
   <div style="margin-bottom:20px;">
     <div style="display:flex;align-items:center;gap:12px;">
       <h1 style="font-size:21px;font-weight:700;color:#0f172a;">📌 作業パターン</h1>
-    '      \'    <button data-id="\'+p.id+\'" data-action="edit"\'+',
+      <button onclick="openPatternModal()"
         style="font-size:12px;font-weight:700;padding:6px 16px;border-radius:8px;border:none;background:#3b82f6;color:white;cursor:pointer;margin-left:auto;">
         ＋ 新規パターン登録
       </button>
@@ -1274,7 +1284,7 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     '    status:document.getElementById("iem-status").value, prio:document.getElementById("iem-prio").value,',
     '    desc:document.getElementById("iem-desc").value, updatedAt:new Date().toISOString() };',
     '  s.ift=o[_issK].type; s.ifs=o[_issK].status; s.ifp=o[_issK].prio; s.ifc=o[_issK].desc;',
-    '  ssg(_issK,s); _sm(o); closeIssueEditModal(); renderIssueTable();',
+    '  lss(_issK,s); _sm(o); closeIssueEditModal(); renderIssueTable();',
     '}',
     'function initPatternArea(){',
     '  var a=document.getElementById("pattern-list-area");',
