@@ -12,17 +12,6 @@
 //                 → JSON中に </script> が含まれると script タグが壊れる問題を防止
 //          [修正] openSsModal() で innerHTML + onerror 属性を使わず DOM API に変更
 //                 → 属性値の二重エスケープによる SyntaxError を解消
-//   v3.2 - 画面遷移図にサムネイル追加（FLW-02） / タイムラインの線をBOX中心に接続（TIM-04）
-//          - その他細かいスタイル調整
-//          - 画面遷移図の矢印に遷移内容をラベル表示（FLW-03） / 遷移のOK/NGを色分け（FLW-04）
-//          - タイムラインのフィルタリング機能追加（TIM-05） / 作業パターンのモーダル表示追加（PAT-02）
-//          - 画面遷移図のノードに操作日時を表示（FLW-05） / タイムラインのノードにスクショサムネイル表示（TIM-06）
-//          - 画面遷移図のノードに操作内容を表示（FLW-06） / タイムラインのノードに操作内容表示（TIM-07）
-//          - 画面遷移図の矢印に遷移回数を表示（FLW-07） / タイムラインのノードに遷移回数を表示（TIM-08）
-//          - 画面遷移図のノードに関連課題数を表示（FLW-08） / タイムラインのノードに関連課題数を表示（TIM-09）
-//          - 画面遷移図のノードにNG判定を表示（FLW-09） / タイムラインのノードにNG判定を表示（TIM-10）
-//          - 画面遷移図の矢印に遷移内容を表示（FLW-10） / タイムラインのノードに操作内容表示（TIM-11）
-//          - その他細かいスタイル調整
 // ============================================================
 'use strict';
 const fs   = require('fs');
@@ -286,9 +275,9 @@ function renderSidebar(fids) {
 
   return `
 <nav id="sidebar">
-  <div style="padding:20px 16px 14px;border-bottom:1px solid #1e293b;">
-    <div style="font-size:15px;font-weight:700;color:#f1f5f9;">📋 画面レビュー資料</div>
-    <div style="font-size:11px;color:#475569;margin-top:3px;" id="sidebar-date"></div>
+  <div style="padding:20px 16px 14px;border-bottom:1px solid #e2e8f0;">
+    <div style="font-size:15px;font-weight:700;color:#0f172a;">📋 画面レビュー資料</div>
+    <div style="font-size:11px;color:#94a3b8;margin-top:3px;" id="sidebar-date"></div>
   </div>
   <div class="nav-group">作業管理</div>
   <div class="nav-item" id="nav-timeline" onclick="showPage('timeline')">📊 作業タイムライン</div>
@@ -890,15 +879,16 @@ function renderCSS() {
   return `<style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#1e293b;display:flex;min-height:100vh;}
-#sidebar{width:240px;min-height:100vh;background:#0f172a;position:fixed;top:0;left:0;overflow-y:auto;z-index:100;}
+#sidebar{width:240px;min-height:100vh;background:#f8fafc;border-right:1px solid #e2e8f0;position:fixed;top:0;left:0;overflow-y:auto;z-index:100;}
 #main-content{margin-left:240px;flex:1;min-height:100vh;}
 .page{display:none;padding:32px 36px;}
 .page.active{display:block;}
-.nav-group{padding:6px 16px;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-top:8px;}
-.nav-item{padding:8px 16px;font-size:12px;color:#94a3b8;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .15s;}
-.nav-item:hover,.nav-item.active{background:#1e293b;color:#f1f5f9;}
-.nav-sub{padding:5px 16px 5px 32px;font-size:11px;color:#64748b;}
-.nav-sub:hover{background:#1e293b;color:#94a3b8;}
+.nav-group{padding:6px 16px;font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-top:8px;}
+.nav-item{padding:8px 16px;font-size:12px;color:#475569;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .15s;border-radius:6px;margin:1px 8px;}
+.nav-item:hover{background:#e2e8f0;color:#0f172a;}
+.nav-item.active{background:#3b82f6;color:#ffffff;font-weight:600;}
+.nav-sub{padding:5px 16px 5px 32px;font-size:11px;color:#94a3b8;border-radius:6px;margin:1px 8px;}
+.nav-sub:hover{background:#e2e8f0;color:#475569;}
 .card{background:white;border-radius:12px;padding:20px 24px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:16px;}
 .card-title{font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f1f5f9;}
 .stat-card{background:white;border-radius:12px;padding:20px 24px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
