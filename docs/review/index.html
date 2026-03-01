@@ -125,6 +125,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .thumb-screen-id{font-size:10px;color:#94a3b8;margin-bottom:2px;}
 .thumb-title{font-size:12px;font-weight:600;color:#334155;margin-bottom:3px;}
 .thumb-action{font-size:11px;color:#64748b;}
+/* ===== ヘッダー ===== */
+.app-header{position:fixed;top:0;left:0;right:0;height:48px;background:#0f172a;display:flex;align-items:center;padding:0 20px;z-index:200;gap:12px;border-bottom:1px solid #1e293b;}
+.app-header .logo{color:#60a5fa;font-weight:700;font-size:15px;letter-spacing:.5px;}
+.app-header .project-name{color:#94a3b8;font-size:13px;flex:1;}
+.app-header .user-info{display:flex;align-items:center;gap:8px;cursor:pointer;position:relative;}
+.app-header .user-badge{background:#1e293b;color:#e2e8f0;border-radius:20px;padding:4px 12px;font-size:12px;display:flex;align-items:center;gap:6px;}
+.app-header .user-badge:hover{background:#334155;}
+.user-menu{position:absolute;top:36px;right:0;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:160px;z-index:300;display:none;padding:4px 0;}
+.user-menu.open{display:block;}
+.user-menu a{display:block;padding:8px 16px;font-size:13px;color:#374151;text-decoration:none;cursor:pointer;}
+.user-menu a:hover{background:#f8fafc;}
+.user-menu .menu-divider{border-top:1px solid #e2e8f0;margin:4px 0;}
+body{padding-top:48px;}
+.sidebar{top:48px;height:calc(100vh - 48px);}
+/* ===== ログインモーダル ===== */
+.login-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:center;justify-content:center;}
+.login-box{background:#fff;border-radius:16px;padding:40px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.login-box h2{margin:0 0 24px;font-size:22px;color:#0f172a;text-align:center;}
+.login-box label{display:block;font-size:13px;color:#64748b;margin-bottom:4px;}
+.login-box input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;margin-bottom:16px;outline:none;}
+.login-box input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+.login-btn{width:100%;padding:12px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px;}
+.login-btn:hover{background:#2563eb;}
+.login-error{color:#dc2626;font-size:13px;text-align:center;margin-top:8px;min-height:20px;}
+/* ===== スクショモーダル ===== */
 .ss-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;}
 .ss-modal-inner{background:white;border-radius:14px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto;padding:24px;position:relative;}
 .ss-modal-close{position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;color:#94a3b8;background:none;border:none;}
@@ -139,6 +164,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </style>
 </head>
 <body>
+<!-- アプリヘッダー -->
+<header class="app-header">
+  <span class="logo">📋 TLog Review</span>
+  <span class="project-name" id="hdr-project">読み込み中...</span>
+  <div class="user-info" onclick="toggleUserMenu()">
+    <div class="user-badge"><span>👤</span><span id="hdr-username">読み込み中...</span></div>
+    <div class="user-menu" id="user-menu">
+      <a onclick="doLogout()">🚪 ログアウト</a>
+    </div>
+  </div>
+</header>
+<!-- ログインモーダル -->
+<div class="login-overlay" id="login-overlay" style="display:none">
+  <div class="login-box">
+    <h2>🔐 TLog レビュー</h2>
+    <label>ユーザー名</label>
+    <input type="text" id="login-username" placeholder="admin" autocomplete="username" />
+    <label>パスワード</label>
+    <input type="password" id="login-password" placeholder="パスワード" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="login-btn" onclick="doLogin()">ログイン</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
 
 <nav id="sidebar">
   <div style="padding:20px 16px 14px;border-bottom:1px solid #e2e8f0;">
@@ -5942,6 +5990,10 @@ var FIDS     = ["MC_DRAWING_LIST","MC_EQUIPMENT_LIST","MC_INDEX_PROGRAM_EDIT","M
 var TL_DATA  = [{"globalSeqNo":1,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":1,"traceId":"TR-1772329508659-p4kn","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-01T01:45:08.659Z","summary":"マシニング部品一覧画面","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-10-578Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772329508659-p4kn.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":2,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":3,"traceId":"TR-1772329528324-404o","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-01T01:45:28.324Z","summary":"CNDTN_parts_id","autoNG":false,"thumbPath":null,"consoleErr":0,"consoleWarn":0},{"globalSeqNo":3,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":4,"traceId":"TR-1772329529671-85jj","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-01T01:45:29.717Z","summary":"検索","autoNG":true,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-31-331Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_BEFORE_TR-1772329529671-85jj.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":4,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":5,"traceId":"TR-1772329530114-ua8u","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-01T01:45:30.114Z","summary":"マシニング部品一覧","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-31-808Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772329530114-ua8u.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":5,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":6,"traceId":"TR-1772329530208-p83j","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-01T01:45:30.208Z","summary":"マシニング部品一覧画面","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-31-773Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772329530208-p83j.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":6,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":7,"traceId":"TR-1772329537116-k1qk","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-01T01:45:37.116Z","summary":"CLEAR_BUTTON","autoNG":false,"thumbPath":null,"consoleErr":0,"consoleWarn":0},{"globalSeqNo":7,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":8,"traceId":"TR-1772329537117-728x","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-01T01:45:37.117Z","summary":"CLEAR_BUTTON","autoNG":true,"thumbPath":null,"consoleErr":0,"consoleWarn":0},{"globalSeqNo":8,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":9,"traceId":"TR-1772329537122-jkt1","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-01T01:45:37.122Z","summary":"クリア","autoNG":false,"thumbPath":null,"consoleErr":0,"consoleWarn":0},{"globalSeqNo":9,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":10,"traceId":"TR-1772329537735-ruia","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-01T01:45:37.735Z","summary":"マシニング部品一覧画面","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-39-125Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772329537735-ruia.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":10,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":12,"traceId":"TR-1772329539777-1vod","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-01T01:45:39.777Z","summary":"CNDTN_parts_machining_id","autoNG":false,"thumbPath":null,"consoleErr":0,"consoleWarn":0},{"globalSeqNo":11,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":13,"traceId":"TR-1772329541329-8zyx","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-01T01:45:41.382Z","summary":"検索","autoNG":true,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-42-527Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_BEFORE_TR-1772329541329-8zyx.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":12,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":14,"traceId":"TR-1772329541799-vme3","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-01T01:45:41.799Z","summary":"マシニング部品一覧","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-43-374Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772329541799-vme3.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":13,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":15,"traceId":"TR-1772329541859-urno","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-01T01:45:41.859Z","summary":"マシニング部品一覧画面","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-43-343Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772329541859-urno.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":14,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":16,"traceId":"TR-1772329545059-ssvu","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-01T01:45:45.059Z","summary":"編集","autoNG":false,"thumbPath":null,"consoleErr":0,"consoleWarn":0},{"globalSeqNo":15,"featureId":"MC_OPERATOR_AUTHENTICATION","screenName":"ユーザ認証","seqNo":1,"traceId":"TR-1772329546227-bk2l","screenId":"MC_OPERATOR_AUTHENTICATION","ts":"2026-03-01T01:45:46.227Z","summary":"マシニングオペレーター認証画面","autoNG":false,"thumbPath":"../screenshots/MC_OPERATOR_AUTHENTICATION/2026-03-01T01-45-47-945Z_MC_OPERATOR_AUTHENTICATION_SCREEN_LOAD_TR-1772329546227-bk2l.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":16,"featureId":"MC_OPERATOR_AUTHENTICATION","screenName":"ユーザ認証","seqNo":2,"traceId":"TR-1772329546560-apye","screenId":"MC_OPERATOR_AUTHENTICATION","ts":"2026-03-01T01:45:46.560Z","summary":"マシニングオペレーター認証画面","autoNG":false,"thumbPath":"../screenshots/MC_OPERATOR_AUTHENTICATION/2026-03-01T01-45-47-818Z_MC_OPERATOR_AUTHENTICATION_SCREEN_LOAD_TR-1772329546560-apye.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":17,"featureId":"MC_OPERATOR_AUTHENTICATION","screenName":"ユーザ認証","seqNo":3,"traceId":"TR-1772329553730-ef2m","screenId":"MC_OPERATOR_AUTHENTICATION","ts":"2026-03-01T01:45:53.731Z","summary":"1_password","autoNG":false,"thumbPath":null,"consoleErr":0,"consoleWarn":0},{"globalSeqNo":18,"featureId":"MC_OPERATOR_AUTHENTICATION","screenName":"ユーザ認証","seqNo":4,"traceId":"TR-1772329553732-t7oq","screenId":"MC_OPERATOR_AUTHENTICATION","ts":"2026-03-01T01:45:53.732Z","summary":"1_password","autoNG":true,"thumbPath":null,"consoleErr":0,"consoleWarn":0},{"globalSeqNo":19,"featureId":"MC_OPERATOR_AUTHENTICATION","screenName":"ユーザ認証","seqNo":5,"traceId":"TR-1772329553852-s997","screenId":"MC_OPERATOR_AUTHENTICATION","ts":"2026-03-01T01:45:53.852Z","summary":"ユーザー認証","autoNG":false,"thumbPath":"../screenshots/MC_OPERATOR_AUTHENTICATION/2026-03-01T01-45-57-062Z_MC_OPERATOR_AUTHENTICATION_TLN_1_password_CALL_JAVASCRIPT_AFTER_TR-1772329553852-s997.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":20,"featureId":"MC_OPERATOR_AUTHENTICATION","screenName":"ユーザ認証","seqNo":6,"traceId":"TR-1772329553853-9lg8","screenId":"MC_OPERATOR_AUTHENTICATION","ts":"2026-03-01T01:45:53.853Z","summary":"ユーザー認証","autoNG":true,"thumbPath":"../screenshots/MC_OPERATOR_AUTHENTICATION/2026-03-01T01-45-57-064Z_MC_OPERATOR_AUTHENTICATION_TLN_1_password_CALL_JAVASCRIPT_AFTER_TR-1772329553853-9lg8.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":21,"featureId":"MC_OPERATOR_AUTHENTICATION","screenName":"ユーザ認証","seqNo":7,"traceId":"TR-1772329556933-2dfv","screenId":"MC_OPERATOR_AUTHENTICATION","ts":"2026-03-01T01:45:56.933Z","summary":"マシニング情報","autoNG":false,"thumbPath":null,"consoleErr":0,"consoleWarn":0},{"globalSeqNo":22,"featureId":"MC_OPERATOR_AUTHENTICATION","screenName":"ユーザ認証","seqNo":8,"traceId":"TR-1772329556936-3hiz","screenId":"MC_OPERATOR_AUTHENTICATION","ts":"2026-03-01T01:45:56.936Z","summary":"マシニング情報","autoNG":true,"thumbPath":null,"consoleErr":0,"consoleWarn":0},{"globalSeqNo":23,"featureId":"MC_MACHINING","screenName":"MC_MACHINING","seqNo":1,"traceId":"TR-1772329558056-vt77","screenId":"MC_MACHINING","ts":"2026-03-01T01:45:58.056Z","summary":"マシニング情報管理画面","autoNG":false,"thumbPath":"../screenshots/MC_MACHINING/2026-03-01T01-45-59-627Z_MC_MACHINING_SCREEN_LOAD_TR-1772329558056-vt77.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":24,"featureId":"MC_MACHINING","screenName":"MC_MACHINING","seqNo":2,"traceId":"TR-1772329562343-al5c","screenId":"MC_MACHINING","ts":"2026-03-01T01:46:02.343Z","summary":"ツーリング","autoNG":false,"thumbPath":"../screenshots/MC_MACHINING/2026-03-01T01-46-05-716Z_MC_MACHINING_TLN_4_ツーリング_AFTER_TR-1772329562343-al5c.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":25,"featureId":"MC_MACHINING","screenName":"MC_MACHINING","seqNo":3,"traceId":"TR-1772329567624-prb5","screenId":"MC_MACHINING","ts":"2026-03-01T01:46:07.624Z","summary":"ワークオフセット","autoNG":false,"thumbPath":"../screenshots/MC_MACHINING/2026-03-01T01-46-10-794Z_MC_MACHINING_TLN_4_ワークオフセット_AFTER_TR-1772329567624-prb5.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":26,"featureId":"MC_MACHINING","screenName":"MC_MACHINING","seqNo":4,"traceId":"TR-1772329571553-khtm","screenId":"MC_MACHINING","ts":"2026-03-01T01:46:11.553Z","summary":"表示","autoNG":false,"thumbPath":"../screenshots/MC_MACHINING/2026-03-01T01-46-14-558Z_MC_MACHINING_TLN_2_parts_machining_id_0_CALL_JAVASCRIPT_AFTER_TR-1772329571553-khtm.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":27,"featureId":"MC_MACHINING","screenName":"MC_MACHINING","seqNo":5,"traceId":"TR-1772329575927-j106","screenId":"MC_MACHINING","ts":"2026-03-01T01:46:15.927Z","summary":"更新履歴","autoNG":false,"thumbPath":"../screenshots/MC_MACHINING/2026-03-01T01-46-19-248Z_MC_MACHINING_TLN_4_更新履歴_AFTER_TR-1772329575927-j106.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":28,"featureId":"MC_LOG_OPERATION_HISTORY","screenName":"MC_LOG_OPERATION_HISTORY","seqNo":1,"traceId":"TR-1772329577047-3zu1","screenId":"MC_LOG_OPERATION_HISTORY","ts":"2026-03-01T01:46:17.047Z","summary":"マシニングシステム操作履歴","autoNG":false,"thumbPath":"../screenshots/MC_LOG_OPERATION_HISTORY/2026-03-01T01-46-19-522Z_MC_LOG_OPERATION_HISTORY_SCREEN_LOAD_TR-1772329577047-3zu1.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":29,"featureId":"MC_LOG_OPERATION_HISTORY","screenName":"MC_LOG_OPERATION_HISTORY","seqNo":2,"traceId":"TR-1772329577139-nwos","screenId":"MC_LOG_OPERATION_HISTORY","ts":"2026-03-01T01:46:17.140Z","summary":"マシニングシステム操作履歴","autoNG":false,"thumbPath":"../screenshots/MC_LOG_OPERATION_HISTORY/2026-03-01T01-46-18-824Z_MC_LOG_OPERATION_HISTORY_SCREEN_LOAD_TR-1772329577139-nwos.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":30,"featureId":"MC_MACHINING","screenName":"MC_MACHINING","seqNo":6,"traceId":"TR-1772329580704-jce6","screenId":"MC_MACHINING","ts":"2026-03-01T01:46:20.704Z","summary":"作業記録","autoNG":false,"thumbPath":"../screenshots/MC_MACHINING/2026-03-01T01-46-23-792Z_MC_MACHINING_TLN_4_作業記録_AFTER_TR-1772329580704-jce6.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":31,"featureId":"MC_MACHINING_WORK_HISTORY","screenName":"MC_MACHINING_WORK_HISTORY","seqNo":1,"traceId":"TR-1772329586686-qebd","screenId":"MC_MACHINING_WORK_HISTORY","ts":"2026-03-01T01:46:26.686Z","summary":"マシニング作業実績登録画面","autoNG":false,"thumbPath":"../screenshots/MC_MACHINING_WORK_HISTORY/2026-03-01T01-46-28-920Z_MC_MACHINING_WORK_HISTORY_SCREEN_LOAD_TR-1772329586686-qebd.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":32,"featureId":"MC_MACHINING_WORK_HISTORY","screenName":"MC_MACHINING_WORK_HISTORY","seqNo":2,"traceId":"TR-1772329586901-roab","screenId":"MC_MACHINING_WORK_HISTORY","ts":"2026-03-01T01:46:26.901Z","summary":"マシニング作業実績登録画面","autoNG":false,"thumbPath":"../screenshots/MC_MACHINING_WORK_HISTORY/2026-03-01T01-46-28-653Z_MC_MACHINING_WORK_HISTORY_SCREEN_LOAD_TR-1772329586901-roab.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":33,"featureId":"MC_MACHINING","screenName":"MC_MACHINING","seqNo":7,"traceId":"TR-1772329592555-4hfn","screenId":"MC_MACHINING","ts":"2026-03-01T01:46:32.555Z","summary":"仮登録","autoNG":false,"thumbPath":"../screenshots/MC_MACHINING/2026-03-01T01-46-35-735Z_MC_MACHINING_TLN_2_ADDLINE_BTN_AFTER_TR-1772329592555-4hfn.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":34,"featureId":"MC_MACHINING","screenName":"MC_MACHINING","seqNo":8,"traceId":"TR-1772329596913-jt9k","screenId":"MC_MACHINING","ts":"2026-03-01T01:46:36.913Z","summary":"1","autoNG":false,"thumbPath":null,"consoleErr":0,"consoleWarn":0},{"globalSeqNo":35,"featureId":"MC_MACHINING","screenName":"MC_MACHINING","seqNo":9,"traceId":"TR-1772329599632-v7d3","screenId":"MC_MACHINING","ts":"2026-03-01T01:46:39.633Z","summary":"9","autoNG":false,"thumbPath":null,"consoleErr":0,"consoleWarn":0},{"globalSeqNo":36,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":2,"traceId":"TR-1772329508657-hawk","screenId":"MC_PRODUCTS_LIST","summary":"","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-10-608Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772329508657-hawk.jpg","consoleErr":0,"consoleWarn":0},{"globalSeqNo":37,"featureId":"MC_PRODUCTS_LIST","screenName":"部品一覧","seqNo":11,"traceId":"TR-1772329537660-jxga","screenId":"MC_PRODUCTS_LIST","summary":"","autoNG":false,"thumbPath":"../screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-39-117Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772329537660-jxga.jpg","consoleErr":0,"consoleWarn":0}];
 var TL_COLORS= {"MC_DRAWING_LIST":"#3b82f6","MC_EQUIPMENT_LIST":"#10b981","MC_INDEX_PROGRAM_EDIT":"#f59e0b","MC_INFO_UPDATE_CONFIRM":"#ef4444","MC_LOG_OPERATION_HISTORY":"#8b5cf6","MC_MACHINING":"#06b6d4","MC_MACHINING_INFO":"#f97316","MC_MACHINING_WORK_HISTORY":"#84cc16","MC_OPERATOR_AUTHENTICATION":"#ec4899","MC_PHOTO_LIST":"#14b8a6","MC_PRODUCTS_LIST":"#3b82f6","MC_RAW_CLAW_EDIT_SHEET_LIST":"#10b981","MC_RAW_CLAW_SEARCH":"#f59e0b","MC_SETUP_SHEET_BACK":"#ef4444","MC_SETUP_SHEET_ISSUE_REPEAT":"#8b5cf6","MC_SP_SETUP_SHEET_NOTIFY":"#06b6d4","MC_SYSTEM_OPERATION_HISTORY":"#f97316","MC_TOOLING_EDIT_BASIC":"#84cc16","MC_TOOLING_EDIT_DETAIL":"#ec4899","MC_WORKOFFSET_RESULT":"#14b8a6","MC_WORK_RESULT_EDIT":"#3b82f6","MC_WORK_RESULT_LIST":"#10b981"};
 var LSP      = "rev31_";
+var _SERVER  = "http://192.168.1.11:3099";
+var _PROJ    = 1;
+var _token   = sessionStorage.getItem("tlog_token")||"";
+
 
 // タイムライン状態
 var tlSelected = [];
@@ -5952,15 +6004,86 @@ var tlVisible  = null;
 function lsg(k){try{return JSON.parse(localStorage.getItem(LSP+k))||{};}catch(e){return {};}}
 function lss(k,d){try{localStorage.setItem(LSP+k,JSON.stringify(d));}catch(e){}}
 
+// ── API ────────────────────────────────────────────────
+async function apiFetch(p,o){
+  var url=_SERVER+p;
+  var h=Object.assign({"Content-Type":"application/json"},(o&&o.headers)||{});
+  if(_token) h["Authorization"]="Bearer "+_token;
+  var r=await fetch(url,Object.assign({},o,{headers:h}));
+  if(r.status===401){showLogin();return null;}
+  return r.ok?r.json():null;
+}
+
+// ── 認証 ────────────────────────────────────────────────
+async function doLogin(){
+  var u=document.getElementById("login-username").value.trim();
+  var pw=document.getElementById("login-password").value;
+  document.getElementById("login-error").textContent="";
+  if(!u||!pw){document.getElementById("login-error").textContent="ユーザー名とパスワードを入力してください";return;}
+  var r=await fetch(_SERVER+"/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:pw})});
+  var d=await r.json();
+  if(!r.ok){document.getElementById("login-error").textContent=d.error||"ログイン失敗";return;}
+  _token=d.accessToken; sessionStorage.setItem("tlog_token",_token);
+  document.getElementById("login-overlay").style.display="none";
+  var un=d.user&&(d.user.displayName||d.user.username)||"";
+  var el=document.getElementById("hdr-username");if(el)el.textContent=un;
+  var pn=document.getElementById("hdr-project");if(pn&&d.projects&&d.projects[0])pn.textContent=d.projects[0].name;
+  await initAfterLogin();
+}
+function showLogin(){
+  document.getElementById("login-overlay").style.display="flex";
+  var el=document.getElementById("hdr-username");if(el)el.textContent="未ログイン";
+  setTimeout(function(){var e=document.getElementById("login-username");if(e)e.focus();},100);
+}
+async function doLogout(){
+  if(_token)await apiFetch("/api/auth/logout",{method:"POST"}).catch(function(){});
+  _token="";sessionStorage.removeItem("tlog_token");showLogin();
+}
+function toggleUserMenu(){var m=document.getElementById("user-menu");if(m)m.classList.toggle("open");}
+document.addEventListener("click",function(e){var m=document.getElementById("user-menu");if(m&&m.classList.contains("open")&&!e.target.closest(".user-info"))m.classList.remove("open");});
+
+// ── 認証チェック + 初期化 ──────────────────────────────
+async function checkAuth(){
+  if(!_token){showLogin();return false;}
+  var me=await apiFetch("/api/auth/me");
+  if(!me){showLogin();return false;}
+  var un=me.displayName||me.username||"";
+  var el=document.getElementById("hdr-username");if(el)el.textContent=un;
+  var pn=document.getElementById("hdr-project");if(pn&&me.projects&&me.projects[0])pn.textContent=me.projects[0].name;
+  return true;
+}
+
+// ── 判定 API 保存 ───────────────────────────────────────
+async function saveVerdictToAPI(k,saved){
+  if(!_token)return;
+  var b={seqKey:k,verdict:saved.verdict||null,issueType:saved.ift||null,issueStatus:saved.ifs||null,issuePrio:saved.ifp||null,issueDesc:saved.ifc||null};
+  await apiFetch("/api/projects/"+_PROJ+"/verdicts",{method:"POST",body:JSON.stringify(b)});
+}
+async function loadVerdictsFromAPI(){
+  var r=await apiFetch("/api/projects/"+_PROJ+"/verdicts");
+  if(!r||!r.verdicts)return;
+  r.verdicts.forEach(function(v){
+    var s={verdict:v.verdict,ift:v.issueType,ifs:v.issueStatus,ifp:v.issuePrio,ifc:v.issueDesc};
+    lss(v.seqKey,s);applyVerdict(v.seqKey,v.verdict||"OK");
+  });
+}
+
+
 // ── 初期化 ───────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded",function(){
+document.addEventListener("DOMContentLoaded",async function(){
   var today=new Date().toLocaleDateString("ja-JP",{year:"numeric",month:"2-digit",day:"2-digit"});
   var s1=document.getElementById("sidebar-date"); if(s1) s1.textContent=today+" 更新";
   var s2=document.getElementById("dash-date"); if(s2) s2.textContent=today+" 時点";
-  Object.keys(META).forEach(function(k){ restoreVerdict(k); });
+  var ok=await checkAuth();
+  if(ok) await initAfterLogin();
+});
+
+async function initAfterLogin(){
+  Object.keys(META).forEach(function(k){restoreVerdict(k);});
+  await loadVerdictsFromAPI();
   updateDashboard();
   showPage("timeline");
-});
+}
 
 // ── ページ切替 ───────────────────────────────────────────
 function showPage(id){

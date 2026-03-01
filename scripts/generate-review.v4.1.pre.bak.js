@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// scripts/generate-review.js  v4.1
+// scripts/generate-review.js  v4.0
 // ============================================================
 // 変更履歴:
 //   v3.0 - .console除外 / consoleLogs統合 / タイムライン / 作業パターン
@@ -25,10 +25,6 @@ const {
   loadProjectFromDB
 } = require('./db-loader');
 const { prisma } = require('../lib/prisma');
-
-// ── HTML 生成時に埋め込む設定値 ───────────────────────────
-const SERVER_URL  = process.env.SERVER_URL  || 'http://192.168.1.11:3099';
-const PROJECT_ID_EMBED = parseInt(process.env.PROJECT_ID || '1', 10);
 
 const LOGS_DIR    = path.join(__dirname, '..', 'logs', 'features');
 const SS_DIR      = path.join(__dirname, '..', 'logs', 'screenshots');
@@ -1010,31 +1006,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .thumb-screen-id{font-size:10px;color:#94a3b8;margin-bottom:2px;}
 .thumb-title{font-size:12px;font-weight:600;color:#334155;margin-bottom:3px;}
 .thumb-action{font-size:11px;color:#64748b;}
-/* ===== ヘッダー ===== */
-.app-header{position:fixed;top:0;left:0;right:0;height:48px;background:#0f172a;display:flex;align-items:center;padding:0 20px;z-index:200;gap:12px;border-bottom:1px solid #1e293b;}
-.app-header .logo{color:#60a5fa;font-weight:700;font-size:15px;letter-spacing:.5px;}
-.app-header .project-name{color:#94a3b8;font-size:13px;flex:1;}
-.app-header .user-info{display:flex;align-items:center;gap:8px;cursor:pointer;position:relative;}
-.app-header .user-badge{background:#1e293b;color:#e2e8f0;border-radius:20px;padding:4px 12px;font-size:12px;display:flex;align-items:center;gap:6px;}
-.app-header .user-badge:hover{background:#334155;}
-.user-menu{position:absolute;top:36px;right:0;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:160px;z-index:300;display:none;padding:4px 0;}
-.user-menu.open{display:block;}
-.user-menu a{display:block;padding:8px 16px;font-size:13px;color:#374151;text-decoration:none;cursor:pointer;}
-.user-menu a:hover{background:#f8fafc;}
-.user-menu .menu-divider{border-top:1px solid #e2e8f0;margin:4px 0;}
-body{padding-top:48px;}
-.sidebar{top:48px;height:calc(100vh - 48px);}
-/* ===== ログインモーダル ===== */
-.login-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:center;justify-content:center;}
-.login-box{background:#fff;border-radius:16px;padding:40px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.2);}
-.login-box h2{margin:0 0 24px;font-size:22px;color:#0f172a;text-align:center;}
-.login-box label{display:block;font-size:13px;color:#64748b;margin-bottom:4px;}
-.login-box input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;margin-bottom:16px;outline:none;}
-.login-box input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1);}
-.login-btn{width:100%;padding:12px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px;}
-.login-btn:hover{background:#2563eb;}
-.login-error{color:#dc2626;font-size:13px;text-align:center;margin-top:8px;min-height:20px;}
-/* ===== スクショモーダル ===== */
 .ss-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;}
 .ss-modal-inner{background:white;border-radius:14px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto;padding:24px;position:relative;}
 .ss-modal-close{position:absolute;top:14px;right:16px;font-size:20px;cursor:pointer;color:#94a3b8;background:none;border:none;}
@@ -1100,10 +1071,6 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     'var TL_DATA  = ' + tlDataJs + ';',
     'var TL_COLORS= ' + colorsJs + ';',
     'var LSP      = "rev31_";',
-    'var _SERVER  = "http://192.168.1.11:3099";',
-    'var _PROJ    = 1;',
-    'var _token   = sessionStorage.getItem("tlog_token")||"";',
-    '',
     '',
     '// タイムライン状態',
     'var tlSelected = [];',
@@ -1114,86 +1081,15 @@ function renderScript(fids, allLogs, allShots, issuesData, allSeqs) {
     'function lsg(k){try{return JSON.parse(localStorage.getItem(LSP+k))||{};}catch(e){return {};}}',
     'function lss(k,d){try{localStorage.setItem(LSP+k,JSON.stringify(d));}catch(e){}}',
     '',
-    '// ── API ────────────────────────────────────────────────',
-    'async function apiFetch(p,o){',
-    '  var url=_SERVER+p;',
-    '  var h=Object.assign({"Content-Type":"application/json"},(o&&o.headers)||{});',
-    '  if(_token) h["Authorization"]="Bearer "+_token;',
-    '  var r=await fetch(url,Object.assign({},o,{headers:h}));',
-    '  if(r.status===401){showLogin();return null;}',
-    '  return r.ok?r.json():null;',
-    '}',
-    '',
-    '// ── 認証 ────────────────────────────────────────────────',
-    'async function doLogin(){',
-    '  var u=document.getElementById("login-username").value.trim();',
-    '  var pw=document.getElementById("login-password").value;',
-    '  document.getElementById("login-error").textContent="";',
-    '  if(!u||!pw){document.getElementById("login-error").textContent="ユーザー名とパスワードを入力してください";return;}',
-    '  var r=await fetch(_SERVER+"/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:pw})});',
-    '  var d=await r.json();',
-    '  if(!r.ok){document.getElementById("login-error").textContent=d.error||"ログイン失敗";return;}',
-    '  _token=d.accessToken; sessionStorage.setItem("tlog_token",_token);',
-    '  document.getElementById("login-overlay").style.display="none";',
-    '  var un=d.user&&(d.user.displayName||d.user.username)||"";',
-    '  var el=document.getElementById("hdr-username");if(el)el.textContent=un;',
-    '  var pn=document.getElementById("hdr-project");if(pn&&d.projects&&d.projects[0])pn.textContent=d.projects[0].name;',
-    '  await initAfterLogin();',
-    '}',
-    'function showLogin(){',
-    '  document.getElementById("login-overlay").style.display="flex";',
-    '  var el=document.getElementById("hdr-username");if(el)el.textContent="未ログイン";',
-    '  setTimeout(function(){var e=document.getElementById("login-username");if(e)e.focus();},100);',
-    '}',
-    'async function doLogout(){',
-    '  if(_token)await apiFetch("/api/auth/logout",{method:"POST"}).catch(function(){});',
-    '  _token="";sessionStorage.removeItem("tlog_token");showLogin();',
-    '}',
-    'function toggleUserMenu(){var m=document.getElementById("user-menu");if(m)m.classList.toggle("open");}',
-    'document.addEventListener("click",function(e){var m=document.getElementById("user-menu");if(m&&m.classList.contains("open")&&!e.target.closest(".user-info"))m.classList.remove("open");});',
-    '',
-    '// ── 認証チェック + 初期化 ──────────────────────────────',
-    'async function checkAuth(){',
-    '  if(!_token){showLogin();return false;}',
-    '  var me=await apiFetch("/api/auth/me");',
-    '  if(!me){showLogin();return false;}',
-    '  var un=me.displayName||me.username||"";',
-    '  var el=document.getElementById("hdr-username");if(el)el.textContent=un;',
-    '  var pn=document.getElementById("hdr-project");if(pn&&me.projects&&me.projects[0])pn.textContent=me.projects[0].name;',
-    '  return true;',
-    '}',
-    '',
-    '// ── 判定 API 保存 ───────────────────────────────────────',
-    'async function saveVerdictToAPI(k,saved){',
-    '  if(!_token)return;',
-    '  var b={seqKey:k,verdict:saved.verdict||null,issueType:saved.ift||null,issueStatus:saved.ifs||null,issuePrio:saved.ifp||null,issueDesc:saved.ifc||null};',
-    '  await apiFetch("/api/projects/"+_PROJ+"/verdicts",{method:"POST",body:JSON.stringify(b)});',
-    '}',
-    'async function loadVerdictsFromAPI(){',
-    '  var r=await apiFetch("/api/projects/"+_PROJ+"/verdicts");',
-    '  if(!r||!r.verdicts)return;',
-    '  r.verdicts.forEach(function(v){',
-    '    var s={verdict:v.verdict,ift:v.issueType,ifs:v.issueStatus,ifp:v.issuePrio,ifc:v.issueDesc};',
-    '    lss(v.seqKey,s);applyVerdict(v.seqKey,v.verdict||"OK");',
-    '  });',
-    '}',
-    '',
-    '',
     '// ── 初期化 ───────────────────────────────────────────────',
-    'document.addEventListener("DOMContentLoaded",async function(){',
+    'document.addEventListener("DOMContentLoaded",function(){',
     '  var today=new Date().toLocaleDateString("ja-JP",{year:"numeric",month:"2-digit",day:"2-digit"});',
     '  var s1=document.getElementById("sidebar-date"); if(s1) s1.textContent=today+" 更新";',
     '  var s2=document.getElementById("dash-date"); if(s2) s2.textContent=today+" 時点";',
-    '  var ok=await checkAuth();',
-    '  if(ok) await initAfterLogin();',
-    '});',
-    '',
-    'async function initAfterLogin(){',
-    '  Object.keys(META).forEach(function(k){restoreVerdict(k);});',
-    '  await loadVerdictsFromAPI();',
+    '  Object.keys(META).forEach(function(k){ restoreVerdict(k); });',
     '  updateDashboard();',
     '  showPage("timeline");',
-    '}',
+    '});',
     '',
     '// ── ページ切替 ───────────────────────────────────────────',
     'function showPage(id){',
@@ -1822,29 +1718,6 @@ function buildHtml(fids, allLogs, allShots, issData, allConsoleLogs) {
 ${renderCSS()}
 </head>
 <body>
-<!-- アプリヘッダー -->
-<header class="app-header">
-  <span class="logo">📋 TLog Review</span>
-  <span class="project-name" id="hdr-project">読み込み中...</span>
-  <div class="user-info" onclick="toggleUserMenu()">
-    <div class="user-badge"><span>👤</span><span id="hdr-username">読み込み中...</span></div>
-    <div class="user-menu" id="user-menu">
-      <a onclick="doLogout()">🚪 ログアウト</a>
-    </div>
-  </div>
-</header>
-<!-- ログインモーダル -->
-<div class="login-overlay" id="login-overlay" style="display:none">
-  <div class="login-box">
-    <h2>🔐 TLog レビュー</h2>
-    <label>ユーザー名</label>
-    <input type="text" id="login-username" placeholder="admin" autocomplete="username" />
-    <label>パスワード</label>
-    <input type="password" id="login-password" placeholder="パスワード" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" />
-    <button class="login-btn" onclick="doLogin()">ログイン</button>
-    <div class="login-error" id="login-error"></div>
-  </div>
-</div>
 ${renderSidebar(fids)}
 <div id="main-content">
 ${screenPages}
@@ -1877,7 +1750,7 @@ ${renderScript(fids, allLogs, allShots, issData, allSeqs)}
 async function main() {
   const PROJECT_ID = parseInt(process.env.PROJECT_ID || '1', 10);
 
-  console.log('[generate-review v4.1] 開始 PROJECT_ID=' + PROJECT_ID);
+  console.log('[generate-review v4.0] 開始 PROJECT_ID=' + PROJECT_ID);
 
   // DB からプロジェクト情報取得
   const project = await loadProjectFromDB(PROJECT_ID);
@@ -1899,8 +1772,8 @@ async function main() {
   const masterFids = await loadFeatureIdsFromDB(PROJECT_ID);
   const fids       = [...new Set([...logFids, ...masterFids])].sort();
 
-  if (!fids.length) console.warn('[generate-review v4.1] ログが見つかりません');
-  console.log('[generate-review v4.1] 画面:', fids.join(', ') || 'なし');
+  if (!fids.length) console.warn('[generate-review v4.0] ログが見つかりません');
+  console.log('[generate-review v4.0] 画面:', fids.join(', ') || 'なし');
   console.log('  ログあり画面:', logFids.length, '/ 合計:', fids.length);
 
   // issues.json は引き続きファイルから読み込み（Step 4 以降でDB化予定）
@@ -1914,7 +1787,7 @@ async function main() {
   fs.writeFileSync(OUT_FILE, html, 'utf8');
 
   const kb = (Buffer.byteLength(html, 'utf8') / 1024).toFixed(1);
-  console.log('[generate-review v4.1] 完了:', OUT_FILE, '(' + kb + ' KB)');
+  console.log('[generate-review v4.0] 完了:', OUT_FILE, '(' + kb + ' KB)');
 
   await prisma.$disconnect();
 }
