@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>TLog Issue Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="min-h-screen bg-slate-950 text-slate-100 p-6" style="font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif">
+
+<div id="app"></div>
+
+<script>
+const issues = [
+{ id:"DAS-01",screen:"レビュー進捗ダッシュボード",screenShort:"ダッシュボード",no:1,title:"新規パターン登録ができない",detail:"新規パターン登録ボタンをクリックしても反応なし（無反応）",type:"バグ",category:"ボタン無反応",priority:"高"},
+{ id:"DAS-02",screen:"レビュー進捗ダッシュボード",screenShort:"ダッシュボード",no:2,title:"遷移図ボタンが効かない",detail:"遷移図ボタンをクリックしても反応なし（無反応）",type:"バグ",category:"ボタン無反応",priority:"高"},
+{ id:"TIM-01",screen:"作業タイムライン",screenShort:"タイムライン",no:1,title:"レビュー進捗ダッシュボードエリアを削除",detail:"レビュー進捗ダッシュボードのエリアは不要。作業タイムラインと直接関連しない情報のため削除を検討",type:"改善",category:"UI整理",priority:"中"},
+{ id:"TIM-02",screen:"作業タイムライン",screenShort:"タイムライン",no:2,title:"traceIdごとのグループ化表示",detail:"作業タイムラインをtraceIdでグループ化し、グループ先頭にID・開始〜終了日時を表示する。各グループに概要（例：マシニング編集モード）を入力できるようにする。グループ間に区切り線を挿入して視認性を向上させる。",type:"機能追加",category:"UX改善",priority:"高"},
+{ id:"TIM-03",screen:"作業タイムライン",screenShort:"タイムライン",no:3,title:"作業パターンとして登録ができない",detail:"「作業パターンとして登録」ボタンをクリックしても反応なし（無反応）",type:"バグ",category:"ボタン無反応",priority:"高"},
+{ id:"TIM-04",screen:"作業タイムライン",screenShort:"タイムライン",no:4,title:"遷移線が見づらい",detail:"遷移線が薄すぎて視認性が低い。BOXとBOXの中心同士を結ぶように修正する",type:"改善",category:"UI改善",priority:"中"},
+{ id:"SCR-01",screen:"画面一覧",screenShort:"画面一覧",no:1,title:"レビュー進捗ダッシュボードエリアを削除",detail:"レビュー進捗ダッシュボードのエリアは不要。画面一覧と直接関連しない情報のため削除を検討",type:"改善",category:"UI整理",priority:"中"},
+{ id:"SCR-02",screen:"画面一覧",screenShort:"画面一覧",no:2,title:"概要を編集可能にする",detail:"概要の部分をインライン編集またはモーダルで編集できるようにする",type:"機能追加",category:"UX改善",priority:"中"},
+{ id:"FLW-01",screen:"画面遷移図",screenShort:"遷移図",no:1,title:"レビュー進捗ダッシュボードエリアを削除",detail:"レビュー進捗ダッシュボードのエリアは不要。画面遷移図と直接関連しない情報のため削除を検討",type:"改善",category:"UI整理",priority:"中"},
+{ id:"FLW-02",screen:"画面遷移図",screenShort:"遷移図",no:2,title:"操作フローが見にくい",detail:"概要テキスト（例：仮登録）がseqブロック間に配置されており視認性が低い。スクリーンショットそのものをseqブロック内に表示し、作業タイムラインと同じ方法で遷移線を描画する方式に変更する。スクリーンショット専用エリアは不要になるため削除を検討。",type:"改善",category:"UI改善",priority:"高"},
+{ id:"FLW-03",screen:"画面遷移図",screenShort:"遷移図",no:3,title:"操作フロー凡例が不明確",detail:"操作フロー下部の「開始」「通常」「終了NG」の意味がわかりづらい。凡例の説明を追加または表現を見直す",type:"改善",category:"UX改善",priority:"低"},
+{ id:"ISS-01",screen:"課題一覧",screenShort:"課題一覧",no:1,title:"レビュー進捗ダッシュボードエリアを削除",detail:"レビュー進捗ダッシュボードのエリアは不要。課題一覧と直接関連しない情報のため削除を検討",type:"改善",category:"UI整理",priority:"中"},
+{ id:"ISS-02",screen:"課題一覧",screenShort:"課題一覧",no:2,title:"編集ボタンが効かない",detail:"編集ボタンをクリックしても反応なし（無反応）",type:"バグ",category:"ボタン無反応",priority:"高"},
+];
+
+const PRIORITY_CONFIG={
+高:{bg:"bg-red-100",text:"text-red-700",border:"border-red-300",dot:"bg-red-500"},
+中:{bg:"bg-amber-100",text:"text-amber-700",border:"border-amber-300",dot:"bg-amber-500"},
+低:{bg:"bg-sky-100",text:"text-sky-700",border:"border-sky-300",dot:"bg-sky-500"}
+};
+
+const TYPE_CONFIG={
+バグ:{bg:"bg-rose-500",text:"text-white"},
+改善:{bg:"bg-indigo-500",text:"text-white"},
+機能追加:{bg:"bg-emerald-500",text:"text-white"}
+};
+
+const SCREENS=["すべて","レビュー進捗ダッシュボード","作業タイムライン","画面一覧","画面遷移図","課題一覧"];
+const TYPES=["すべて","バグ","改善","機能追加"];
+
+let screenFilter="すべて";
+let typeFilter="すべて";
+let expanded=null;
+
+function render(){
+const filtered=issues.filter(i=>
+(screenFilter==="すべて"||i.screen===screenFilter)&&
+(typeFilter==="すべて"||i.type===typeFilter)
+);
+
+const stats={
+total:issues.length,
+bug:issues.filter(i=>i.type==="バグ").length,
+improve:issues.filter(i=>i.type==="改善").length,
+feature:issues.filter(i=>i.type==="機能追加").length,
+high:issues.filter(i=>i.priority==="高").length
+};
+
+document.getElementById("app").innerHTML=`
+<div class="mb-8">
+<div class="flex items-center gap-3 mb-2">
+<span class="text-2xl">🐛</span>
+<h1 class="text-2xl font-bold text-white tracking-tight">ログサーバシステム 不具合・改善課題一覧</h1>
+</div>
+<p class="text-slate-400 text-sm pl-10">TLog ハンドオフシステム v2.0 — 2026年2月27日時点</p>
+</div>
+
+<div class="grid grid-cols-2 gap-3 mb-8 sm:grid-cols-5">
+${[
+{label:"合計",value:stats.total,color:"text-white"},
+{label:"バグ",value:stats.bug,color:"text-rose-400"},
+{label:"改善",value:stats.improve,color:"text-indigo-400"},
+{label:"機能追加",value:stats.feature,color:"text-emerald-400"},
+{label:"優先度：高",value:stats.high,color:"text-red-400"}
+].map(s=>`
+<div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col items-center">
+<span class="text-3xl font-bold ${s.color}">${s.value}</span>
+<span class="text-slate-400 text-xs mt-1">${s.label}</span>
+</div>`).join("")}
+</div>
+
+<div class="flex flex-wrap gap-3 mb-6">
+<div class="flex flex-wrap gap-2">
+<span class="text-slate-400 text-xs self-center mr-1">画面：</span>
+${SCREENS.map(s=>`
+<button onclick="screenFilter='${s}';render()"
+class="px-3 py-1 rounded-full text-xs font-medium ${screenFilter===s?"bg-indigo-600 text-white":"bg-slate-800 text-slate-400 hover:bg-slate-700"}">${s}</button>`).join("")}
+</div>
+
+<div class="flex flex-wrap gap-2 items-center">
+<span class="text-slate-400 text-xs self-center mr-1">種別：</span>
+${TYPES.map(t=>`
+<button onclick="typeFilter='${t}';render()"
+class="px-3 py-1 rounded-full text-xs font-medium ${typeFilter===t?"bg-violet-600 text-white":"bg-slate-800 text-slate-400 hover:bg-slate-700"}">${t}</button>`).join("")}
+</div>
+</div>
+
+<p class="text-slate-500 text-xs mb-4">${filtered.length}件 表示中</p>
+
+<div class="space-y-3">
+${filtered.map(issue=>{
+const pr=PRIORITY_CONFIG[issue.priority];
+const tp=TYPE_CONFIG[issue.type];
+const isOpen=expanded===issue.id;
+return `
+<div onclick="expanded='${isOpen?"":issue.id}';render()"
+class="bg-slate-900 border rounded-xl overflow-hidden transition-all cursor-pointer ${isOpen?"border-indigo-500":"border-slate-800 hover:border-slate-600"}">
+<div class="p-4 flex items-start gap-4">
+<div class="w-2 h-2 rounded-full mt-2 ${pr.dot}"></div>
+<div class="flex-1 min-w-0">
+<div class="flex flex-wrap items-center gap-2 mb-1">
+<span class="text-slate-500 text-xs font-mono">${issue.id}</span>
+<span class="px-2 py-0.5 rounded text-xs font-medium ${tp.bg} ${tp.text}">${issue.type}</span>
+<span class="px-2 py-0.5 rounded text-xs border ${pr.bg} ${pr.text} ${pr.border}">優先度：${issue.priority}</span>
+<span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-400">${issue.screen}</span>
+</div>
+<p class="text-white font-semibold text-sm">② ${issue.no}. ${issue.title}</p>
+</div>
+<span class="text-slate-500 text-sm ml-2 mt-1">${isOpen?"▲":"▼"}</span>
+</div>
+
+${isOpen?`
+<div class="px-4 pb-4 pt-0">
+<div class="ml-6 border-t border-slate-800 pt-3">
+<p class="text-xs text-slate-400 mb-1 uppercase tracking-widest">詳細・対応内容</p>
+<p class="text-slate-200 text-sm leading-relaxed">${issue.detail}</p>
+<div class="mt-3 flex flex-wrap gap-2">
+<span class="text-xs text-slate-500">カテゴリ：</span>
+<span class="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded">${issue.category}</span>
+</div>
+</div>
+</div>`:""}
+</div>`}).join("")}
+</div>
+
+${filtered.length===0?`<div class="text-center text-slate-500 py-16">該当する課題はありません</div>`:""}
+
+<p class="text-center text-slate-700 text-xs mt-10">TLog Issue Tracker — 不具合.xlsx より自動生成</p>
+`;
+}
+
+render();
+</script>
+</body>
+</html>

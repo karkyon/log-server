@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>generate-review.js 進捗サマリー</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+
+:root {
+  --bg:       #0b0f1a;
+  --surface:  #111827;
+  --surface2: #1c2535;
+  --border:   #2a3548;
+  --text:     #e2e8f0;
+  --muted:    #64748b;
+  --green:    #10b981;
+  --green-bg: #052e16;
+  --red:      #f43f5e;
+  --red-bg:   #1f0a0d;
+  --amber:    #f59e0b;
+  --amber-bg: #1c1208;
+  --blue:     #38bdf8;
+  --blue-bg:  #0c1d2e;
+  --purple:   #a78bfa;
+  --purple-bg:#160e2e;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Noto Sans JP', sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  padding:32px 24px;
+}
+
+/* ── HEADER ── */
+.hdr{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  flex-wrap:wrap;gap:16px;
+  margin-bottom:28px;
+  padding-bottom:20px;
+  border-bottom:1px solid var(--border);
+}
+.hdr-title{
+  font-size:22px;font-weight:900;letter-spacing:-.5px;color:#fff;
+}
+.hdr-title span{color:var(--green);}
+.hdr-sub{font-size:12px;color:var(--muted);margin-top:4px;font-family:var(--mono);}
+
+/* ── STATS ROW ── */
+.stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px;}
+.stat-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 20px;
+  min-width:110px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.stat-box::before{
+  content:'';position:absolute;inset:0;
+  border-radius:10px;opacity:.08;
+}
+.stat-box.green::before{background:var(--green);}
+.stat-box.red::before{background:var(--red);}
+.stat-box.amber::before{background:var(--amber);}
+.stat-box.gray::before{background:#94a3b8;}
+.stat-num{font-size:30px;font-weight:900;line-height:1;font-family:var(--mono);}
+.stat-box.green .stat-num{color:var(--green);}
+.stat-box.red   .stat-num{color:var(--red);}
+.stat-box.amber .stat-num{color:var(--amber);}
+.stat-box.gray  .stat-num{color:#94a3b8;}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:.4px;}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:8px;margin-bottom:20px;}
+.tab-btn{
+  padding:8px 18px;border-radius:8px;border:1px solid var(--border);
+  background:var(--surface);color:var(--muted);font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .18s;font-family:var(--sans);letter-spacing:.3px;
+}
+.tab-btn:hover{background:var(--surface2);color:var(--text);}
+.tab-btn.active-green{background:var(--green-bg);border-color:var(--green);color:var(--green);}
+.tab-btn.active-red{background:var(--red-bg);border-color:var(--red);color:var(--red);}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead tr{background:var(--surface2);}
+th{
+  padding:10px 14px;text-align:left;font-weight:700;color:var(--muted);
+  letter-spacing:.6px;font-size:10px;text-transform:uppercase;white-space:nowrap;
+  border-bottom:1px solid var(--border);
+}
+td{
+  padding:10px 14px;border-bottom:1px solid var(--border);
+  vertical-align:top;
+}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:nth-child(even){background:rgba(255,255,255,.015);}
+tbody tr:hover{background:rgba(255,255,255,.03);}
+
+/* ── BADGES ── */
+.badge{
+  display:inline-block;padding:2px 8px;border-radius:100px;
+  font-size:10px;font-weight:700;white-space:nowrap;
+}
+.area-tl   {background:#1e3a5f;color:#7dd3fc;}
+.area-flow {background:#052e16;color:#6ee7b7;}
+.area-iss  {background:#1f0a0d;color:#fca5a5;}
+.area-pat  {background:#2d1b69;color:#c4b5fd;}
+.area-all  {background:#1e293b;color:#94a3b8;}
+.area-log  {background:#1c1208;color:#fcd34d;}
+.area-impl {background:#1a1208;color:#fb923c;}
+.area-scr  {background:#134e4a;color:#5eead4;}
+
+.prio-high  {background:var(--red-bg);color:var(--red);border:1px solid #7f1d1d;}
+.prio-mid   {background:var(--amber-bg);color:var(--amber);border:1px solid #78350f;}
+.prio-low   {background:var(--blue-bg);color:var(--blue);border:1px solid #0c4a6e;}
+
+.type-bug   {background:#9f1239;color:#fce7f3;}
+.type-feat  {background:#065f46;color:#d1fae5;}
+.type-impr  {background:#1e1b4b;color:#c7d2fe;}
+.type-lack  {background:#581c87;color:#e9d5ff;}
+.type-impl  {background:#7c2d12;color:#fed7aa;}
+
+.id-resolved{font-family:var(--mono);font-size:11px;color:var(--green);}
+.id-pending {font-family:var(--mono);font-size:11px;color:var(--red);}
+
+.check{color:var(--green);margin-right:5px;}
+.commit-tag{
+  font-family:var(--mono);font-size:9px;color:var(--muted);
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:4px;padding:1px 6px;display:inline-block;margin-top:3px;
+}
+
+.detail-text{color:var(--muted);line-height:1.6;max-width:340px;}
+.title-text{font-weight:700;color:var(--text);}
+
+/* ── FILTER ROW ── */
+.filter-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+.filter-row label{font-size:11px;color:var(--muted);}
+select{
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);font-size:11px;border-radius:6px;padding:4px 8px;
+  font-family:var(--sans);cursor:pointer;
+}
+.filter-count{font-size:11px;color:var(--muted);margin-left:4px;font-family:var(--mono);}
+
+/* ── NEXT ACTIONS ── */
+.next-box{
+  margin-top:20px;background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:18px 20px;
+}
+.next-box h3{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;}
+.next-list{list-style:none;counter-reset:steps;}
+.next-list li{
+  counter-increment:steps;
+  display:flex;align-items:flex-start;gap:10px;
+  padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;
+}
+.next-list li:last-child{border-bottom:none;}
+.next-list li::before{
+  content:counter(steps);
+  display:flex;align-items:center;justify-content:center;
+  width:20px;height:20px;border-radius:50%;
+  background:var(--surface2);border:1px solid var(--border);
+  font-family:var(--mono);font-size:10px;font-weight:700;color:var(--muted);
+  flex-shrink:0;margin-top:1px;
+}
+.next-em-red{color:var(--red);font-weight:700;}
+.next-em-amb{color:var(--amber);font-weight:700;}
+.next-em-ora{color:#fb923c;font-weight:700;}
+
+/* hidden */
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <div class="hdr-title">📊 <span>generate-review.js</span> 進捗サマリー</div>
+    <div class="hdr-sub">タイムライン・画面遷移図リファクタリング — 2026/03/01 時点</div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat-box green">
+    <div class="stat-num" id="cnt-resolved">11</div>
+    <div class="stat-lbl">✅ 解決済み</div>
+  </div>
+  <div class="stat-box red">
+    <div class="stat-num" id="cnt-high">3</div>
+    <div class="stat-lbl">🔴 残り 高優先度</div>
+  </div>
+  <div class="stat-box amber">
+    <div class="stat-num" id="cnt-mid">4</div>
+    <div class="stat-lbl">🟡 残り 中優先度</div>
+  </div>
+  <div class="stat-box gray">
+    <div class="stat-num" id="cnt-low">3</div>
+    <div class="stat-lbl">🟢 残り 低優先度</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active-green" onclick="switchTab('resolved',this)">✅ 解決済み (11)</button>
+  <button class="tab-btn" onclick="switchTab('pending',this)">🔴 残課題 (10)</button>
+</div>
+
+<!-- ═══ RESOLVED ═══ -->
+<div id="tab-resolved" class="tab-content active">
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>エリア</th>
+          <th>解決内容</th>
+          <th>詳細</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="id-resolved">TIM-01</span></td>
+          <td><span class="badge area-tl">タイムライン</span></td>
+          <td>
+            <div class="title-text"><span class="check">✅</span>TL_COLS 動的計算 + リサイズ対応</div>
+            <div class="commit-tag">fix: タイムライン蛇行レイアウト実装</div>
+          </td>
+          <td class="detail-text">固定6列 → SLOT=180px ベースで自動計算。window resize イベントで再描画。</td>
+        </tr>
+        <tr>
+          <td><span class="id-resolved">TIM-02</span></td>
+          <td><span class="badge area-tl">タイムライン</span></td>
+          <td>
+            <div class="title-text"><span class="check">✅</span>蛇行レイアウト実装（RTL/LTR 交互）</div>
+            <div class="commit-tag">fix: タイムライン蛇行レイアウト実装（flow図と同構造）</div>
+          </td>
+          <td class="detail-text">.tl-row / .tl-row.rtl CSS + flex-direction:row-reverse で flow 図と同構造に統一。</td>
+        </tr>
+        <tr>
+          <td><span class="id-resolved">TIM-03</span></td>
+          <td><span class="badge area-tl">タイムライン</span></td>
+          <td>
+            <div class="title-text"><span class="check">✅</span>矢印 CSS 対応（RTL 矢印方向）</div>
+            <div class="commit-tag">fix: タイムライン蛇行レイアウト実装</div>
+          </td>
+          <td class="detail-text">.tl-arrow / .tl-arrow-line / .tl-row.rtl .tl-arrow-line::after で RTL 行の矢印を左向きに修正。</td>
+        </tr>
+        <tr>
+          <td><span class="id-resolved">TIM-04</span></td>
+          <td><span class="badge area-tl">タイムライン</span></td>
+          <td>
+            <div class="title-text"><span class="check">✅</span>U-turn 接続（LTR → RTL 行間）</div>
+            <div class="commit-tag">fix: タイムライン U-turn U字型接続</div>
+          </td>
+          <td class="detail-text">isRtl ? 60 : (containerW-60) で左右エッジを計算し垂直線＋矢印を正確配置。</td>
+        </tr>
+        <tr>
+          <td><span class="id-resolved">TIM-05</span></td>
+          <td><span class="badge area-tl">タイムライン</span> <span class="badge area-flow">遷移図</span></td>
+          <td>
+            <div class="title-text"><span class="check">✅</span>最小列数 2 設定（ジグザグ防止）</div>
+            <div class="commit-tag">fix: タイムライン・遷移図の最小列数を2に設定</div>
+          </td>
+          <td class="detail-text">Math.max(1,…) → Math.max(2,…) に変更。1列時の RTL 矢印逆向き問題を解消。</td>
+        </tr>
+        <tr>
+          <td><span class="id-resolved">TIM-06</span></td>
+          <td><span class="badge area-tl">タイムライン</span></td>
+          <td>
+            <div class="title-text"><span class="check">✅</span>space-between 競合除去</div>
+            <div class="commit-tag">fix: space-between除去・arrow flex伸縮</div>
+          </td>
+          <td class="detail-text">justify-content:space-between と flex:1 1 0 矢印の競合を除去。align-items:flex-start に変更。</td>
+        </tr>
+        <tr>
+          <td><span class="id-resolved">FLW-02</span></td>
+          <td><span class="badge area-flow">遷移図</span></td>
+          <td>
+            <div class="title-text"><span class="check">✅</span>操作フロー可視性改善（SS サムネイル表示）</div>
+            <div class="commit-tag">fix: renderFlowPage完全置換(flow-node構造統一)</div>
+          </td>
+          <td class="detail-text">seq ブロック内にサムネイル(60px)を追加。flow-box-thumb / flow-box-content 構造に整理。</td>
+        </tr>
+        <tr>
+          <td><span class="id-resolved">FLW-04</span></td>
+          <td><span class="badge area-flow">遷移図</span></td>
+          <td>
+            <div class="title-text"><span class="check">✅</span>initFlowPage テンプレートリテラル化</div>
+            <div class="commit-tag">fix: initFlowPage をtemplate実装</div>
+          </td>
+          <td class="detail-text">renderFlowScript() を lines 配列から独立テンプレートリテラルに変更しエスケープ問題を完全回避。</td>
+        </tr>
+        <tr>
+          <td><span class="id-resolved">FLW-05</span></td>
+          <td><span class="badge area-flow">遷移図</span></td>
+          <td>
+            <div class="title-text"><span class="check">✅</span>FLOW_PAGE_DATA 埋め込み＆動的レンダリング</div>
+            <div class="commit-tag">fix: FLOW_PAGE_DATA埋め込み</div>
+          </td>
+          <td class="detail-text">サーバー側でデータ JSON 生成 → クライアントで initFlowPage() が列数に応じて動的描画。リサイズ対応。</td>
+        </tr>
+        <tr>
+          <td><span class="id-resolved">V3-A</span></td>
+          <td><span class="badge area-all">全体</span></td>
+          <td>
+            <div class="title-text"><span class="check">✅</span>v3.1 SyntaxError 修正（script 分離）</div>
+            <div class="commit-tag">fix: SyntaxError解消 v3.1</div>
+          </td>
+          <td class="detail-text">&lt;script&gt; を renderTimelinePage / WorkPatternsPage から除去。全 JS を renderScript() 1箇所に集約。safeJson() 追加。</td>
+        </tr>
+        <tr>
+          <td><span class="id-resolved">V3-B</span></td>
+          <td><span class="badge area-all">全体</span></td>
+          <td>
+            <div class="title-text"><span class="check">✅</span>openSsModal() DOM API 化</div>
+            <div class="commit-tag">fix: openSsModal DOM API化</div>
+          </td>
+          <td class="detail-text">innerHTML + onerror 属性 → DOM API (createElement) に変更。二重エスケープ SyntaxError 解消。</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ PENDING ═══ -->
+<div id="tab-pending" class="tab-content">
+
+  <!-- Filter -->
+  <div class="filter-row">
+    <label>エリア:</label>
+    <select id="filter-area" onchange="applyFilter()">
+      <option value="">すべて</option>
+      <option>タイムライン</option>
+      <option>画面遷移図</option>
+      <option>課題一覧</option>
+      <option>作業パターン</option>
+      <option>ロガー</option>
+      <option>全体</option>
+      <option>複数画面</option>
+      <option>画面一覧</option>
+      <option>TLogロガー</option>
+    </select>
+    <label>優先度:</label>
+    <select id="filter-prio" onchange="applyFilter()">
+      <option value="">すべて</option>
+      <option value="高">🔴 高</option>
+      <option value="中">🟡 中</option>
+      <option value="低">🟢 低</option>
+    </select>
+    <span class="filter-count" id="filter-count">10 件表示</span>
+  </div>
+
+  <div class="tbl-wrap">
+    <table id="pending-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>エリア</th>
+          <th>種別</th>
+          <th>優先度</th>
+          <th>課題内容</th>
+          <th>詳細・対策</th>
+        </tr>
+      </thead>
+      <tbody id="pending-tbody">
+        <!-- JS で描画 -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Next Actions -->
+  <div class="next-box">
+    <h3>🎯 推奨次アクション（優先順位順）</h3>
+    <ol class="next-list">
+      <li><span>
+        <span class="next-em-red">バグ修正（高）:</span>
+        課題一覧・作業パターンの編集ボタン無反応を修正 — data-id 属性＋イベント委譲に変更
+      </span></li>
+      <li><span>
+        <span class="next-em-red">バグ修正（高）:</span>
+        タイムライン「作業パターン登録」ボタンの renderTimelinePage 内ゴミコード除去
+      </span></li>
+      <li><span>
+        <span class="next-em-amb">機能追加（中）:</span>
+        window.onerror / addEventListener('error') で JS エラーを jsonl に記録
+      </span></li>
+      <li><span>
+        <span class="next-em-amb">改善（中）:</span>
+        各ページのダッシュボードエリア削除（SCR-01）
+      </span></li>
+      <li><span>
+        <span class="next-em-ora">実装（高）:</span>
+        残り 17 画面への TLog 展開
+      </span></li>
+    </ol>
+  </div>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────
+var PENDING_DATA = [
+  { id:'ISS-02', area:'課題一覧',    type:'バグ',    prio:'高',
+    title:'課題一覧 編集ボタン（✏️）が無反応',
+    detail:'renderIssueTable()生成HTMLの編集ボタンをクリックしても openIssueEditModal()が呼ばれない。data-iss-k属性とイベント委譲の確認が必要。' },
+  { id:'I-02',  area:'作業パターン',type:'バグ',    prio:'高',
+    title:'作業パターン 編集・削除ボタン無反応',
+    detail:'renderPatternList()のHTMLボタン onclick属性エスケープが壊れている可能性。data-id属性 + addEventListener によるイベント委譲に変更が必要。' },
+  { id:'TIM-07',area:'タイムライン', type:'バグ',    prio:'高',
+    title:'「作業パターンとして登録」ボタンにゴミコード混入',
+    detail:"renderTimelinePage()内にシングルクォートのゴミコードが残存。HTMLとして壊れているためボタンが正常にレンダリングされない。" },
+  { id:'IMPL-01',area:'TLogロガー', type:'実装',    prio:'高',
+    title:'残り 17 画面への TLog 実装',
+    detail:'現在実装済みは MC_PRODUCTS_LIST・MC_OPERATOR_AUTHENTICATION の 2 画面のみ。残り17画面へ TLog.screenLoad() / TLogAutoInstrument.init() の展開が必要。' },
+  { id:'I-04',  area:'ロガー',      type:'機能不足',prio:'中',
+    title:'JS エラー・警告が .jsonl に記録されない',
+    detail:'window.onerror / window.addEventListener(\'error\') が未設定。adjustFixedList4onLoadImage ReferenceError などの未捕捉エラーがログに残らない。' },
+  { id:'I-05',  area:'ロガー',      type:'機能不足',prio:'中',
+    title:'html2canvas 404 エラーが記録されない',
+    detail:'リソース読み込みエラーは console.error オーバーライドでは捕捉不可。addEventListener(\'error\', fn, true) でキャプチャフェーズから捕捉する必要あり。' },
+  { id:'SCR-01',area:'複数画面',    type:'改善',    prio:'中',
+    title:'各ページのダッシュボードエリア削除',
+    detail:'画面一覧・画面遷移図・課題一覧の各ページ上部にある「レビュー進捗ダッシュボード」エリアは不要。削除してページをシンプル化。' },
+  { id:'SCR-02',area:'画面一覧',    type:'機能追加',prio:'中',
+    title:'概要テキストをインライン編集可能に',
+    detail:'画面概要の説明文をインライン or モーダルで編集し localStorage に保存する機能。現状は固定表示のみ。' },
+  { id:'FLW-03',area:'画面遷移図',  type:'改善',    prio:'低',
+    title:'操作フロー凡例の不明確さ',
+    detail:'「開始・通常・終了/NG」の凡例がわかりづらい。各状態の意味をテキスト補足するか表現を見直し。' },
+  { id:'I-07',  area:'全体',        type:'改善',    prio:'低',
+    title:'localStorage 制約の周知',
+    detail:'作業パターン・判定データはブラウザ localStorage に保存。別PC/別ブラウザ/シークレットで消える旨を UI 上部に警告表示する。' },
+];
+
+// ─── BADGE HELPERS ──────────────────────────────────────────
+var AREA_CLS = {
+  'タイムライン':'area-tl','画面遷移図':'area-flow','課題一覧':'area-iss',
+  '作業パターン':'area-pat','全体':'area-all','ロガー':'area-log',
+  'TLogロガー':'area-impl','複数画面':'area-all','画面一覧':'area-scr',
+};
+var TYPE_CLS  = { 'バグ':'type-bug','機能追加':'type-feat','改善':'type-impr','機能不足':'type-lack','実装':'type-impl' };
+var PRIO_CLS  = { '高':'prio-high','中':'prio-mid','低':'prio-low' };
+var PRIO_ICO  = { '高':'🔴','中':'🟡','低':'🟢' };
+
+function badge(cls, text){ return '<span class="badge '+cls+'">'+text+'</span>'; }
+
+// ─── RENDER ─────────────────────────────────────────────────
+function renderPending(data) {
+  var tbody = document.getElementById('pending-tbody');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#64748b;">該当なし</td></tr>';
+    document.getElementById('filter-count').textContent = '0 件表示';
+    return;
+  }
+  var html = '';
+  data.forEach(function(p) {
+    html += '<tr>'
+      + '<td>' + badge('id-pending', p.id) + '</td>'
+      + '<td>' + badge(AREA_CLS[p.area]||'area-all', p.area) + '</td>'
+      + '<td>' + badge(TYPE_CLS[p.type]||'type-impr', p.type) + '</td>'
+      + '<td>' + badge(PRIO_CLS[p.prio], PRIO_ICO[p.prio]+' '+p.prio) + '</td>'
+      + '<td class="title-text">' + p.title + '</td>'
+      + '<td class="detail-text">' + p.detail + '</td>'
+      + '</tr>';
+  });
+  tbody.innerHTML = html;
+  document.getElementById('filter-count').textContent = data.length + ' 件表示';
+}
+
+function applyFilter() {
+  var a = document.getElementById('filter-area').value;
+  var p = document.getElementById('filter-prio').value;
+  var filtered = PENDING_DATA.filter(function(d) {
+    return (!a || d.area === a) && (!p || d.prio === p);
+  });
+  renderPending(filtered);
+}
+
+// ─── TABS ───────────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(function(el){ el.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.className='tab-btn'; });
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add(id==='resolved'?'active-green':'active-red');
+}
+
+// ─── INIT ────────────────────────────────────────────────────
+renderPending(PENDING_DATA);
+</script>
+</body>
+</html>

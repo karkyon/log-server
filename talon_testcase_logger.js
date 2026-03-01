@@ -5,7 +5,7 @@
 })();
 
 /* ============================================================
-   TLog + 自動計装 オールインワン v2.3
+   TLog + 自動計装 オールインワン v2.4
     目的:
       テスト実行中のユーザ操作・画面状態・JS例外を包括的に記録するクライアントサイドロガー。
       画面ごとに TLog.screenLoad() と TLogAutoInstrument.init() を呼び出すだけで
@@ -33,6 +33,9 @@
      v2.3 - [追加] window.onerror を CONSOLE_SERVER にも送信 (I-04対応)
             [追加] window.addEventListener('error', fn, true) でリソースエラーを捕捉 (I-05対応)
             [改善] serialized シリアライザを Error/Element/循環参照に対応強化
+     v2.4 - [追加] TLogAutoInstrument の _setupConsoleCapture() 内で window.onerror をラップして CONSOLE_SERVER にも送信するよう修正
+                   （これにより JS エラーが .console.jsonl にも記録され、レビューツールの Console 表示で確認できるようになる）
+            [追加] リソース読み込みエラー捕捉を追加
    ============================================================ */
 window.TLog = window.TLog || (function () {
 
@@ -231,6 +234,36 @@ window.TLog = window.TLog || (function () {
         detail   : detail || {},
         ts       : new Date().toISOString()
       });
+    },
+
+    bootstrap: function (opts) {
+
+      opts = opts || {};   // ← ここ重要（undefined対策）
+
+      function getTextSafe(id) {
+        const el = document.getElementById(id);
+        if (!el) return '';
+        if ('value' in el) return el.value;
+        return el.textContent?.trim() || '';
+      }
+
+      const screenId   = getTextSafe('TAISHO_VIEW_HDN') || 'UNKNOWN';
+      const screenName = getTextSafe('function_title')  || 'UNKNOWN';
+
+      // screenMode が無い場合は auto 判定 or unknown
+      const screenMode = opts.screenMode || 'unknown';
+
+      this.setContext(screenId, {
+        ...opts,
+        screenMode : screenMode,
+        screenTitle: screenName
+      });
+
+      this.screenLoad(screenId, screenName);
+
+      if (window.TLogAutoInstrument) {
+        TLogAutoInstrument.init(screenId, { screenMode });
+      }
     }
   };
 
@@ -356,6 +389,13 @@ window.TLogAutoInstrument = window.TLogAutoInstrument || (function () {
 
       console[level] = function (...args) {
         native(...args);   // ① 元の console 動作はそのまま維持（DevTools に出力される）
+
+        // ── 無限ループ防止 (v2.3追加) ──────────────────────────────────────
+        // /consolelog や /log へのfetch失敗が console.error に出力され
+        // 再びキャプチャ→送信→500→... の無限ループになるのを防ぐ。
+        // サーバーURL文字列を含む出力は記録をスキップする。
+        if (args.some(a => typeof a === 'string' && a.includes('192.168.1.11:3099'))) return;
+        // ──────────────────────────────────────────────────────────────────
 
         // ② args をシリアライズ
         //    - 文字列・数値・真偽値はそのまま
@@ -650,7 +690,6 @@ function resizeContents_end() {
     */
   
   // ロガー初期化
-  TLog.screenLoad('MC_SCREENNAME', 'XXXXXXXXXXXXXX');
-  TLogAutoInstrument.init('MC_SCREENNAME', { screenMode: 'auth' });
+  TLog.bootstrap({ screenMode: '***' });
 
 }
