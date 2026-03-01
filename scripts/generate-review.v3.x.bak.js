@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// scripts/generate-review.js  v4.0
+// scripts/generate-review.js  v3.2
 // ============================================================
 // 変更履歴:
 //   v3.0 - .console除外 / consoleLogs統合 / タイムライン / 作業パターン
@@ -16,15 +16,6 @@
 'use strict';
 const fs   = require('fs');
 const path = require('path');
-require('dotenv').config();
-const {
-  loadLogsFromDB,
-  loadConsoleLogsFromDB,
-  loadScreenshotsFromDB,
-  loadFeatureIdsFromDB,
-  loadProjectFromDB
-} = require('./db-loader');
-const { prisma } = require('../lib/prisma');
 
 const LOGS_DIR    = path.join(__dirname, '..', 'logs', 'features');
 const SS_DIR      = path.join(__dirname, '..', 'logs', 'screenshots');
@@ -1744,56 +1735,25 @@ ${renderScript(fids, allLogs, allShots, issData, allSeqs)}
 // ─────────────────────────────────────────────────────────────
 // メイン
 // ─────────────────────────────────────────────────────────────
-// ============================================================
-// main() v4.0 — PostgreSQL(Prisma) からデータを読み込む
-// ============================================================
-async function main() {
-  const PROJECT_ID = parseInt(process.env.PROJECT_ID || '1', 10);
+function main() {
+  const allLogs        = loadLogs();
+  const allConsoleLogs = loadConsoleLogs();
+  const allShots       = loadScreenshots();
+  const issData        = loadIssues();
+  const fids           = Object.keys(allLogs).sort();
 
-  console.log('[generate-review v4.0] 開始 PROJECT_ID=' + PROJECT_ID);
+  if (!fids.length) console.warn('[generate-review v3.1] ログファイルが見つかりません。');
+  console.log('[generate-review v3.1] 画面:', fids.join(', ') || 'なし');
 
-  // DB からプロジェクト情報取得
-  const project = await loadProjectFromDB(PROJECT_ID);
-  if (!project) {
-    console.error('[ERROR] プロジェクトID ' + PROJECT_ID + ' が見つかりません');
-    process.exit(1);
+  const clFids = Object.keys(allConsoleLogs);
+  if (clFids.length) {
+    console.log('[generate-review v3.1] コンソールログ:', clFids.map(f => f + '(' + allConsoleLogs[f].length + '件)').join(', '));
   }
-  console.log('  プロジェクト:', project.name);
 
-  // DB からデータを並列取得
-  const [allLogs, allConsoleLogs, allShots] = await Promise.all([
-    loadLogsFromDB(PROJECT_ID),
-    loadConsoleLogsFromDB(PROJECT_ID),
-    loadScreenshotsFromDB(PROJECT_ID)
-  ]);
-
-  // featureId 一覧: ログあり画面 + DB画面マスタを統合
-  const logFids    = Object.keys(allLogs).filter(k => allLogs[k].length > 0);
-  const masterFids = await loadFeatureIdsFromDB(PROJECT_ID);
-  const fids       = [...new Set([...logFids, ...masterFids])].sort();
-
-  if (!fids.length) console.warn('[generate-review v4.0] ログが見つかりません');
-  console.log('[generate-review v4.0] 画面:', fids.join(', ') || 'なし');
-  console.log('  ログあり画面:', logFids.length, '/ 合計:', fids.length);
-
-  // issues.json は引き続きファイルから読み込み（Step 4 以降でDB化予定）
-  const issData = loadIssues();
-
-  // buildHtml に渡す（シグネチャは変更なし）
-  // function buildHtml(fids, allLogs, allShots, issData, allConsoleLogs)
   const html = buildHtml(fids, allLogs, allShots, issData, allConsoleLogs);
-
   fs.mkdirSync(OUT_DIR, { recursive: true });
   fs.writeFileSync(OUT_FILE, html, 'utf8');
-
-  const kb = (Buffer.byteLength(html, 'utf8') / 1024).toFixed(1);
-  console.log('[generate-review v4.0] 完了:', OUT_FILE, '(' + kb + ' KB)');
-
-  await prisma.$disconnect();
+  console.log('[generate-review v3.1] 完了: ' + OUT_FILE + ' (' + (Buffer.byteLength(html, 'utf8') / 1024).toFixed(1) + ' KB)');
 }
 
-main().catch(e => {
-  console.error('[ERROR]', e.message);
-  prisma.$disconnect().catch(() => {});
-  process.exit(1);
-});
+main();
