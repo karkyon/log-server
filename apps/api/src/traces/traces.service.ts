@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { CreateIssueDto } from './create-issue.dto';
 import { CreatePatternDto } from './create-pattern.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateIssueDto } from './create-issue.dto';
 
 @Injectable()
 export class TracesService {
