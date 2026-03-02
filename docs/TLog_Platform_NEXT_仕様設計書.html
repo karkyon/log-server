@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>TLog Platform NEXT — 仕様設計書 v1.0</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --border: #1e2d45;
+  --accent: #3b82f6;
+  --accent2: #06b6d4;
+  --accent3: #8b5cf6;
+  --success: #10b981;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --mono: 'IBM Plex Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans JP', sans-serif; font-size: 14px; line-height: 1.7; }
+
+/* ─── HEADER ─── */
+.hero {
+  background: linear-gradient(135deg, #0a0e1a 0%, #0f1f3d 50%, #0a0e1a 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 60px 60px 48px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.12) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, rgba(6,182,212,0.08) 0%, transparent 50%);
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  border-radius: 20px; padding: 4px 14px;
+  font-family: var(--mono); font-size: 11px; color: var(--accent2);
+  margin-bottom: 20px; position: relative;
+}
+.hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); animation: blink 2s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.hero h1 { font-family: 'Syne', sans-serif; font-size: 42px; font-weight: 800; line-height: 1.1; position: relative; margin-bottom: 10px; }
+.hero h1 span { color: var(--accent); }
+.hero-sub { font-size: 15px; color: var(--text2); position: relative; margin-bottom: 28px; }
+.hero-meta { display: flex; gap: 24px; position: relative; }
+.hero-meta-item { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+.hero-meta-item strong { color: var(--text2); }
+
+/* ─── LAYOUT ─── */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 60px; }
+.toc-bar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 60px; display: flex; gap: 0; overflow-x: auto;
+  position: sticky; top: 0; z-index: 10;
+}
+.toc-bar a {
+  display: block; padding: 14px 18px;
+  font-family: var(--mono); font-size: 11px; color: var(--text3);
+  text-decoration: none; border-bottom: 2px solid transparent;
+  white-space: nowrap; transition: all 0.2s;
+}
+.toc-bar a:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ─── SECTIONS ─── */
+.section { padding: 60px 0; border-bottom: 1px solid var(--border); }
+.section-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
+  color: var(--accent); text-transform: uppercase; margin-bottom: 8px;
+}
+.section h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 24px; }
+.section h3 { font-size: 13px; font-weight: 700; color: var(--text2); margin: 28px 0 12px; text-transform: uppercase; letter-spacing: 1px; }
+.section h4 { font-size: 14px; font-weight: 600; margin: 20px 0 8px; color: var(--text); }
+
+/* ─── CARDS ─── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px; margin-bottom: 16px;
+}
+.card-accent { border-left: 3px solid var(--accent); }
+.card-success { border-left: 3px solid var(--success); }
+.card-warn { border-left: 3px solid var(--warn); }
+.card-purple { border-left: 3px solid var(--accent3); }
+.card-title { font-weight: 700; font-size: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.card-body { font-size: 13px; color: var(--text2); line-height: 1.8; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+/* ─── TABLE ─── */
+table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0; }
+th {
+  background: var(--surface2); padding: 10px 14px;
+  text-align: left; font-weight: 600; color: var(--text2);
+  border: 1px solid var(--border); font-size: 12px;
+}
+td { padding: 10px 14px; border: 1px solid var(--border); color: var(--text); vertical-align: top; }
+tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+/* ─── CODE ─── */
+.code-block {
+  background: #060b14; border: 1px solid var(--border); border-radius: 10px;
+  padding: 20px; font-family: var(--mono); font-size: 12px; line-height: 1.9;
+  margin: 16px 0; overflow-x: auto;
+}
+.c { color: #4a5568; }
+.k { color: #93c5fd; }
+.s { color: #6ee7b7; }
+.t { color: #fde68a; }
+.f { color: #c4b5fd; }
+.n { color: var(--accent2); }
+.m { color: var(--danger); }
+
+/* ─── FLOW DIAGRAM ─── */
+.flow-diagram {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  margin: 24px 0; padding: 24px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+}
+.flow-node {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 16px; font-size: 12px; text-align: center;
+  min-width: 120px;
+}
+.flow-node.blue { border-color: rgba(59,130,246,0.5); background: rgba(59,130,246,0.1); color: var(--accent); }
+.flow-node.cyan { border-color: rgba(6,182,212,0.5); background: rgba(6,182,212,0.1); color: var(--accent2); }
+.flow-node.green { border-color: rgba(16,185,129,0.5); background: rgba(16,185,129,0.1); color: var(--success); }
+.flow-node.purple { border-color: rgba(139,92,246,0.5); background: rgba(139,92,246,0.1); color: var(--accent3); }
+.flow-node.amber { border-color: rgba(245,158,11,0.5); background: rgba(245,158,11,0.1); color: var(--warn); }
+.flow-node small { display: block; font-size: 10px; color: var(--text3); margin-top: 2px; }
+.flow-arrow { color: var(--text3); font-size: 18px; }
+.flow-down { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 16px 0; }
+
+/* ─── BADGE ─── */
+.badge {
+  display: inline-block; border-radius: 4px; padding: 2px 8px;
+  font-size: 11px; font-family: var(--mono); font-weight: 500;
+}
+.badge-blue { background: rgba(59,130,246,0.2); color: #93c5fd; }
+.badge-green { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+.badge-warn { background: rgba(245,158,11,0.2); color: #fde68a; }
+.badge-red { background: rgba(239,68,68,0.2); color: #fca5a5; }
+.badge-purple { background: rgba(139,92,246,0.2); color: #c4b5fd; }
+.badge-cyan { background: rgba(6,182,212,0.2); color: #67e8f9; }
+
+/* ─── HIGHLIGHT BOX ─── */
+.highlight-box {
+  background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(6,182,212,0.08));
+  border: 1px solid rgba(59,130,246,0.3); border-radius: 12px;
+  padding: 20px 24px; margin: 16px 0;
+}
+.warn-box {
+  background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 10px; padding: 16px 20px; margin: 12px 0;
+  font-size: 13px; color: #fde68a;
+}
+
+/* ─── PHASE ROADMAP ─── */
+.phase {
+  display: flex; gap: 16px; align-items: flex-start; margin-bottom: 20px;
+}
+.phase-num {
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-weight: 700; font-size: 14px;
+}
+.phase-num.p1 { background: rgba(59,130,246,0.2); color: var(--accent); border: 1px solid var(--accent); }
+.phase-num.p2 { background: rgba(6,182,212,0.2); color: var(--accent2); border: 1px solid var(--accent2); }
+.phase-num.p3 { background: rgba(139,92,246,0.2); color: var(--accent3); border: 1px solid var(--accent3); }
+.phase-num.p4 { background: rgba(16,185,129,0.2); color: var(--success); border: 1px solid var(--success); }
+.phase-body { flex: 1; }
+.phase-title { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+.phase-desc { font-size: 13px; color: var(--text2); }
+.phase-items { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ─── SCREEN MOCKUP ─── */
+.mockup {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+}
+.mockup-header {
+  background: #1e293b; padding: 10px 16px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+.mockup-body { padding: 16px; font-size: 12px; }
+.mock-nav { background: #0f172a; padding: 8px 12px; display: flex; gap: 16px; align-items: center; border-bottom: 1px solid var(--border); margin: -16px -16px 16px; }
+.mock-nav-item { color: var(--text3); font-size: 11px; cursor: pointer; }
+.mock-nav-item.active { color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 2px; }
+.mock-trace-list { display: flex; flex-direction: column; gap: 6px; }
+.mock-trace-item {
+  background: #0f172a; border: 1px solid var(--border); border-radius: 6px;
+  padding: 10px 14px; display: flex; align-items: center; gap: 12px;
+}
+.mock-trace-item:hover { border-color: var(--accent); cursor: pointer; }
+.trace-id { font-family: var(--mono); font-size: 10px; color: var(--accent2); }
+.trace-info { flex: 1; }
+.trace-name { font-size: 12px; font-weight: 600; }
+.trace-meta { font-size: 10px; color: var(--text3); }
+.trace-badge { font-size: 10px; }
+
+ul.styled { list-style: none; padding: 0; }
+ul.styled li { padding: 6px 0; color: var(--text2); font-size: 13px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+ul.styled li::before { content: '→'; color: var(--accent); font-size: 10px; }
+ul.styled li:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ HERO ═══════════════════════════ -->
+<div class="hero">
+  <div class="hero-badge">DRAFT v1.0 — 2026-03-02</div>
+  <h1>TLog Platform <span>NEXT</span></h1>
+  <p class="hero-sub">マルチアプリ対応ログ収集・分析CMS — 仕様設計書</p>
+  <div class="hero-meta">
+    <div class="hero-meta-item"><strong>ステータス</strong> 構想・仕様設計フェーズ</div>
+    <div class="hero-meta-item"><strong>前バージョン</strong> TLog v3.0 (architecture_v3.html)</div>
+    <div class="hero-meta-item"><strong>対象</strong> マルチWebアプリ展開</div>
+  </div>
+</div>
+
+<nav class="toc-bar">
+  <a href="#s1">01 コンセプト</a>
+  <a href="#s2">02 現状との差分</a>
+  <a href="#s3">03 TraceID設計</a>
+  <a href="#s4">04 システムアーキテクチャ</a>
+  <a href="#s5">05 SDK設計</a>
+  <a href="#s6">06 CMS機能設計</a>
+  <a href="#s7">07 DB設計</a>
+  <a href="#s8">08 API設計</a>
+  <a href="#s9">09 画面設計</a>
+  <a href="#s10">10 ロードマップ</a>
+  <a href="#s11">11 未解決課題</a>
+</nav>
+
+<!-- ═══════════════════════════ S1: コンセプト ═══════════════════════════ -->
+<div class="container">
+<section class="section" id="s1">
+  <div class="section-label">SECTION 01</div>
+  <h2>コンセプト・解決したい課題</h2>
+
+  <div class="highlight-box">
+    <strong style="color:var(--accent2)">🎯 ONE LINE:</strong>
+    どんなWebアプリにも1ファイル組み込むだけで、ユーザーの操作ログを自動収集・蓄積し、
+    セッション単位でタイムライン分析・チケット発行できるSaaS型ログ管理CMSを構築する。
+  </div>
+
+  <h3>現在の問題点</h3>
+  <div class="grid2">
+    <div class="card card-warn">
+      <div class="card-title">⚠️ TALON専用になっている</div>
+      <div class="card-body">ロガー（talon_testcase_logger.js）がTALON固有の実装に依存しており、他のWebアプリには流用しにくい構造になっている。</div>
+    </div>
+    <div class="card card-warn">
+      <div class="card-title">⚠️ GitHubバッチ処理モデル</div>
+      <div class="card-body">ログ収集→GitHub Push→Actions実行→静的HTML生成というフローは、リアルタイム性がなく、CMSとしての操作性がない。</div>
+    </div>
+    <div class="card card-warn">
+      <div class="card-title">⚠️ プロジェクト単体管理</div>
+      <div class="card-body">1プロジェクト前提の設計。複数アプリのログを横断管理する仕組みがない。</div>
+    </div>
+    <div class="card card-warn">
+      <div class="card-title">⚠️ TraceIDが不明確</div>
+      <div class="card-body">現状のTraceIDはランダム生成で、「ユーザーの1セッション」という意味が付与されていない。ログイン/ログアウトとの連動がない。</div>
+    </div>
+  </div>
+
+  <h3>実現したい世界</h3>
+  <div class="grid3">
+    <div class="card card-accent">
+      <div class="card-title">📦 SDK化（汎用ロガー）</div>
+      <div class="card-body">1行のscript importで、TALONでも社内Webシステムでも将来のNext.jsアプリでも同じ方法でログ収集を開始できる。</div>
+    </div>
+    <div class="card card-accent">
+      <div class="card-title">🔐 CMS（ログ管理Webアプリ）</div>
+      <div class="card-body">ユーザー認証付きのWebダッシュボード。プロジェクト選択→ログ蓄積確認→TraceID単位分析→チケット発行まで一気通貫。</div>
+    </div>
+    <div class="card card-accent">
+      <div class="card-title">🔄 リアルタイム蓄積</div>
+      <div class="card-body">GitHubバッチ処理ではなく、ログはAPIサーバーに直接蓄積。CMSから即座に最新ログを参照できる。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ S2: 現状との差分 ═══════════════════════════ -->
+<section class="section" id="s2">
+  <div class="section-label">SECTION 02</div>
+  <h2>現状（TLog v3.0）との差分</h2>
+
+  <table>
+    <tr>
+      <th>比較項目</th>
+      <th>TLog v3.0（現行計画）</th>
+      <th>TLog Platform NEXT</th>
+      <th>差分の意味</th>
+    </tr>
+    <tr>
+      <td><strong>対象アプリ</strong></td>
+      <td>TALONマシニングシステム</td>
+      <td><span class="badge badge-green">任意のWebアプリ</span></td>
+      <td>SDK化による汎用化</td>
+    </tr>
+    <tr>
+      <td><strong>ログ収集方式</strong></td>
+      <td>featureId単位ファイル保存</td>
+      <td><span class="badge badge-green">TraceID + Project単位DB保存</span></td>
+      <td>セッション追跡が可能になる</td>
+    </tr>
+    <tr>
+      <td><strong>TraceIDの意味</strong></td>
+      <td>ランダムな操作グループID</td>
+      <td><span class="badge badge-green">ログイン〜ログアウト間の1セッション</span></td>
+      <td>ユーザー行動の1単位として意味を持つ</td>
+    </tr>
+    <tr>
+      <td><strong>HTML生成</strong></td>
+      <td>GitHub Actions（バッチ）</td>
+      <td><span class="badge badge-green">CMS内でリアルタイム表示</span></td>
+      <td>即時分析が可能</td>
+    </tr>
+    <tr>
+      <td><strong>ユーザー認証</strong></td>
+      <td>JWT（計画中）</td>
+      <td>JWT（CMS用 + SDK連携用）<span class="badge badge-warn">二層構造</span></td>
+      <td>CMSログイン と 監視対象アプリのログインを区別</td>
+    </tr>
+    <tr>
+      <td><strong>チケット発行</strong></td>
+      <td>Issue管理（Issue DB）</td>
+      <td><span class="badge badge-green">TraceIDから直接チケット発行</span></td>
+      <td>操作コンテキストをそのままチケットに紐付け</td>
+    </tr>
+    <tr>
+      <td><strong>DB</strong></td>
+      <td>PostgreSQL（v3計画）</td>
+      <td>PostgreSQL（継承）<span class="badge badge-green">スキーマ拡張</span></td>
+      <td>v3のスキーマをベースに拡張</td>
+    </tr>
+  </table>
+
+  <div class="warn-box">
+    ⚠️ <strong>重要認識：</strong>
+    TLog v3.0アーキテクチャ設計書（architecture_v3.html）の設計は継承・活用します。
+    NEXT版はv3.0の「プロジェクト管理・DB設計・JWT認証フロー」をベースに、
+    <strong>SDK汎用化・TraceIDセマンティクス・CMS化</strong>の3点を重点強化した発展形です。
+  </div>
+</section>
+
+<!-- ═══════════════════════════ S3: TraceID設計 ═══════════════════════════ -->
+<section class="section" id="s3">
+  <div class="section-label">SECTION 03</div>
+  <h2>TraceID（トレースID）設計 ★最重要コンセプト</h2>
+
+  <div class="highlight-box">
+    <strong style="color:var(--accent2)">TraceIDの定義：</strong>
+    監視対象Webアプリ（TALONや将来のNext.jsアプリなど）において、
+    <strong>あるユーザーがログインしてからログアウトするまでの1操作セッション</strong>を一意に識別するID。
+    ログアウト（またはセッション切断）時に自動リセットされ、次のログイン時に新しいIDが発行される。
+  </div>
+
+  <h3>TraceIDのライフサイクル</h3>
+  <div class="flow-diagram" style="flex-direction:column; align-items:flex-start;">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div class="flow-node blue">① 監視対象アプリ<br>ログイン<small>（ユーザー認証完了）</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node cyan">② SDK が TraceID 発行<br><small>proj_abc:user_xyz:2026-03-02T09:15:00:r4nd</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node green">③ 以降の全ログに<br>TraceID付与<small>（SCREEN_LOAD, UI_CLICK等）</small></div>
+    </div>
+    <div style="margin-left:60px;color:var(--text3);font-size:12px;">↓ ユーザー操作が続く間、同じ TraceID</div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div class="flow-node amber">④ ログアウト or セッション切断<br><small>（タイムアウト含む）</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node purple">⑤ TRACE_END ログ送信<br>+ TraceID クリア</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node blue">⑥ 次回ログイン時<br>新しいTraceID発行</div>
+    </div>
+  </div>
+
+  <h3>TraceIDの構造</h3>
+  <div class="code-block">
+<span class="c">// TraceID フォーマット</span>
+<span class="c">// {projectSlug}:{userId}:{ISO日時}:{ランダム4文字}</span>
+<span class="s">"machining-sys:user_42:20260302T091500:a9f2"</span>
+
+<span class="c">// CMSでの表示用（短縮形）</span>
+<span class="s">"TR-20260302-001"</span>  <span class="c">// プロジェクト内の日次連番</span>
+  </div>
+
+  <h3>TraceIDが持つメタデータ</h3>
+  <table>
+    <tr><th>フィールド</th><th>型</th><th>説明</th><th>例</th></tr>
+    <tr><td>traceId</td><td>String</td><td>一意識別子（フル形式）</td><td>machining-sys:user_42:20260302T091500:a9f2</td></tr>
+    <tr><td>projectId</td><td>Int</td><td>どのプロジェクト（アプリ）か</td><td>3</td></tr>
+    <tr><td>userId</td><td>String?</td><td>監視対象アプリのユーザーID（任意）</td><td>"user_42" or null</td></tr>
+    <tr><td>userLabel</td><td>String?</td><td>表示名（ログから推測）</td><td>"大野 智"</td></tr>
+    <tr><td>startedAt</td><td>DateTime</td><td>セッション開始時刻</td><td>2026-03-02T09:15:00Z</td></tr>
+    <tr><td>endedAt</td><td>DateTime?</td><td>セッション終了時刻（null=継続中）</td><td>2026-03-02T11:32:44Z</td></tr>
+    <tr><td>duration</td><td>Int?</td><td>セッション継続秒数</td><td>8264</td></tr>
+    <tr><td>screenCount</td><td>Int</td><td>閲覧した画面数</td><td>12</td></tr>
+    <tr><td>clickCount</td><td>Int</td><td>クリック操作回数</td><td>87</td></tr>
+    <tr><td>errorCount</td><td>Int</td><td>エラー発生回数</td><td>3</td></tr>
+    <tr><td>status</td><td>String</td><td>ACTIVE / CLOSED / TIMEOUT</td><td>CLOSED</td></tr>
+  </table>
+
+  <h3>TraceIDのリセットトリガー</h3>
+  <div class="grid2">
+    <div class="card card-success">
+      <div class="card-title">✅ 自動リセット（推奨）</div>
+      <div class="card-body">
+        SDK が監視対象アプリのログアウトイベントを検知して自動的にリセット。
+        SDKの初期化時に <code>loginEvent</code> / <code>logoutEvent</code> のCSSセレクタを指定するか、
+        監視対象アプリが SDK の API を明示的に呼び出す。
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 その他のリセット条件</div>
+      <div class="card-body">
+        タイムアウト（デフォルト：無操作30分）、ページ離脱（beforeunload）、
+        セッションストレージのクリア検知、SDK.resetTrace() の明示呼び出し
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ S4: アーキテクチャ ═══════════════════════════ -->
+<section class="section" id="s4">
+  <div class="section-label">SECTION 04</div>
+  <h2>システムアーキテクチャ全体像</h2>
+
+  <div class="card" style="padding:32px;">
+    <div style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:24px;letter-spacing:2px;">SYSTEM OVERVIEW</div>
+    
+    <!-- 監視対象アプリ群 -->
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:8px;">
+      <div class="flow-node blue">TALONアプリ<small>192.168.1.207</small></div>
+      <div class="flow-node blue">Next.jsアプリ<small>将来</small></div>
+      <div class="flow-node blue">社内Webツール<small>任意</small></div>
+    </div>
+    <div style="text-align:center;color:var(--text3);font-size:11px;margin-bottom:4px;">↓ 各アプリに tlog-sdk.js を1行追加（script import）</div>
+    <div style="text-align:center;margin-bottom:4px;">
+      <div class="flow-node cyan" style="display:inline-block;">TLog SDK（tlog-sdk.js）<br><small>操作ログ・スクショ・コンソールログ収集</small></div>
+    </div>
+    <div style="text-align:center;color:var(--text3);font-size:11px;margin-bottom:4px;">↓ HTTPS POST（APIキー認証）</div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:4px;">
+      <div class="flow-node green">TLog API Server<br><small>NestJS / ポート3099</small></div>
+      <div class="flow-node green">スクショ保存<small>ファイルシステム</small></div>
+    </div>
+    <div style="text-align:center;color:var(--text3);font-size:11px;margin-bottom:4px;">↓ 永続化</div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:8px;">
+      <div class="flow-node purple">PostgreSQL<small>ログ・TraceID・チケット</small></div>
+      <div class="flow-node purple">Redis<small>セッション・TraceIDキャッシュ</small></div>
+    </div>
+    <div style="text-align:center;color:var(--text3);font-size:11px;margin-bottom:4px;">↑↓ REST API（JWT）</div>
+    <div style="text-align:center;">
+      <div class="flow-node amber" style="display:inline-block;">TLog CMS（管理Webアプリ）<br><small>Next.js / ポート3000</small></div>
+    </div>
+    <div style="text-align:center;color:var(--text3);font-size:11px;margin-top:4px;">↑ CMSユーザー（開発者・テスター）がブラウザでアクセス</div>
+  </div>
+
+  <h3>コンポーネント一覧</h3>
+  <table>
+    <tr><th>コンポーネント</th><th>役割</th><th>技術スタック</th><th>ホスト</th></tr>
+    <tr>
+      <td><strong>TLog SDK</strong><br><span class="badge badge-cyan">tlog-sdk.js</span></td>
+      <td>任意のWebアプリに組み込む収集ライブラリ。操作ログ・スクショ・コンソールログをAPIに送信</td>
+      <td>Vanilla JS（ES Module / CDN / npm）</td>
+      <td>各監視対象アプリのブラウザ上</td>
+    </tr>
+    <tr>
+      <td><strong>TLog API Server</strong></td>
+      <td>ログ受信・永続化・CMS向けデータ提供</td>
+      <td>NestJS + TypeORM + PostgreSQL + Redis</td>
+      <td>192.168.1.11:3099</td>
+    </tr>
+    <tr>
+      <td><strong>TLog CMS</strong></td>
+      <td>ユーザー認証付き管理Web画面。TraceID閲覧・タイムライン分析・チケット発行</td>
+      <td>Next.js 14 (App Router) + shadcn/ui</td>
+      <td>192.168.1.11:3000</td>
+    </tr>
+    <tr>
+      <td><strong>PostgreSQL</strong></td>
+      <td>全データの永続化</td>
+      <td>PostgreSQL 16</td>
+      <td>192.168.1.11:5432</td>
+    </tr>
+    <tr>
+      <td><strong>Redis</strong></td>
+      <td>CMS JWTセッション管理・アクティブTraceIDキャッシュ</td>
+      <td>Redis 7</td>
+      <td>192.168.1.11:6379</td>
+    </tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════ S5: SDK設計 ═══════════════════════════ -->
+<section class="section" id="s5">
+  <div class="section-label">SECTION 05</div>
+  <h2>TLog SDK 設計（汎用ロガー）</h2>
+
+  <h3>組み込み方法（3パターン）</h3>
+  <div class="grid3">
+    <div class="card card-accent">
+      <div class="card-title">① CDN（最速）</div>
+      <div class="card-body">
+        <code style="font-family:var(--mono);font-size:11px;color:var(--accent2)">
+        &lt;script src="https://{tlog-host}/sdk/tlog-sdk.js"
+          data-project="machining-sys"
+          data-api-key="ak_xxx"&gt;
+        &lt;/script&gt;
+        </code>
+        <br>HTMLに1行追加するだけ。TALONやレガシーシステムに最適。
+      </div>
+    </div>
+    <div class="card card-accent">
+      <div class="card-title">② npm（モダンアプリ）</div>
+      <div class="card-body">
+        <code style="font-family:var(--mono);font-size:11px;color:var(--accent2)">
+        import { TLog } from '@tlog/sdk';<br>
+        TLog.init({ project: 'my-app', apiKey: 'ak_xxx' });
+        </code>
+        <br>Next.js / React / Viteアプリに最適。TypeScript型定義付き。
+      </div>
+    </div>
+    <div class="card card-accent">
+      <div class="card-title">③ 手動注入（TALON継承）</div>
+      <div class="card-body">
+        現行の talon_testcase_logger.js をtlog-sdk.jsに置き換え。
+        既存のTLog.screenLoad() / TLogAutoInstrument.init() APIは互換維持。
+      </div>
+    </div>
+  </div>
+
+  <h3>SDK 初期化オプション</h3>
+  <div class="code-block">
+<span class="k">TLog</span>.init({
+  <span class="c">// 必須</span>
+  <span class="n">project</span>:    <span class="s">"machining-sys"</span>,     <span class="c">// CMS登録済みプロジェクトslug</span>
+  <span class="n">apiKey</span>:     <span class="s">"ak_xxxxxxxxxxxxx"</span>,  <span class="c">// CMS管理画面で発行するAPIキー</span>
+  <span class="n">endpoint</span>:   <span class="s">"http://192.168.1.11:3099"</span>,
+
+  <span class="c">// TraceID制御（★NEXTの肝）</span>
+  <span class="n">traceMode</span>:  <span class="s">"session"</span>,           <span class="c">// "session" | "manual" | "page"</span>
+  <span class="n">loginEvent</span>: <span class="s">".login-success"</span>,    <span class="c">// ログイン完了を示すDOMイベント or CSSセレクタ</span>
+  <span class="n">logoutEvent</span>:<span class="s">".logout-btn"</span>,       <span class="c">// ログアウトボタンのCSSセレクタ</span>
+  <span class="n">sessionTimeout</span>: 1800,            <span class="c">// 無操作タイムアウト（秒）デフォルト30分</span>
+
+  <span class="c">// ユーザー情報取得（監視対象アプリのユーザーをTraceIDに紐付け）</span>
+  <span class="n">getUserId</span>:  () =&gt; <span class="k">window</span>.currentUser?.id,    <span class="c">// ← アプリ側で実装</span>
+  <span class="n">getUserLabel</span>: () =&gt; <span class="k">window</span>.currentUser?.name,
+
+  <span class="c">// 収集設定</span>
+  <span class="n">screenshot</span>: { enabled: <span class="k">true</span>, onError: <span class="k">true</span>, onClick: <span class="k">true</span> },
+  <span class="n">console</span>:    { enabled: <span class="k">true</span>, levels: [<span class="s">"error"</span>, <span class="s">"warn"</span>] },
+  <span class="n">autoInstrument</span>: <span class="k">true</span>,             <span class="c">// ボタン等を自動計装</span>
+});
+  </div>
+
+  <h3>SDK が提供するイベント種別</h3>
+  <table>
+    <tr><th>イベント種別</th><th>説明</th><th>旧TLogとの対応</th></tr>
+    <tr><td><code>TRACE_START</code></td><td>ログイン検知・TraceID発行</td><td>★新規</td></tr>
+    <tr><td><code>TRACE_END</code></td><td>ログアウト・タイムアウト・TraceIDリセット</td><td>★新規</td></tr>
+    <tr><td><code>SCREEN_LOAD</code></td><td>画面遷移・表示</td><td>継承</td></tr>
+    <tr><td><code>UI_CLICK</code></td><td>ボタン等のクリック</td><td>継承</td></tr>
+    <tr><td><code>UI_CHANGE</code></td><td>入力・選択変更</td><td>継承</td></tr>
+    <tr><td><code>BACKEND_REQ</code></td><td>APIリクエスト送信</td><td>継承</td></tr>
+    <tr><td><code>BACKEND_RES</code></td><td>APIレスポンス受信</td><td>継承</td></tr>
+    <tr><td><code>ERROR</code></td><td>JavaScriptエラー・APIエラー</td><td>継承・強化</td></tr>
+    <tr><td><code>SCREENSHOT</code></td><td>スクリーンショット送信</td><td>継承</td></tr>
+    <tr><td><code>CONSOLE</code></td><td>コンソールログ</td><td>継承</td></tr>
+    <tr><td><code>CUSTOM</code></td><td>アプリ固有カスタムイベント</td><td>★新規</td></tr>
+  </table>
+
+  <h3>APIキー認証フロー</h3>
+  <div class="card">
+    <div class="card-body">
+      SDKが送信するHTTPリクエストには <code>Authorization: Bearer ak_xxx</code> ヘッダーを付与。
+      APIキーはプロジェクト単位でCMS管理画面から発行する。
+      APIキーが無効・プロジェクトが非アクティブの場合、サーバーは403を返しSDKはIndexedDBにキューイング。
+      APIキーにはIP制限・レートリミットを設定可能。
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ S6: CMS機能設計 ═══════════════════════════ -->
+<section class="section" id="s6">
+  <div class="section-label">SECTION 06</div>
+  <h2>TLog CMS 機能設計</h2>
+
+  <h3>CMSのユーザー種別（CMSにログインする人）</h3>
+  <div class="warn-box">
+    ⚠️ <strong>用語の整理：</strong>「CMSユーザー」＝TLog CMSにログインする開発者・テスター。
+    「監視対象アプリユーザー」＝TALONなどを実際に使う現場ユーザー。両者は別物。
+  </div>
+  <table>
+    <tr><th>ロール</th><th>できること</th></tr>
+    <tr><td><span class="badge badge-red">ADMIN</span></td><td>全操作 + ユーザー管理 + プロジェクト管理 + APIキー発行</td></tr>
+    <tr><td><span class="badge badge-blue">MEMBER</span></td><td>参加プロジェクトのログ閲覧 + TraceID分析 + チケット発行・編集</td></tr>
+    <tr><td><span class="badge badge-cyan">VIEWER</span></td><td>参加プロジェクトのログ閲覧のみ（編集不可）</td></tr>
+  </table>
+
+  <h3>主要画面・機能</h3>
+
+  <div class="card card-accent">
+    <div class="card-title">🏠 ダッシュボード（ログイン後トップ）</div>
+    <div class="card-body">
+      参加プロジェクト一覧・各プロジェクトの直近ログ件数・アクティブTraceID数・
+      未解決チケット数をカード表示。プロジェクトを選択して詳細へ遷移。
+    </div>
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title">📋 TraceID一覧（プロジェクト選択後）</div>
+    <div class="card-body">
+      <strong>日付フィルタ・ユーザーフィルタ・ステータスフィルタ付きのTraceID一覧。</strong><br>
+      各行に表示：TraceID（短縮形）/ 監視対象ユーザーID / セッション開始・終了時刻 /
+      継続時間 / 操作画面数 / クリック数 / エラー数 / ステータス（ACTIVE/CLOSED/TIMEOUT）<br>
+      TraceIDをクリックすると詳細（タイムライン）へ遷移。
+    </div>
+  </div>
+
+  <div class="card card-purple">
+    <div class="card-title">⏱️ TraceIDタイムライン（詳細画面）★核心機能</div>
+    <div class="card-body">
+      選択したTraceID内の全操作を時系列表示。<br>
+      <strong>表示内容：</strong> SCREEN_LOAD（画面名）→ UI_CLICK（ボタン名）→ BACKEND_REQ/RES → ERRORの流れをタイムライン形式で表示。
+      各ステップにスクリーンショットサムネイル・コンソールログを紐付け表示。<br>
+      <strong>操作：</strong> ステップ選択→チケット発行。複数ステップ選択→作業パターンとして保存。
+    </div>
+  </div>
+
+  <div class="card card-success">
+    <div class="card-title">📊 作業パターン分析</div>
+    <div class="card-body">
+      複数のTraceIDから共通の操作シーケンスを抽出してパターン登録。
+      パターン名・説明・OK/NG判定・メモを付与。
+      フロー図（SVGセルペンタイン）で視覚化。
+    </div>
+  </div>
+
+  <div class="card card-success">
+    <div class="card-title">🎫 チケット管理（Issue Tracker）</div>
+    <div class="card-body">
+      <strong>TraceIDタイムラインから直接発行：</strong>
+      対象ステップのスクリーンショット・ログが自動添付。
+      チケット種別（不具合/仕様違い/改善提案）/ 優先度（高/中/低）/ 担当者 / ステータス管理。
+      将来的にJiraやGitHub Issuesとの連携も想定（Webhook）。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚙️ プロジェクト管理（ADMIN）</div>
+    <div class="card-body">
+      プロジェクト作成・編集・メンバー招待・APIキー発行（複数キー対応・有効期限付き）。
+      ログ保持期間設定・スクリーンショット保存上限設定。
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ S7: DB設計 ═══════════════════════════ -->
+<section class="section" id="s7">
+  <div class="section-label">SECTION 07</div>
+  <h2>DB設計（v3.0スキーマからの拡張）</h2>
+
+  <div class="warn-box">
+    ℹ️ v3.0スキーマ（User, Project, ProjectMember, Log, Screenshot, ConsoleLog, Verdict, Pattern, Issue）は継承。
+    NEXT版での追加・変更点のみを以下に記載。
+  </div>
+
+  <h3>★追加テーブル：Trace（TraceIDの主テーブル）</h3>
+  <div class="code-block">
+<span class="k">model</span> <span class="t">Trace</span> {
+  id          <span class="f">Int</span>       <span class="k">@id @default</span>(autoincrement())
+  traceId     <span class="f">String</span>    <span class="k">@unique</span>          <span class="c">// フルID文字列</span>
+  shortId     <span class="f">String</span>                     <span class="c">// "TR-20260302-001"（表示用）</span>
+  projectId   <span class="f">Int</span>
+  appUserId   <span class="f">String?</span>                    <span class="c">// 監視対象アプリのユーザーID</span>
+  appUserLabel <span class="f">String?</span>                   <span class="c">// 監視対象アプリのユーザー名</span>
+  startedAt   <span class="f">DateTime</span>
+  endedAt     <span class="f">DateTime?</span>
+  duration    <span class="f">Int?</span>                       <span class="c">// 秒</span>
+  status      <span class="f">TraceStatus</span>  <span class="k">@default</span>(ACTIVE)
+  screenCount <span class="f">Int</span>          <span class="k">@default</span>(0)
+  clickCount  <span class="f">Int</span>          <span class="k">@default</span>(0)
+  errorCount  <span class="f">Int</span>          <span class="k">@default</span>(0)
+  metadata    <span class="f">Json?</span>                      <span class="c">// UA・IPなど任意データ</span>
+  project     <span class="t">Project</span>     <span class="k">@relation</span>(fields:[projectId], references:[id])
+  logs        <span class="t">Log</span>[]
+  screenshots <span class="t">Screenshot</span>[]
+  issues      <span class="t">Issue</span>[]
+  <span class="k">@@index</span>([projectId, startedAt])
+  <span class="k">@@index</span>([projectId, status])
+}
+
+<span class="k">enum</span> <span class="t">TraceStatus</span> { ACTIVE CLOSED TIMEOUT }
+  </div>
+
+  <h3>★追加テーブル：ApiKey（SDKのAPIキー管理）</h3>
+  <div class="code-block">
+<span class="k">model</span> <span class="t">ApiKey</span> {
+  id          <span class="f">Int</span>      <span class="k">@id @default</span>(autoincrement())
+  projectId   <span class="f">Int</span>
+  keyHash     <span class="f">String</span>   <span class="k">@unique</span>      <span class="c">// SHA256ハッシュ（平文は発行時のみ表示）</span>
+  label       <span class="f">String</span>               <span class="c">// "本番用" "開発用" 等</span>
+  isActive    <span class="f">Boolean</span>  <span class="k">@default</span>(true)
+  expiresAt   <span class="f">DateTime?</span>            <span class="c">// null = 無期限</span>
+  lastUsedAt  <span class="f">DateTime?</span>
+  ipWhitelist <span class="f">String?</span>              <span class="c">// JSON配列 or null</span>
+  createdById <span class="f">Int</span>
+  createdAt   <span class="f">DateTime</span> <span class="k">@default</span>(now())
+  project     <span class="t">Project</span>  <span class="k">@relation</span>(fields:[projectId], references:[id])
+}
+  </div>
+
+  <h3>変更：LogテーブルにtraceId外部キーを追加</h3>
+  <div class="code-block">
+<span class="k">model</span> <span class="t">Log</span> {
+  <span class="c">// 既存フィールドは継承 ...</span>
+  traceId     <span class="f">String</span>               <span class="c">// 従来: 文字列のまま</span>
+  traceRef    <span class="t">Trace?</span>    <span class="k">@relation</span>(fields:[traceId], references:[traceId])
+  <span class="c">// traceIdが"legacy"の場合はrelationはnull</span>
+}
+  </div>
+
+  <h3>変更：IssueテーブルにtraceId・チケット強化</h3>
+  <div class="code-block">
+<span class="k">model</span> <span class="t">Issue</span> {
+  <span class="c">// 既存フィールド継承 ...</span>
+  traceId     <span class="f">String?</span>              <span class="c">// ★追加: どのTraceIDから発行したか</span>
+  logIds      <span class="f">Json?</span>                <span class="c">// ★追加: 関連LogのID配列</span>
+  screenshotIds <span class="f">Json?</span>              <span class="c">// ★追加: 添付スクショID配列</span>
+  assignedTo  <span class="f">Int?</span>                 <span class="c">// ★追加: 担当ユーザーID</span>
+  webhookSent <span class="f">Boolean</span> <span class="k">@default</span>(false) <span class="c">// ★追加: Jira/GitHub連携済みフラグ</span>
+}
+  </div>
+</section>
+
+<!-- ═══════════════════════════ S8: API設計 ═══════════════════════════ -->
+<section class="section" id="s8">
+  <div class="section-label">SECTION 08</div>
+  <h2>API設計</h2>
+
+  <h3>認証の二層構造（★NEXT版の重要設計）</h3>
+  <div class="grid2">
+    <div class="card card-accent">
+      <div class="card-title">🔑 SDKからの通信（APIキー認証）</div>
+      <div class="card-body">
+        監視対象アプリのブラウザ → TLog API Server<br>
+        <code>Authorization: Bearer ak_xxxxxxxxx</code><br>
+        APIキーはプロジェクト単位。ログ送信専用エンドポイントのみアクセス可。
+        読み取り・管理操作は不可。
+      </div>
+    </div>
+    <div class="card card-purple">
+      <div class="card-title">🔑 CMS からの通信（JWT認証）</div>
+      <div class="card-body">
+        CMSユーザーのブラウザ → TLog API Server<br>
+        <code>Authorization: Bearer jwt_token</code><br>
+        CMSログイン後に発行。アクセス可能なプロジェクトはProjectMembershipで制御。
+      </div>
+    </div>
+  </div>
+
+  <h3>SDKエンドポイント（APIキー認証）</h3>
+  <table>
+    <tr><th>メソッド</th><th>パス</th><th>用途</th><th>旧APIとの対応</th></tr>
+    <tr><td>POST</td><td><code>/sdk/trace/start</code></td><td>TraceID発行・TRACE_STARTログ</td><td>★新規</td></tr>
+    <tr><td>POST</td><td><code>/sdk/trace/end</code></td><td>TRACE_ENDログ・集計更新</td><td>★新規</td></tr>
+    <tr><td>POST</td><td><code>/sdk/log</code></td><td>操作ログ送信</td><td><code>/log</code>継承</td></tr>
+    <tr><td>POST</td><td><code>/sdk/screenshot</code></td><td>スクリーンショット送信</td><td><code>/screenshot</code>継承</td></tr>
+    <tr><td>POST</td><td><code>/sdk/console</code></td><td>コンソールログ送信</td><td><code>/consolelog</code>継承</td></tr>
+    <tr><td>GET</td><td><code>/sdk/ping</code></td><td>疎通確認</td><td><code>/ping</code>継承</td></tr>
+  </table>
+
+  <h3>CMS向けエンドポイント（JWT認証）</h3>
+  <table>
+    <tr><th>メソッド</th><th>パス</th><th>用途</th></tr>
+    <tr><td>POST</td><td><code>/api/auth/login</code></td><td>CMSログイン・JWT発行</td></tr>
+    <tr><td>POST</td><td><code>/api/auth/logout</code></td><td>CMSログアウト・JWT無効化</td></tr>
+    <tr><td>GET</td><td><code>/api/projects</code></td><td>参加プロジェクト一覧</td></tr>
+    <tr><td>GET</td><td><code>/api/projects/:id/traces</code></td><td>TraceID一覧（フィルタ・ページング）</td></tr>
+    <tr><td>GET</td><td><code>/api/projects/:id/traces/:traceId</code></td><td>TraceID詳細・タイムラインデータ</td></tr>
+    <tr><td>GET</td><td><code>/api/projects/:id/traces/:traceId/logs</code></td><td>TraceID内全ログ</td></tr>
+    <tr><td>POST</td><td><code>/api/projects/:id/issues</code></td><td>チケット発行（TraceIDから）</td></tr>
+    <tr><td>GET/PUT</td><td><code>/api/projects/:id/issues/:issueId</code></td><td>チケット取得・更新</td></tr>
+    <tr><td>POST</td><td><code>/api/projects/:id/apikeys</code></td><td>APIキー発行（ADMIN/MEMBER）</td></tr>
+    <tr><td>GET</td><td><code>/api/admin/users</code></td><td>ユーザー管理（ADMINのみ）</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════ S9: 画面設計 ═══════════════════════════ -->
+<section class="section" id="s9">
+  <div class="section-label">SECTION 09</div>
+  <h2>CMS 画面設計（ワイヤーフレームイメージ）</h2>
+
+  <h4>TraceID一覧画面</h4>
+  <div class="mockup">
+    <div class="mockup-header">
+      <div class="mockup-dot" style="background:#ef4444"></div>
+      <div class="mockup-dot" style="background:#f59e0b"></div>
+      <div class="mockup-dot" style="background:#10b981"></div>
+      <span style="margin-left:8px;font-size:11px;color:var(--text3)">TLog CMS — マシニングシステム / TraceID一覧</span>
+    </div>
+    <div class="mockup-body">
+      <div class="mock-nav">
+        <span style="color:white;font-weight:700;font-size:12px;">📋 TLog CMS</span>
+        <span style="color:var(--text2);font-size:11px;">▼ マシニングシステム</span>
+        <span style="flex:1"></span>
+        <span style="color:var(--text3);font-size:11px;">👤 大野 智 ▼</span>
+      </div>
+      <div class="mock-nav" style="background:var(--surface2);margin-bottom:12px;">
+        <span class="mock-nav-item active">TraceID一覧</span>
+        <span class="mock-nav-item">タイムライン</span>
+        <span class="mock-nav-item">チケット</span>
+        <span class="mock-nav-item">パターン分析</span>
+        <span class="mock-nav-item">設定</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;font-size:11px;">
+        <input style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 10px;width:140px;" value="2026-03-01 ～ 今日" readonly>
+        <select style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 8px;font-size:11px;"><option>全ユーザー</option></select>
+        <select style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 8px;font-size:11px;"><option>全ステータス</option></select>
+      </div>
+      <div class="mock-trace-list">
+        <div class="mock-trace-item">
+          <div>
+            <div class="trace-id">TR-20260302-005</div>
+            <div style="font-size:10px;color:var(--text3)">ACTIVE</div>
+          </div>
+          <div class="trace-info">
+            <div class="trace-name">大野 智 (user_42)</div>
+            <div class="trace-meta">09:15 〜 継続中 | 画面: 8 | クリック: 43 | エラー: 0</div>
+          </div>
+          <span class="badge badge-green">ACTIVE</span>
+        </div>
+        <div class="mock-trace-item">
+          <div>
+            <div class="trace-id">TR-20260302-004</div>
+            <div style="font-size:10px;color:var(--text3)">CLOSED</div>
+          </div>
+          <div class="trace-info">
+            <div class="trace-name">木村 直子 (user_18)</div>
+            <div class="trace-meta">08:30 〜 10:22 (1h52m) | 画面: 15 | クリック: 87 | エラー: 3</div>
+          </div>
+          <span class="badge badge-red">エラー 3</span>
+        </div>
+        <div class="mock-trace-item">
+          <div>
+            <div class="trace-id">TR-20260302-003</div>
+            <div style="font-size:10px;color:var(--text3)">TIMEOUT</div>
+          </div>
+          <div class="trace-info">
+            <div class="trace-name">藤下 哲人 (user_07)</div>
+            <div class="trace-meta">07:45 〜 08:20 (35m) | 画面: 5 | クリック: 22 | エラー: 0</div>
+          </div>
+          <span class="badge badge-warn">TIMEOUT</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h4 style="margin-top:24px;">TraceIDタイムライン（詳細）のイメージ</h4>
+  <div class="highlight-box">
+    <strong>画面構成：</strong><br>
+    上部: TraceIDメタ情報（ユーザー・期間・統計）<br>
+    中部: 時系列ステップリスト（SCREEN_LOAD / UI_CLICK / ERROR をアイコンつきで表示）<br>
+    右パネル: 選択ステップのスクリーンショット・コンソールログ・ペイロード詳細<br>
+    下部アクション: [✅ このステップにOK] [🎫 チケット発行] [📊 パターンに追加]
+  </div>
+</section>
+
+<!-- ═══════════════════════════ S10: ロードマップ ═══════════════════════════ -->
+<section class="section" id="s10">
+  <div class="section-label">SECTION 10</div>
+  <h2>実装ロードマップ</h2>
+
+  <div class="phase">
+    <div class="phase-num p1">1</div>
+    <div class="phase-body">
+      <div class="phase-title">Phase 1: 基盤構築（〜4週間）</div>
+      <div class="phase-desc">TLog v3.0の移行完了を前提に、NEXTの土台を作る。</div>
+      <div class="phase-items">
+        <span class="badge badge-blue">Traceテーブル追加</span>
+        <span class="badge badge-blue">ApiKeyテーブル追加</span>
+        <span class="badge badge-blue">SDK /sdk/* エンドポイント実装</span>
+        <span class="badge badge-blue">tlog-sdk.js v1 (CDN版)</span>
+        <span class="badge badge-blue">TraceID発行・リセットロジック</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num p2">2</div>
+    <div class="phase-body">
+      <div class="phase-title">Phase 2: CMS基本機能（〜6週間）</div>
+      <div class="phase-desc">既存GitHub Pages静的HTMLをCMSに置き換え。</div>
+      <div class="phase-items">
+        <span class="badge badge-cyan">Next.js CMSプロジェクト構築</span>
+        <span class="badge badge-cyan">CMSログイン・JWT認証</span>
+        <span class="badge badge-cyan">プロジェクト管理画面</span>
+        <span class="badge badge-cyan">TraceID一覧画面</span>
+        <span class="badge badge-cyan">TraceIDタイムライン画面</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num p3">3</div>
+    <div class="phase-body">
+      <div class="phase-title">Phase 3: 分析・チケット機能（〜4週間）</div>
+      <div class="phase-desc">TraceIDからの分析・チケット発行フローを実装。</div>
+      <div class="phase-items">
+        <span class="badge badge-purple">チケット発行・管理</span>
+        <span class="badge badge-purple">作業パターン登録・フロー図表示</span>
+        <span class="badge badge-purple">フィルタ・検索強化</span>
+        <span class="badge badge-purple">APIキー管理画面</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num p4">4</div>
+    <div class="phase-body">
+      <div class="phase-title">Phase 4: SDK汎用化・拡張（〜6週間）</div>
+      <div class="phase-desc">npmパッケージ化・他アプリへの展開。</div>
+      <div class="phase-items">
+        <span class="badge badge-green">tlog-sdk npm パッケージ化</span>
+        <span class="badge badge-green">TypeScript型定義</span>
+        <span class="badge badge-green">Next.jsアプリへの組み込みサンプル</span>
+        <span class="badge badge-green">Webhook（Jira/GitHub Issues連携）</span>
+        <span class="badge badge-green">ログ保持期間・ストレージ管理</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ S11: 未解決課題 ═══════════════════════════ -->
+<section class="section" id="s11">
+  <div class="section-label">SECTION 11</div>
+  <h2>未解決課題・要確認事項</h2>
+
+  <div class="grid2">
+    <div class="card card-warn">
+      <div class="card-title">❓ CMSのホスト先</div>
+      <div class="card-body">
+        CMSをGitHub Pages（静的）で公開するか、192.168.1.11でNext.jsサーバーを動かすか。
+        社内ネットワーク内でのアクセスに限定するか、外部公開するか。
+      </div>
+    </div>
+    <div class="card card-warn">
+      <div class="card-title">❓ TALONの認証イベント検知</div>
+      <div class="card-body">
+        TALONのログイン/ログアウトをSDKがどう検知するか。
+        PrimeFaces/JSFのAJAX遷移イベントでの検知方法の確認が必要。
+      </div>
+    </div>
+    <div class="card card-warn">
+      <div class="card-title">❓ スクリーンショット保存先</div>
+      <div class="card-body">
+        ファイルシステム継続か、S3/MinIO等のオブジェクトストレージに移行するか。
+        CMS経由でスクショをブラウザに表示する際の認証付き配信方法。
+      </div>
+    </div>
+    <div class="card card-warn">
+      <div class="card-title">❓ v3.0移行との優先順位</div>
+      <div class="card-body">
+        現在のバグ修正（ISS-02等）とv3.0移行が完了してからNEXT着手か、
+        並行してNEXTの設計だけ先に固めるか。
+      </div>
+    </div>
+    <div class="card card-warn">
+      <div class="card-title">❓ リアルタイム表示の要否</div>
+      <div class="card-body">
+        ACTIVEなTraceIDのログをCMSでリアルタイム（WebSocket等）に
+        表示したいか、ポーリングで十分か。
+      </div>
+    </div>
+    <div class="card card-warn">
+      <div class="card-title">❓ マルチプロジェクトの分離レベル</div>
+      <div class="card-body">
+        プロジェクト間でデータは完全分離か（行レベルセキュリティ）。
+        ADMINは全プロジェクト横断で見えるべきか。
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:40px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--text3);">
+    TLog Platform NEXT — 仕様設計書 v1.0 — 2026-03-02<br>
+    次のステップ: 未解決課題の確認 → Phase 1 詳細設計
+  </div>
+</section>
+</div>
+
+</body>
+</html>
