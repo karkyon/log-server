@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { api } from "@/lib/api";
-import { ProjectNav } from "@/components/ProjectNav";
 import { useTheme } from "@/lib/useTheme";
 
 type Trace = {
@@ -14,7 +13,7 @@ type Trace = {
 export default function TracesPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
-  const { dark } = useTheme();
+  const { dark, toggle } = useTheme();
   const [traces, setTraces] = useState<Trace[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<{ displayName: string } | null>(null);
@@ -35,6 +34,7 @@ export default function TracesPage() {
   };
 
   const bg = dark ? "bg-gray-950" : "bg-gray-50";
+  const headerBg = dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200";
   const text = dark ? "text-white" : "text-gray-900";
   const subtext = dark ? "text-gray-400" : "text-gray-500";
   const cardBg = dark ? "bg-gray-900 border-gray-800 hover:border-blue-600" : "bg-white border-gray-200 hover:border-blue-500";
@@ -42,8 +42,26 @@ export default function TracesPage() {
 
   return (
     <div className={`min-h-screen ${bg} ${text} transition-colors`}>
-      <ProjectNav projectId={id} />
+      <header className={`${headerBg} border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10`}>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.push("/projects")} className={`${subtext} hover:text-blue-500 text-sm transition`}>← プロジェクト一覧</button>
+          <span className={subtext}>/</span>
+          <h1 className="text-base font-bold text-blue-600">TraceID 一覧</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={toggle} className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg ${dark ? "bg-gray-800" : "bg-gray-100"}`}>
+            {dark ? "☀️" : "🌙"}
+          </button>
+          <span className={`text-sm ${subtext}`}>{user?.displayName}</span>
+        </div>
+      </header>
 
+      {/* サブナビ */}
+      <div className={`${dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"} border-b px-6 py-2 flex gap-2`}>
+        <button onClick={() => router.push(`/projects/${id}/traces`)} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${dark ? "bg-blue-900 text-blue-300" : "bg-blue-50 text-blue-700"}`}>📋 トレース</button>
+        <button onClick={() => router.push(`/projects/${id}/issues`)} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${navBtn}`}>🎫 チケット</button>
+        <button onClick={() => router.push(`/projects/${id}/patterns`)} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${navBtn}`}>📊 パターン</button>
+      </div>
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         <h2 className="text-xl font-semibold mb-6">セッション一覧 ({traces.length})</h2>

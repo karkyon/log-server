@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { api } from "@/lib/api";
-import { ProjectNav } from "@/components/ProjectNav";
 import { useTheme } from "@/lib/useTheme";
 
 type Pattern = {
@@ -23,7 +22,7 @@ const EMPTY_FORM = { name: "", screenMode: "", seqData: "{}", memo: "" };
 export default function PatternsPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
-  const { dark } = useTheme();
+  const { dark, toggle } = useTheme();
   const [patterns, setPatterns] = useState<Pattern[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Pattern | null>(null);
@@ -78,6 +77,7 @@ export default function PatternsPage() {
   };
 
   const bg = dark ? "bg-gray-950" : "bg-gray-50";
+  const headerBg = dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200";
   const text = dark ? "text-white" : "text-gray-900";
   const subtext = dark ? "text-gray-400" : "text-gray-500";
   const cardBg = dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200";
@@ -88,7 +88,24 @@ export default function PatternsPage() {
   return (
     <div className={`min-h-screen ${bg} ${text} transition-colors`}>
       {/* ヘッダー */}
-      <ProjectNav projectId={id} />
+      <header className={`${headerBg} border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10`}>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.push(`/projects/${id}/traces`)} className={`${subtext} hover:text-blue-500 text-sm transition`}>← トレース一覧</button>
+          <span className={subtext}>/</span>
+          <h1 className="font-bold text-blue-600">作業パターン</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => { setForm(EMPTY_FORM); setJsonError(""); setShowModal(true); }}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-1.5 rounded-lg font-medium transition"
+          >
+            + パターン登録
+          </button>
+          <button onClick={toggle} className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg ${dark ? "bg-gray-800" : "bg-gray-100"}`}>
+            {dark ? "☀️" : "🌙"}
+          </button>
+        </div>
+      </header>
 
       {/* メインコンテンツ */}
       <main className="max-w-5xl mx-auto px-6 py-8 flex gap-6">

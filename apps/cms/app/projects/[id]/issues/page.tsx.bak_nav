@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { api } from "@/lib/api";
-import { ProjectNav } from "@/components/ProjectNav";
 import { useTheme } from "@/lib/useTheme";
 
 type Issue = {
@@ -35,7 +34,7 @@ const EMPTY_FORM: CreateForm = {
 export default function IssuesPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
-  const { dark } = useTheme();
+  const { dark, toggle } = useTheme();
 
   const [issues,  setIssues]  = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,7 +92,27 @@ export default function IssuesPage() {
   return (
     <div className={`min-h-screen ${bg} ${text} transition-colors`}>
       {/* ── ヘッダー */}
-      <ProjectNav projectId={id} />
+      <header className={`${headerBg} border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10`}>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.push(`/projects/${id}/traces`)}
+            className={`${subtext} hover:text-blue-500 text-sm transition`}>
+            ← トレース一覧
+          </button>
+          <span className={subtext}>/</span>
+          <h1 className="font-bold text-blue-600">チケット管理</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { setShowModal(true); setError(""); setForm(EMPTY_FORM); }}
+            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+            + チケット作成
+          </button>
+          <button onClick={toggle}
+            className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg ${dark ? "bg-gray-800" : "bg-gray-100"}`}>
+            {dark ? "☀️" : "🌙"}
+          </button>
+        </div>
+      </header>
 
       {/* ── メイン */}
       <main className="max-w-4xl mx-auto px-6 py-8">

@@ -1,11 +1,12 @@
 import {
-  Controller, Get, Post, Body, Res,
-  UseInterceptors, UploadedFile,
+  Controller, Get, Post, Body, Req,
+  UseInterceptors, UploadedFile, UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { Response } from 'express';
+import { Request } from 'express';
 import { SdkService } from './sdk.service';
+import { ApiKeyAuthGuard } from './apikey-auth.guard';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -19,16 +20,19 @@ export class SdkController {
   }
 
   @Post('log')
-  async postLog(@Body() body: any) {
-    return this.sdk.saveLog(body);
+  @UseGuards(ApiKeyAuthGuard)
+  async postLog(@Body() body: any, @Req() req: any) {
+    return this.sdk.saveLog({ ...body, projectId: req.projectId });
   }
 
   @Post('consolelog')
-  async postConsoleLog(@Body() body: any) {
-    return this.sdk.saveConsoleLog(body);
+  @UseGuards(ApiKeyAuthGuard)
+  async postConsoleLog(@Body() body: any, @Req() req: any) {
+    return this.sdk.saveConsoleLog({ ...body, projectId: req.projectId });
   }
 
   @Post('screenshot')
+  @UseGuards(ApiKeyAuthGuard)
   @UseInterceptors(FileInterceptor('image', {
     storage: diskStorage({
       destination: (req, file, cb) => {
@@ -46,7 +50,8 @@ export class SdkController {
   async postScreenshot(
     @UploadedFile() file: Express.Multer.File,
     @Body() body: any,
+    @Req() req: any,
   ) {
-    return this.sdk.saveScreenshot(body, file?.path);
+    return this.sdk.saveScreenshot({ ...body, projectId: req.projectId }, file?.path);
   }
 }
