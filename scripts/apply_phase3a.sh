@@ -1,3 +1,172 @@
+#!/bin/bash
+# ============================================================
+# Phase 3A: チケット作成機能 適用スクリプト
+# 実行場所: karkyon@omega-dev2
+# 実行方法: bash apply_phase3a.sh
+# ============================================================
+set -e
+
+BASE=~/projects/log-server
+API_SRC=$BASE/apps/api/src
+CMS_SRC=$BASE/apps/cms/app/projects
+
+echo "=== Phase 3A: チケット作成機能 適用開始 ==="
+
+# ── バックアップ ──────────────────────────────────────────
+echo "[1/4] バックアップ作成..."
+cp $API_SRC/traces/traces.service.ts    $API_SRC/traces/traces.service.ts.bak
+cp $API_SRC/traces/traces.controller.ts $API_SRC/traces/traces.controller.ts.bak
+cp $CMS_SRC/'[id]'/issues/page.tsx      $CMS_SRC/'[id]'/issues/page.tsx.bak
+echo "  完了: *.bak 作成済み"
+
+# ── ① create-issue.dto.ts（新規）────────────────────────
+echo "[2/4] create-issue.dto.ts 作成..."
+cat > $API_SRC/traces/create-issue.dto.ts << 'EOF'
+import { IsString, IsOptional, IsIn } from 'class-validator';
+
+export class CreateIssueDto {
+  @IsString()
+  featureId: string;
+
+  @IsString()
+  title: string;
+
+  @IsIn(['バグ', '改善', '質問', '確認'])
+  type: string;
+
+  @IsIn(['HIGH', 'MEDIUM', 'LOW'])
+  priority: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  traceId?: string;
+}
+EOF
+echo "  完了: create-issue.dto.ts"
+
+# ── ② traces.service.ts（createIssue 追加）──────────────
+echo "[3/4] traces.service.ts 更新..."
+cat > $API_SRC/traces/traces.service.ts << 'EOF'
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateIssueDto } from './create-issue.dto';
+
+@Injectable()
+export class TracesService {
+  constructor(private prisma: PrismaService) {}
+
+  async findAll(projectId: string) {
+    return this.prisma.trace.findMany({
+      where: { projectId },
+      orderBy: { startedAt: 'desc' },
+      take: 100,
+      include: { _count: { select: { logs: true } } },
+    });
+  }
+
+  async findOne(projectId: string, traceId: string) {
+    const trace = await this.prisma.trace.findFirst({
+      where: { id: traceId, projectId },
+    });
+    if (!trace) return null;
+    const logs = await this.prisma.log.findMany({
+      where: { traceId },
+      orderBy: { timestamp: 'asc' },
+      take: 500,
+    });
+    const screenshots = await this.prisma.screenshot.findMany({
+      where: { traceId },
+      orderBy: { ts: 'asc' },
+    });
+    return { trace, logs, screenshots };
+  }
+
+  async findIssues(projectId: string) {
+    return this.prisma.issue.findMany({
+      where: { projectId },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    });
+  }
+
+  async findPatterns(projectId: string) {
+    return this.prisma.pattern.findMany({
+      where: { projectId },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    });
+  }
+
+  async createIssue(projectId: string, dto: CreateIssueDto, userId?: string) {
+    return this.prisma.issue.create({
+      data: {
+        projectId,
+        featureId:   dto.featureId,
+        title:       dto.title,
+        type:        dto.type,
+        priority:    dto.priority,
+        description: dto.description ?? null,
+        traceId:     dto.traceId    ?? null,
+        createdById: userId         ?? null,
+        status:      '未対応',
+      },
+    });
+  }
+}
+EOF
+echo "  完了: traces.service.ts"
+
+# ── ③ traces.controller.ts（POST issues 追加）───────────
+cat > $API_SRC/traces/traces.controller.ts << 'EOF'
+import { Controller, Get, Post, Body, Param, Request, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { TracesService } from './traces.service';
+import { CreateIssueDto } from './create-issue.dto';
+
+@Controller('api/projects/:id')
+@UseGuards(JwtAuthGuard)
+export class TracesController {
+  constructor(private traces: TracesService) {}
+
+  @Get('traces')
+  findAll(@Param('id') id: string) {
+    return this.traces.findAll(id);
+  }
+
+  @Get('traces/:tid')
+  findOne(@Param('id') id: string, @Param('tid') tid: string) {
+    return this.traces.findOne(id, tid);
+  }
+
+  @Get('issues')
+  findIssues(@Param('id') id: string) {
+    return this.traces.findIssues(id);
+  }
+
+  @Post('issues')
+  createIssue(
+    @Param('id') id: string,
+    @Body() dto: CreateIssueDto,
+    @Request() req: any,
+  ) {
+    return this.traces.createIssue(id, dto, req.user?.userId);
+  }
+
+  @Get('patterns')
+  findPatterns(@Param('id') id: string) {
+    return this.traces.findPatterns(id);
+  }
+}
+EOF
+echo "  完了: traces.controller.ts"
+
+# ── ④ CMS issues/page.tsx（モーダル追加）────────────────
+echo "[4/4] CMS issues/page.tsx 更新..."
+cat > $CMS_SRC/'[id]'/issues/page.tsx << 'CMSEOF'
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -258,3 +427,37 @@ export default function IssuesPage() {
     </div>
   );
 }
+CMSEOF
+echo "  完了: CMS issues/page.tsx"
+
+# ── API ビルド & 再起動 ──────────────────────────────────
+echo ""
+echo "=== API ビルド & pm2 再起動 ==="
+cd ~/projects/log-server/apps/api
+npm run build && pm2 restart tlog-api
+echo ""
+
+# ── 動作確認 ─────────────────────────────────────────────
+echo "=== 動作確認: ping ==="
+sleep 2
+curl -s http://localhost:3099/ping
+echo ""
+
+echo ""
+echo "✅ Phase 3A 適用完了！"
+echo ""
+echo "【次の確認手順】"
+echo "1. CMS を再起動（npm run dev -- -p 3002）"
+echo "2. http://192.168.1.11:3002/projects/<ID>/issues を開く"
+echo "3. ヘッダーの「+ チケット作成」ボタンをクリック"
+echo "4. フォーム入力 → 「作成する」で POST /api/projects/:id/issues が呼ばれることを確認"
+echo ""
+echo "【API直接テスト（JWT取得後）】"
+echo 'TOKEN=$(curl -s -X POST http://localhost:3099/api/auth/login \'
+echo '  -H "Content-Type: application/json" \'
+echo '  -d '"'"'{"username":"admin","password":"admin1234"}'"'"' | jq -r .access_token)'
+echo ''
+echo 'curl -s -X POST http://localhost:3099/api/projects/<PROJECT_ID>/issues \'
+echo '  -H "Content-Type: application/json" \'
+echo '  -H "Authorization: Bearer $TOKEN" \'
+echo '  -d '"'"'{"featureId":"MC_PRODUCTS_LIST","title":"テストチケット","type":"バグ","priority":"HIGH","description":"動作確認用"}'"'"' | jq .'

@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateIssueDto } from './create-issue.dto';
 
 @Injectable()
 export class TracesService {
@@ -45,22 +44,6 @@ export class TracesService {
       where: { projectId },
       orderBy: { createdAt: 'desc' },
       take: 200,
-    });
-  }
-
-  async createIssue(projectId: string, dto: CreateIssueDto, userId?: string) {
-    return this.prisma.issue.create({
-      data: {
-        projectId,
-        featureId:   dto.featureId,
-        title:       dto.title,
-        type:        dto.type,
-        priority:    dto.priority,
-        description: dto.description ?? null,
-        traceId:     dto.traceId    ?? null,
-        createdById: userId         ?? null,
-        status:      '未対応',
-      },
     });
   }
 }

@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Body, Param, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TracesService } from './traces.service';
-import { CreateIssueDto } from './create-issue.dto';
 
 @Controller('api/projects/:id')
 @UseGuards(JwtAuthGuard)
@@ -21,15 +20,6 @@ export class TracesController {
   @Get('issues')
   findIssues(@Param('id') id: string) {
     return this.traces.findIssues(id);
-  }
-
-  @Post('issues')
-  createIssue(
-    @Param('id') id: string,
-    @Body() dto: CreateIssueDto,
-    @Request() req: any,
-  ) {
-    return this.traces.createIssue(id, dto, req.user?.userId);
   }
 
   @Get('patterns')
