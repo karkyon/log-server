@@ -14,5 +14,16 @@ module.exports = {
         SCREENSHOT_DIR: '/home/karkyon/projects/log-server/screenshots',
       },
     },
+    {
+      name: 'tlog-cms',
+      cwd: '/home/karkyon/projects/log-server/apps/cms',
+      script: 'npm',
+      args: 'run start',
+      env: {
+        NODE_ENV: 'production',
+        PORT: '3002',
+        NEXT_PUBLIC_API_URL: 'http://192.168.1.11:3099',
+      },
+    },
   ],
 };
