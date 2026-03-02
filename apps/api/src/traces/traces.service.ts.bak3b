@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { CreateIssueDto } from './create-issue.dto';
-import { CreatePatternDto } from './create-pattern.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateIssueDto } from './create-issue.dto';
 
@@ -62,20 +60,6 @@ export class TracesService {
         traceId:     dto.traceId    ?? null,
         createdById: userId         ?? null,
         status:      '未対応',
-      },
-    });
-  }
-
-  async createPattern(projectId: string, dto: CreatePatternDto, userId?: string) {
-    return this.prisma.pattern.create({
-      data: {
-        projectId,
-        name:       dto.name,
-        screenMode: dto.screenMode ?? null,
-        seqData:    dto.seqData ?? {},
-        memo:       dto.memo ?? null,
-        createdById: userId ?? null,
-        status:     '未評価',
       },
     });
   }

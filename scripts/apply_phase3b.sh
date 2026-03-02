@@ -1,3 +1,141 @@
+#!/bin/bash
+set -e
+echo "=== Phase 3B: パターン登録機能 適用開始 ==="
+
+API_DIR=~/projects/log-server/apps/api/src/traces
+CMS_PAGE=~/projects/log-server/apps/cms/app/projects/\[id\]/patterns/page.tsx
+
+# ─── バックアップ
+echo "[1/4] バックアップ作成..."
+cp "$API_DIR/traces.service.ts"    "$API_DIR/traces.service.ts.bak3b"
+cp "$API_DIR/traces.controller.ts" "$API_DIR/traces.controller.ts.bak3b"
+cp "$CMS_PAGE" "${CMS_PAGE}.bak3b"
+echo "  完了: *.bak3b 作成済み"
+
+# ─── ① create-pattern.dto.ts 作成
+echo "[2/4] create-pattern.dto.ts 作成..."
+cat > "$API_DIR/create-pattern.dto.ts" << 'EOF'
+import { IsString, IsOptional } from 'class-validator';
+
+export class CreatePatternDto {
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @IsString()
+  screenMode?: string;
+
+  // seqData は JSON として受け取る（any で受けて保存）
+  seqData: any;
+
+  @IsOptional()
+  @IsString()
+  memo?: string;
+}
+EOF
+echo "  完了: create-pattern.dto.ts"
+
+# ─── ② traces.service.ts に createPattern() を追加
+echo "[3/4] traces.service.ts 更新..."
+python3 - << 'PYEOF'
+import re
+
+path = '/home/karkyon/projects/log-server/apps/api/src/traces/traces.service.ts'
+with open(path) as f:
+    src = f.read()
+
+# import に CreatePatternDto を追加
+if 'CreatePatternDto' not in src:
+    src = src.replace(
+        "import { Injectable } from '@nestjs/common';",
+        "import { Injectable } from '@nestjs/common';\nimport { CreateIssueDto } from './create-issue.dto';\nimport { CreatePatternDto } from './create-pattern.dto';"
+    )
+    # 既に CreateIssueDto が import されている場合は重複しないよう調整
+    src = re.sub(
+        r"import \{ CreateIssueDto \} from './create-issue\.dto';\nimport \{ CreateIssueDto \} from './create-issue\.dto';",
+        "import { CreateIssueDto } from './create-issue.dto';",
+        src
+    )
+    src = re.sub(
+        r"import \{ CreateIssueDto \} from './create-issue\.dto';\nimport \{ CreatePatternDto \} from './create-pattern\.dto';",
+        "import { CreateIssueDto } from './create-issue.dto';\nimport { CreatePatternDto } from './create-pattern.dto';",
+        src
+    )
+
+# createPattern メソッドを末尾の } の直前に追加
+new_method = '''
+  async createPattern(projectId: string, dto: CreatePatternDto, userId?: string) {
+    return this.prisma.pattern.create({
+      data: {
+        projectId,
+        name:       dto.name,
+        screenMode: dto.screenMode ?? null,
+        seqData:    dto.seqData ?? {},
+        memo:       dto.memo ?? null,
+        createdById: userId ?? null,
+        status:     '未評価',
+      },
+    });
+  }
+'''
+
+if 'createPattern' not in src:
+    # 最後の } の直前に挿入
+    src = src.rstrip()
+    if src.endswith('}'):
+        src = src[:-1] + new_method + '}\n'
+
+with open(path, 'w') as f:
+    f.write(src)
+print("traces.service.ts 更新完了")
+PYEOF
+echo "  完了: traces.service.ts"
+
+# ─── ③ traces.controller.ts に POST /patterns を追加
+echo "[3/4] traces.controller.ts 更新..."
+python3 - << 'PYEOF'
+path = '/home/karkyon/projects/log-server/apps/api/src/traces/traces.controller.ts'
+with open(path) as f:
+    src = f.read()
+
+# import 更新
+if 'CreatePatternDto' not in src:
+    src = src.replace(
+        "import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';",
+        "import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';"
+    )
+    if "CreatePatternDto" not in src:
+        src = src.replace(
+            "import { CreateIssueDto } from './create-issue.dto';",
+            "import { CreateIssueDto } from './create-issue.dto';\nimport { CreatePatternDto } from './create-pattern.dto';"
+        )
+
+# POST patterns エンドポイントを追加
+new_endpoint = '''
+  @Post('patterns')
+  createPattern(
+    @Param('id') id: string,
+    @Body() dto: CreatePatternDto,
+    @Request() req: any,
+  ) {
+    return this.traces.createPattern(id, dto, req.user?.userId);
+  }
+'''
+
+if 'createPattern' not in src:
+    src = src.rstrip()
+    if src.endswith('}'):
+        src = src[:-1] + new_endpoint + '}\n'
+
+with open(path, 'w') as f:
+    f.write(src)
+print("traces.controller.ts 更新完了")
+PYEOF
+echo "  完了: traces.controller.ts"
+
+# ─── ④ CMS patterns/page.tsx にモーダル追加
+echo "[4/4] CMS patterns/page.tsx 更新..."
+cat > "$CMS_PAGE" << 'EOF'
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -215,3 +353,30 @@ export default function PatternsPage() {
     </div>
   );
 }
+EOF
+echo "  完了: CMS patterns/page.tsx"
+
+# ─── API ビルド & pm2 再起動
+echo "=== API ビルド & pm2 再起動 ==="
+cd ~/projects/log-server/apps/api
+npm run build
+pm2 restart tlog-api
+sleep 2
+curl -s http://localhost:3099/ping | jq .
+echo ""
+echo "✅ Phase 3B 適用完了！"
+echo ""
+echo "【次の確認手順】"
+echo "1. CMSを再起動（または既に起動中ならそのまま）"
+echo "2. http://192.168.1.11:3002/projects/<ID>/patterns を開く"
+echo "3. ヘッダーの「+ パターン登録」ボタンをクリック"
+echo "4. フォーム入力 → 「登録する」で POST /api/projects/:id/patterns が呼ばれることを確認"
+echo ""
+echo "【API直接テスト】"
+echo 'TOKEN=$(curl -s -X POST http://localhost:3099/api/auth/login \'
+echo '  -H "Content-Type: application/json" \'
+echo '  -d '"'"'{"username":"admin","password":"admin1234"}'"'"' | jq -r .accessToken)'
+echo 'curl -s -X POST http://localhost:3099/api/projects/legacy/patterns \'
+echo '  -H "Content-Type: application/json" \'
+echo '  -H "Authorization: Bearer $TOKEN" \'
+echo '  -d '"'"'{"name":"製品検索フロー","screenMode":"MC_PRODUCTS_LIST","seqData":{"steps":[{"action":"click","target":"btn_search"}]},"memo":"Phase3Bテスト"}'"'"' | jq .'

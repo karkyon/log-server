@@ -2,7 +2,6 @@ import { Controller, Get, Post, Body, Param, Request, UseGuards } from '@nestjs/
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TracesService } from './traces.service';
 import { CreateIssueDto } from './create-issue.dto';
-import { CreatePatternDto } from './create-pattern.dto';
 
 @Controller('api/projects/:id')
 @UseGuards(JwtAuthGuard)
@@ -36,14 +35,5 @@ export class TracesController {
   @Get('patterns')
   findPatterns(@Param('id') id: string) {
     return this.traces.findPatterns(id);
-  }
-
-  @Post('patterns')
-  createPattern(
-    @Param('id') id: string,
-    @Body() dto: CreatePatternDto,
-    @Request() req: any,
-  ) {
-    return this.traces.createPattern(id, dto, req.user?.userId);
   }
 }
