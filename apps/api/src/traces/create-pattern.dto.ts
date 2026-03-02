@@ -1,4 +1,4 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsObject } from 'class-validator';
 
 export class CreatePatternDto {
   @IsString()
@@ -8,8 +8,8 @@ export class CreatePatternDto {
   @IsString()
   screenMode?: string;
 
-  // seqData は JSON として受け取る（any で受けて保存）
-  seqData: any;
+  @IsObject()
+  seqData: Record<string, any>;
 
   @IsOptional()
   @IsString()
