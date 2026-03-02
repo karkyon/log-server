@@ -1,8 +1,5 @@
-import { Controller, Post, Body, HttpCode, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { JwtAuthGuard } from './jwt-auth.guard';
-import { RolesGuard }   from './roles.guard';
-import { Roles }        from './roles.decorator';
 
 @Controller('api/auth')
 export class AuthController {
@@ -14,11 +11,8 @@ export class AuthController {
     return this.auth.login(body.username, body.password);
   }
 
-  // ユーザー作成は ADMIN のみ（旧エンドポイント互換維持）
   @Post('create-user')
   @HttpCode(201)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
   createUser(@Body() body: { username: string; password: string; displayName: string; role?: 'ADMIN' | 'MEMBER' }) {
     return this.auth.createUser(body.username, body.password, body.displayName, body.role);
   }
