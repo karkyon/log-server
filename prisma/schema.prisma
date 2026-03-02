@@ -109,14 +109,14 @@ enum TraceStatus {
 // ─── ログ（各操作イベント）
 model Log {
   id          String   @id @default(uuid())
-  traceId     String   @map("trace_id")
+  traceId     String?  @map("trace_id")
   eventType   String   @map("event_type")
   screenName  String?  @map("screen_name")
   elementId   String?  @map("element_id")
   payload     Json?
   screenshotPath String? @map("screenshot_path")
   timestamp   DateTime @default(now())
-  trace       Trace    @relation(fields: [traceId], references: [id])
+  trace       Trace?   @relation(fields: [traceId], references: [id])
 
   @@map("logs")
 }
