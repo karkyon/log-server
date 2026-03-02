@@ -9,13 +9,11 @@ import { ProjectsModule } from './projects/projects.module';
 import { TracesModule } from './traces/traces.module';
 import { ApiKeysModule } from './apikeys/apikeys.module';
 import { UsersModule } from './users/users.module';
-import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
     ApiKeysModule,
     UsersModule,
-    AdminModule,
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     SdkModule,

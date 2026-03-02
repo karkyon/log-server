@@ -20,7 +20,6 @@ export default function ProjectsPage() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
-  const [showAdminMenu, setShowAdminMenu] = useState(false);
   const [slugError, setSlugError] = useState("");
 
   useEffect(() => {
@@ -94,33 +93,10 @@ export default function ProjectsPage() {
         <h1 className="text-lg font-bold text-blue-600">TLog NEXT</h1>
         <div className="flex items-center gap-4">
           {isAdmin && (
-            <div className="flex items-center gap-2">
-              <button onClick={() => { setForm(EMPTY_FORM); setSlugError(""); setShowModal(true); }}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-1.5 rounded-lg font-medium transition">
-                + 新規プロジェクト
-              </button>
-              {/* 管理者メニュー */}
-              <div className="relative">
-                <button onClick={() => setShowAdminMenu(v => !v)}
-                  className={`text-sm px-3 py-1.5 rounded-lg font-medium border transition ${dark ? "border-gray-700 hover:bg-gray-800 text-gray-300" : "border-gray-200 hover:bg-gray-50 text-gray-600"}`}>
-                  ⚙️ 管理
-                </button>
-                {showAdminMenu && (
-                  <div className={`absolute right-0 top-full mt-1 w-44 rounded-xl shadow-lg border z-20 overflow-hidden ${dark ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200"}`}
-                    onMouseLeave={() => setShowAdminMenu(false)}>
-                    <button onClick={() => { setShowAdminMenu(false); router.push("/admin/users"); }}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition ${dark ? "hover:bg-gray-800 text-gray-200" : "hover:bg-gray-50 text-gray-700"}`}>
-                      👥 ユーザー管理
-                    </button>
-                    <div className={`border-t ${dark ? "border-gray-700" : "border-gray-100"}`} />
-                    <button onClick={() => { setShowAdminMenu(false); router.push("/admin/reset"); }}
-                      className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition">
-                      🗑️ データ初期化
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+            <button onClick={() => { setForm(EMPTY_FORM); setSlugError(""); setShowModal(true); }}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-1.5 rounded-lg font-medium transition">
+              + 新規プロジェクト
+            </button>
           )}
           <button onClick={toggle}
             className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg transition ${dark ? "bg-gray-800 hover:bg-gray-700" : "bg-gray-100 hover:bg-gray-200"}`}>
