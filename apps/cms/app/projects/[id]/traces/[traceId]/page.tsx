@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { useTheme } from "@/lib/useTheme";
 import { api } from "@/lib/api";
 
 type LogEntry = {
@@ -109,7 +110,7 @@ export default function TraceDetailPage() {
           <span className={sub}>/</span>
           <span className="font-mono text-blue-400">{traceId.slice(0, 8)}...</span>
         </div>
-        <button onClick={() => setDark(!dark)} className={`text-xs px-2 py-1 rounded ${dark ? "bg-slate-700" : "bg-slate-100"}`}>
+        <button onClick={() => toggle()} className={`text-xs px-2 py-1 rounded ${dark ? "bg-slate-700" : "bg-slate-100"}`}>
           {dark ? "☀" : "🌙"}
         </button>
       </header>

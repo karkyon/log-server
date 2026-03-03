@@ -126,7 +126,7 @@ export default function TracesPage() {
           <span className="text-sm font-medium">TraceID一覧</span>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setDark(!dark)} className={`text-xs px-2 py-1 rounded ${dark ? "bg-slate-700" : "bg-slate-100"}`}>
+          <button onClick={() => toggle()} className={`text-xs px-2 py-1 rounded ${dark ? "bg-slate-700" : "bg-slate-100"}`}>
             {dark ? "☀" : "🌙"}
           </button>
           <button onClick={() => router.push("/projects")} className={`text-xs px-3 py-1 rounded border ${dark ? "border-slate-600 text-slate-400" : "border-slate-300 text-slate-500"}`}>
