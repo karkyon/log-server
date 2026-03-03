@@ -25,4 +25,11 @@ export class ProjectsService {
       data: { id: slug, slug, name, description: description ?? null, createdById: userId },
     });
   }
+
+  async findOne(id: string, userId: string, role: string) {
+    const where = role === 'ADMIN'
+      ? { id }
+      : { id, members: { some: { userId } } };
+    return this.prisma.project.findFirst({ where });
+  }
 }
