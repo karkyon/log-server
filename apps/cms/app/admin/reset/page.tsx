@@ -4,215 +4,152 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useTheme } from "@/lib/useTheme";
 
-type Stats = {
-  logs: number; console_logs: number; screenshots: number;
-  issues: number; patterns: number; traces: number;
-  users: number; projects: number; api_keys: number;
-};
+type Project = { id: string; slug: string; name: string };
 
 export default function AdminResetPage() {
   const router = useRouter();
-  const { dark, toggle } = useTheme();
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [step, setStep] = useState<0 | 1 | 2>(0); // 0=通常, 1=第1確認, 2=第2確認
-  const [confirmInput, setConfirmInput] = useState("");
-  const [executing, setExecuting] = useState(false);
-  const [result, setResult] = useState<Record<string, number> | null>(null);
+  const { dark } = useTheme();
+  const [user, setUser]       = useState<{ displayName: string; role: string } | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selected, setSelected] = useState<Project | null>(null);
+  const [confirm, setConfirm]   = useState("");
+  const [step, setStep]         = useState<"select" | "confirm" | "done">("select");
+  const [result, setResult]     = useState<{ deleted: Record<string, number>; message: string } | null>(null);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState("");
 
-  const CONFIRM_WORD = "TLog";
-
-  const bg       = dark ? "bg-gray-950" : "bg-gray-50";
-  const headerBg = dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200";
-  const cardBg   = dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200";
-  const text     = dark ? "text-white" : "text-gray-900";
-  const subtext  = dark ? "text-gray-400" : "text-gray-500";
-  const modalBg  = dark ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200";
-  const inputCls = `w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-500 ${dark ? "bg-gray-800 border-gray-700 text-white placeholder-gray-500" : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"}`;
+  const bg   = dark ? "bg-gray-950 text-white" : "bg-gray-50 text-gray-900";
+  const card = dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200";
+  const sub  = dark ? "text-gray-400" : "text-gray-500";
+  const inp  = `w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 ${dark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-300 text-gray-900"}`;
 
   useEffect(() => {
     const token = localStorage.getItem("tlog_token");
     if (!token) { router.push("/login"); return; }
-    const u = JSON.parse(localStorage.getItem("tlog_user") || "{}");
-    if (u.role !== "ADMIN") { router.push("/projects"); return; }
-    fetchStats();
+    const u = localStorage.getItem("tlog_user");
+    if (u) {
+      const parsed = JSON.parse(u);
+      setUser(parsed);
+      if (parsed.role !== "ADMIN") { router.push("/projects"); return; }
+    }
+    api.get("/api/projects").then(r => setProjects(r.data)).catch(() => {});
   }, []);
 
-  const fetchStats = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("/api/admin/stats");
-      setStats(res.data);
-    } catch {} finally { setLoading(false); }
+  const handleSelect = (p: Project) => {
+    setSelected(p);
+    setConfirm("");
+    setError("");
+    setStep("confirm");
   };
 
   const handleReset = async () => {
-    if (confirmInput !== CONFIRM_WORD) return;
-    setExecuting(true);
+    if (!selected || confirm !== selected.slug) {
+      setError("プロジェクトのスラッグが一致しません");
+      return;
+    }
+    setLoading(true);
+    setError("");
     try {
-      const res = await api.post("/api/admin/reset");
-      setResult(res.data.deleted);
-      setStep(0);
-      setConfirmInput("");
-      fetchStats();
+      const res = await api.delete(`/api/admin/reset?project=${selected.slug}`);
+      setResult(res.data);
+      setStep("done");
     } catch (e: any) {
-      alert(e.response?.data?.message || "削除に失敗しました");
-    } finally { setExecuting(false); }
+      setError(e.response?.data?.message || "削除に失敗しました");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const statItems = stats ? [
-    { label: "UIイベントログ", key: "logs",         value: stats.logs,         color: "text-blue-500" },
-    { label: "コンソールログ", key: "console_logs", value: stats.console_logs, color: "text-purple-500" },
-    { label: "スクリーンショット", key: "screenshots", value: stats.screenshots, color: "text-green-500" },
-    { label: "TraceIDセッション", key: "traces",    value: stats.traces,       color: "text-yellow-500" },
-    { label: "チケット",       key: "issues",       value: stats.issues,       color: "text-red-500" },
-    { label: "パターン",       key: "patterns",     value: stats.patterns,     color: "text-orange-500" },
-  ] : [];
-
-  const totalDeletable = stats
-    ? stats.logs + stats.console_logs + stats.screenshots + stats.traces + stats.issues + stats.patterns
-    : 0;
-
   return (
-    <div className={`min-h-screen ${bg} ${text} transition-colors`}>
+    <div className={`min-h-screen ${bg}`}>
       {/* ヘッダー */}
-      <header className={`${headerBg} border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10`}>
-        <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/projects")} className={`${subtext} hover:text-blue-500 text-sm transition`}>
-            ← プロジェクト一覧
-          </button>
-          <span className={subtext}>/</span>
-          <span className="text-red-500 font-bold text-sm">データ初期化</span>
-        </div>
-        <button onClick={toggle}
-          className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg ${dark ? "bg-gray-800" : "bg-gray-100"}`}>
-          {dark ? "☀️" : "🌙"}
-        </button>
+      <header className={`${dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"} border-b px-6 py-4 flex items-center gap-4`}>
+        <button onClick={() => router.push("/projects")} className={`text-sm ${sub} hover:text-blue-500 transition`}>← プロジェクト一覧</button>
+        <h1 className="text-lg font-bold text-red-500">🗑️ データ初期化</h1>
+        <span className={`text-xs ml-auto ${sub}`}>{user?.displayName} (ADMIN)</span>
       </header>
 
-      <main className="max-w-2xl mx-auto px-6 py-8">
+      <main className="max-w-lg mx-auto px-6 py-10">
 
-        {/* 完了メッセージ */}
-        {result && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
-            <p className="font-bold text-green-700 mb-2">✅ データ初期化が完了しました</p>
-            <div className="text-sm text-green-600 space-y-1">
-              {Object.entries(result).map(([k, v]) => (
-                <p key={k}>{k}: {v} 件削除</p>
-              ))}
+        {/* 警告バナー */}
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-8 text-red-700">
+          <p className="font-bold text-sm">⚠️ この操作は取り消せません</p>
+          <p className="text-xs mt-1">選択したプロジェクトのログ・パターン・チケット・APIキーがすべて削除されます。プロジェクト自体は残ります。</p>
+        </div>
+
+        {/* STEP 1: プロジェクト選択 */}
+        {step === "select" && (
+          <div className={`${card} border rounded-xl p-6`}>
+            <h2 className="font-semibold mb-4">初期化するプロジェクトを選択</h2>
+            {projects.length === 0 ? (
+              <p className={`text-sm ${sub}`}>プロジェクトがありません</p>
+            ) : (
+              <div className="space-y-2">
+                {projects.map(p => (
+                  <button key={p.id} onClick={() => handleSelect(p)}
+                    className={`w-full text-left px-4 py-3 rounded-lg border transition hover:border-red-400 ${dark ? "border-gray-700 hover:bg-gray-800" : "border-gray-200 hover:bg-red-50"}`}>
+                    <p className="font-medium text-sm">{p.name}</p>
+                    <p className={`text-xs ${sub}`}>{p.slug}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* STEP 2: スラッグ入力で2重確認 */}
+        {step === "confirm" && selected && (
+          <div className={`${card} border rounded-xl p-6`}>
+            <h2 className="font-semibold mb-2">確認：データを削除します</h2>
+            <p className={`text-sm ${sub} mb-5`}>
+              <span className="font-bold text-red-500">{selected.name}</span> のデータをすべて削除します。<br />
+              続行するには下のフィールドにプロジェクトのスラッグ（<code className="bg-gray-100 text-gray-800 px-1 rounded text-xs">{selected.slug}</code>）を入力してください。
+            </p>
+            <input
+              type="text"
+              value={confirm}
+              onChange={e => setConfirm(e.target.value)}
+              placeholder={selected.slug}
+              className={inp}
+            />
+            {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+            <div className="flex gap-3 mt-5">
+              <button onClick={() => setStep("select")}
+                className={`flex-1 py-2 rounded-lg border text-sm transition ${dark ? "border-gray-700 hover:bg-gray-800" : "border-gray-200 hover:bg-gray-50"}`}>
+                キャンセル
+              </button>
+              <button onClick={handleReset} disabled={loading || confirm !== selected.slug}
+                className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white text-sm font-medium transition">
+                {loading ? "削除中..." : "削除を実行"}
+              </button>
             </div>
           </div>
         )}
 
-        {/* 現在のデータ件数 */}
-        <div className={`${cardBg} border rounded-xl p-6 mb-6`}>
-          <h2 className="text-lg font-bold mb-4">現在のデータ件数</h2>
-          {loading ? (
-            <p className={subtext}>読み込み中...</p>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                {statItems.map(({ label, value, color }) => (
-                  <div key={label} className={`${dark ? "bg-gray-800" : "bg-gray-50"} rounded-lg p-3 flex justify-between items-center`}>
-                    <span className={`text-sm ${subtext}`}>{label}</span>
-                    <span className={`font-bold text-lg ${color}`}>{value.toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
-              <div className={`border-t ${dark ? "border-gray-700" : "border-gray-200"} pt-3 flex justify-between items-center`}>
-                <span className="text-sm font-medium">削除対象合計</span>
-                <span className="font-bold text-xl text-red-500">{totalDeletable.toLocaleString()} 件</span>
-              </div>
-              <div className={`mt-2 text-xs ${subtext}`}>
-                ※ ユーザー（{stats?.users}名）・プロジェクト（{stats?.projects}件）・APIキー（{stats?.api_keys}件）は削除されません
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* 初期化ボタン */}
-        <div className={`${cardBg} border border-red-200 rounded-xl p-6`}>
-          <h2 className="text-lg font-bold text-red-600 mb-2">⚠️ データ初期化</h2>
-          <p className={`text-sm ${subtext} mb-4`}>
-            全プロジェクトのログ・スクリーンショット・TraceID・チケット・パターンを完全に削除します。
-            この操作は取り消せません。
-          </p>
-          <button
-            onClick={() => { setStep(1); setConfirmInput(""); setResult(null); }}
-            disabled={totalDeletable === 0}
-            className="w-full bg-red-500 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed text-white py-3 rounded-lg font-bold transition"
-          >
-            データを初期化する
-          </button>
-        </div>
+        {/* STEP 3: 完了 */}
+        {step === "done" && result && (
+          <div className={`${card} border rounded-xl p-6 text-center`}>
+            <p className="text-2xl mb-3">✅</p>
+            <p className="font-semibold mb-4">{result.message}</p>
+            <div className={`${dark ? "bg-gray-800" : "bg-gray-50"} rounded-lg p-4 text-sm text-left space-y-1 mb-6`}>
+              <p>ログ削除数：<span className="font-mono font-bold">{result.deleted.logs}</span></p>
+              <p>パターン削除数：<span className="font-mono font-bold">{result.deleted.patterns}</span></p>
+              <p>チケット削除数：<span className="font-mono font-bold">{result.deleted.issues}</span></p>
+              <p>APIキー削除数：<span className="font-mono font-bold">{result.deleted.apiKeys}</span></p>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => { setStep("select"); setSelected(null); setConfirm(""); setResult(null); }}
+                className={`flex-1 py-2 rounded-lg border text-sm ${dark ? "border-gray-700 hover:bg-gray-800" : "border-gray-200 hover:bg-gray-50"}`}>
+                別のプロジェクトを初期化
+              </button>
+              <button onClick={() => router.push("/projects")}
+                className="flex-1 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium">
+                プロジェクト一覧へ
+              </button>
+            </div>
+          </div>
+        )}
       </main>
-
-      {/* Step 1: 第1確認モーダル */}
-      {step === 1 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className={`${modalBg} border border-red-300 rounded-xl p-6 w-full max-w-md shadow-2xl`}>
-            <div className="text-center mb-5">
-              <div className="text-4xl mb-3">⚠️</div>
-              <h2 className="text-xl font-bold text-red-600 mb-2">本当に削除しますか？</h2>
-              <p className={`text-sm ${subtext}`}>
-                <strong className="text-red-500">{totalDeletable.toLocaleString()} 件</strong>のデータが完全に削除されます。<br />
-                この操作は取り消せません。
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => setStep(0)}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium ${dark ? "bg-gray-700 text-gray-200" : "bg-gray-100 text-gray-700"} transition`}>
-                キャンセル
-              </button>
-              <button onClick={() => setStep(2)}
-                className="flex-1 py-2 rounded-lg text-sm font-bold bg-red-500 hover:bg-red-600 text-white transition">
-                続行する
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Step 2: 第2確認モーダル（確認ワード入力） */}
-      {step === 2 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className={`${modalBg} border border-red-300 rounded-xl p-6 w-full max-w-md shadow-2xl`}>
-            <div className="text-center mb-5">
-              <div className="text-4xl mb-3">🔐</div>
-              <h2 className="text-xl font-bold text-red-600 mb-2">最終確認</h2>
-              <p className={`text-sm ${subtext} mb-4`}>
-                削除を実行するには、下のテキストボックスに
-                <strong className="text-red-500 mx-1">"{CONFIRM_WORD}"</strong>
-                と入力してください。
-              </p>
-              <input
-                type="text"
-                value={confirmInput}
-                onChange={e => setConfirmInput(e.target.value)}
-                className={inputCls}
-                placeholder={`"${CONFIRM_WORD}" と入力`}
-                autoFocus
-              />
-              {confirmInput.length > 0 && confirmInput !== CONFIRM_WORD && (
-                <p className="text-red-500 text-xs mt-1">"{CONFIRM_WORD}" と正確に入力してください</p>
-              )}
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => { setStep(0); setConfirmInput(""); }}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium ${dark ? "bg-gray-700 text-gray-200" : "bg-gray-100 text-gray-700"} transition`}>
-                キャンセル
-              </button>
-              <button
-                onClick={handleReset}
-                disabled={confirmInput !== CONFIRM_WORD || executing}
-                className="flex-1 py-2 rounded-lg text-sm font-bold bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition"
-              >
-                {executing ? "削除中..." : "完全に削除する"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

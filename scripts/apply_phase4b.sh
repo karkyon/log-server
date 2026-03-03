@@ -1,93 +1,165 @@
 #!/bin/bash
 set -e
-echo "=== Phase 4B: データ一括消去 + 管理者メニュー 適用開始 ==="
+BASE=~/projects/log-server
 
-API_SRC=~/projects/log-server/apps/api/src
-CMS_SRC=~/projects/log-server/apps/cms
+echo "=== Phase 4B: リフレッシュトークン + データ初期化 適用開始 ==="
 
-# ─── バックアップ ───────────────────────────────────────────
-echo "[1/5] バックアップ作成..."
-cp $API_SRC/app.module.ts $API_SRC/app.module.ts.bak4b
+# ─────────────────────────────────────────────
+# [1] バックアップ
+# ─────────────────────────────────────────────
+echo "[1/6] バックアップ作成..."
+cp $BASE/apps/api/src/auth/auth.service.ts  $BASE/apps/api/src/auth/auth.service.ts.bak4b  2>/dev/null || true
+cp $BASE/apps/api/src/auth/auth.controller.ts $BASE/apps/api/src/auth/auth.controller.ts.bak4b 2>/dev/null || true
+cp $BASE/apps/cms/lib/api.ts $BASE/apps/cms/lib/api.ts.bak4b 2>/dev/null || true
 echo "  完了"
 
-# ─── ① admin.service.ts ────────────────────────────────────
-echo "[2/5] admin モジュール作成..."
-mkdir -p $API_SRC/admin
-
-cat > $API_SRC/admin/admin.service.ts << 'EOF'
-import { Injectable } from '@nestjs/common';
+# ─────────────────────────────────────────────
+# [2] API: auth.service.ts — refresh token追加
+# ─────────────────────────────────────────────
+echo "[2/6] auth.service.ts 更新 (refreshToken追加)..."
+cat > $BASE/apps/api/src/auth/auth.service.ts << 'TSEOF'
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
+import { createClient } from 'redis';
+
+// Redis クライアント（シングルトン）
+let redisClient: ReturnType<typeof createClient> | null = null;
+async function getRedis() {
+  if (!redisClient) {
+    redisClient = createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
+    redisClient.on('error', (e) => console.error('[Redis]', e));
+    await redisClient.connect();
+  }
+  return redisClient;
+}
+
+const RT_TTL_SEC = 60 * 60 * 24 * 7; // 7日
 
 @Injectable()
-export class AdminService {
-  constructor(private prisma: PrismaService) {}
+export class AuthService {
+  constructor(
+    private prisma: PrismaService,
+    private jwt: JwtService,
+  ) {}
 
-  async resetAllData(): Promise<{ deleted: Record<string, number> }> {
-    const deleted: Record<string, number> = {};
+  async login(username: string, password: string) {
+    const user = await this.prisma.user.findUnique({ where: { username } });
+    if (!user || !user.isActive) throw new UnauthorizedException('ユーザーが存在しません');
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) throw new UnauthorizedException('パスワードが違います');
 
-    // ① logs
-    const logs = await this.prisma.log.deleteMany({});
-    deleted.logs = logs.count;
+    const payload = { sub: user.id, username: user.username, role: user.role };
+    const accessToken = this.jwt.sign(payload, { expiresIn: '15m' });
+    const refreshToken = await this.issueRefreshToken(user.id);
 
-    // ② console_logs
-    const consoleLogs = await this.prisma.consoleLog.deleteMany({});
-    deleted.console_logs = consoleLogs.count;
-
-    // ③ screenshots — ファイル削除 → DB削除
-    const screenshots = await this.prisma.screenshot.findMany({
-      select: { filePath: true },
-    });
-    let fileDeleted = 0;
-    for (const s of screenshots) {
-      if (s.filePath) {
-        try {
-          fs.unlinkSync(s.filePath);
-          fileDeleted++;
-        } catch { /* ファイルが既にない場合はスキップ */ }
-      }
-    }
-    const screenshotDb = await this.prisma.screenshot.deleteMany({});
-    deleted.screenshots = screenshotDb.count;
-    deleted.screenshot_files = fileDeleted;
-
-    // ④ issues
-    const issues = await this.prisma.issue.deleteMany({});
-    deleted.issues = issues.count;
-
-    // ⑤ patterns
-    const patterns = await this.prisma.pattern.deleteMany({});
-    deleted.patterns = patterns.count;
-
-    // ⑥ traces（最後：他テーブルが依存）
-    const traces = await this.prisma.trace.deleteMany({});
-    deleted.traces = traces.count;
-
-    return { deleted };
+    return {
+      accessToken,
+      refreshToken,
+      user: { id: user.id, username: user.username, displayName: user.displayName, role: user.role },
+    };
   }
 
-  async getStats() {
-    const [logs, consoleLogs, screenshots, issues, patterns, traces, users, projects, apiKeys] =
-      await Promise.all([
-        this.prisma.log.count(),
-        this.prisma.consoleLog.count(),
-        this.prisma.screenshot.count(),
-        this.prisma.issue.count(),
-        this.prisma.pattern.count(),
-        this.prisma.trace.count(),
-        this.prisma.user.count(),
-        this.prisma.project.count(),
-        this.prisma.apiKey.count({ where: { isActive: true } }),
-      ]);
-    return { logs, console_logs: consoleLogs, screenshots, issues, patterns, traces, users, projects, api_keys: apiKeys };
+  async refresh(refreshToken: string) {
+    const redis = await getRedis();
+    const userId = await redis.get(`rt:${refreshToken}`);
+    if (!userId) throw new UnauthorizedException('リフレッシュトークンが無効または期限切れです');
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.isActive) throw new UnauthorizedException('ユーザーが無効です');
+
+    // 旧トークン削除（ローテーション）
+    await redis.del(`rt:${refreshToken}`);
+
+    const payload = { sub: user.id, username: user.username, role: user.role };
+    const newAccessToken = this.jwt.sign(payload, { expiresIn: '15m' });
+    const newRefreshToken = await this.issueRefreshToken(user.id);
+
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+      user: { id: user.id, username: user.username, displayName: user.displayName, role: user.role },
+    };
+  }
+
+  async logout(refreshToken: string) {
+    const redis = await getRedis();
+    await redis.del(`rt:${refreshToken}`);
+    return { message: 'ログアウトしました' };
+  }
+
+  async createUser(username: string, password: string, displayName: string, role: 'ADMIN' | 'MEMBER' = 'MEMBER') {
+    const passwordHash = await bcrypt.hash(password, 10);
+    return this.prisma.user.create({
+      data: { username, passwordHash, displayName, role },
+      select: { id: true, username: true, displayName: true, role: true },
+    });
+  }
+
+  private async issueRefreshToken(userId: string): Promise<string> {
+    const token = crypto.randomBytes(40).toString('hex');
+    const redis = await getRedis();
+    await redis.set(`rt:${token}`, userId, { EX: RT_TTL_SEC });
+    return token;
   }
 }
-EOF
+TSEOF
+echo "  完了: auth.service.ts"
 
-# ─── ② admin.controller.ts ─────────────────────────────────
-cat > $API_SRC/admin/admin.controller.ts << 'EOF'
-import { Controller, Post, Get, UseGuards } from '@nestjs/common';
+# ─────────────────────────────────────────────
+# [3] API: auth.controller.ts — /refresh /logout追加
+# ─────────────────────────────────────────────
+echo "[3/6] auth.controller.ts 更新 (refresh/logout追加)..."
+cat > $BASE/apps/api/src/auth/auth.controller.ts << 'TSEOF'
+import { Controller, Post, Body, HttpCode, UseGuards } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { RolesGuard }   from './roles.guard';
+import { Roles }        from './roles.decorator';
+
+@Controller('api/auth')
+export class AuthController {
+  constructor(private auth: AuthService) {}
+
+  @Post('login')
+  @HttpCode(200)
+  login(@Body() body: { username: string; password: string }) {
+    return this.auth.login(body.username, body.password);
+  }
+
+  @Post('refresh')
+  @HttpCode(200)
+  refresh(@Body() body: { refreshToken: string }) {
+    return this.auth.refresh(body.refreshToken);
+  }
+
+  @Post('logout')
+  @HttpCode(200)
+  logout(@Body() body: { refreshToken: string }) {
+    return this.auth.logout(body.refreshToken);
+  }
+
+  @Post('create-user')
+  @HttpCode(201)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  createUser(@Body() body: { username: string; password: string; displayName: string; role?: 'ADMIN' | 'MEMBER' }) {
+    return this.auth.createUser(body.username, body.password, body.displayName, body.role);
+  }
+}
+TSEOF
+echo "  完了: auth.controller.ts"
+
+# ─────────────────────────────────────────────
+# [4] API: admin reset エンドポイント追加
+# ─────────────────────────────────────────────
+echo "[4/6] admin reset エンドポイント作成..."
+mkdir -p $BASE/apps/api/src/admin
+
+cat > $BASE/apps/api/src/admin/admin.controller.ts << 'TSEOF'
+import { Controller, Delete, Query, UseGuards, BadRequestException, HttpCode } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard }   from '../auth/roles.guard';
 import { Roles }        from '../auth/roles.decorator';
@@ -99,370 +171,412 @@ import { AdminService } from './admin.service';
 export class AdminController {
   constructor(private admin: AdminService) {}
 
-  @Get('stats')
-  getStats() {
-    return this.admin.getStats();
-  }
-
-  @Post('reset')
-  reset() {
-    return this.admin.resetAllData();
+  /** DELETE /api/admin/reset?project=<slug>  プロジェクトのログデータを全削除 */
+  @Delete('reset')
+  @HttpCode(200)
+  async resetProject(@Query('project') slug: string) {
+    if (!slug) throw new BadRequestException('project パラメータが必要です');
+    return this.admin.resetProjectData(slug);
   }
 }
-EOF
+TSEOF
 
-# ─── ③ admin.module.ts ─────────────────────────────────────
-cat > $API_SRC/admin/admin.module.ts << 'EOF'
+cat > $BASE/apps/api/src/admin/admin.service.ts << 'TSEOF'
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Injectable()
+export class AdminService {
+  constructor(private prisma: PrismaService) {}
+
+  async resetProjectData(slug: string) {
+    const project = await this.prisma.project.findUnique({ where: { slug } });
+    if (!project) throw new NotFoundException(`プロジェクト "${slug}" が見つかりません`);
+
+    // ログ・パターン・チケット・APIキーをまとめて削除（プロジェクトは残す）
+    const [logs, patterns, issues, apiKeys] = await Promise.all([
+      this.prisma.log.deleteMany({ where: { projectId: project.id } }),
+      this.prisma.pattern.deleteMany({ where: { projectId: project.id } }),
+      this.prisma.issue.deleteMany({ where: { projectId: project.id } }),
+      this.prisma.apiKey.deleteMany({ where: { projectId: project.id } }),
+    ]);
+
+    return {
+      message: `プロジェクト "${project.name}" のデータを初期化しました`,
+      deleted: {
+        logs: logs.count,
+        patterns: patterns.count,
+        issues: issues.count,
+        apiKeys: apiKeys.count,
+      },
+    };
+  }
+}
+TSEOF
+
+cat > $BASE/apps/api/src/admin/admin.module.ts << 'TSEOF'
 import { Module } from '@nestjs/common';
 import { AdminController } from './admin.controller';
 import { AdminService }    from './admin.service';
 import { PrismaModule }    from '../prisma/prisma.module';
 
 @Module({
-  imports:     [PrismaModule],
+  imports: [PrismaModule],
   controllers: [AdminController],
-  providers:   [AdminService],
+  providers: [AdminService],
 })
 export class AdminModule {}
-EOF
+TSEOF
 echo "  完了: admin モジュール一式"
 
-# ─── ④ app.module.ts に AdminModule 追加 ───────────────────
-echo "[3/5] app.module.ts 更新..."
+# app.module.ts に AdminModule を追加
 python3 - << 'PYEOF'
-path = '/home/karkyon/projects/log-server/apps/api/src/app.module.ts'
-with open(path) as f:
-    src = f.read()
+import re, sys
+path = "/home/karkyon/projects/log-server/apps/api/src/app.module.ts"
+with open(path) as f: src = f.read()
 
-if 'AdminModule' not in src:
-    src = src.replace(
-        "import { UsersModule } from './users/users.module';",
-        "import { UsersModule } from './users/users.module';\nimport { AdminModule } from './admin/admin.module';"
-    )
-    src = src.replace(
-        'UsersModule,',
-        'UsersModule,\n    AdminModule,'
-    )
-    with open(path, 'w') as f:
-        f.write(src)
-    print("app.module.ts 更新完了")
-else:
-    print("AdminModule 既存")
+if 'AdminModule' in src:
+    print("  AdminModule は既に登録済み")
+    sys.exit(0)
+
+# import追加
+src = src.replace(
+    "import { UsersModule }",
+    "import { AdminModule }  from './admin/admin.module';\nimport { UsersModule }"
+)
+# imports配列に追加
+src = re.sub(r'(UsersModule,)', r'\1\n    AdminModule,', src)
+
+with open(path, 'w') as f: f.write(src)
+print("  app.module.ts 更新完了")
 PYEOF
-echo "  完了: app.module.ts"
 
-# ─── ⑤ CMS — 管理者メニュー + データ初期化画面 ────────────
-echo "[4/5] CMS 管理者メニュー + データ初期化画面 作成..."
-mkdir -p $CMS_SRC/app/admin/reset
+# ─────────────────────────────────────────────
+# [5] CMS: api.ts — refreshToken interceptor
+# ─────────────────────────────────────────────
+echo "[5/6] CMS api.ts 更新 (refresh interceptor)..."
+cat > $BASE/apps/cms/lib/api.ts << 'TSEOF'
+import axios from 'axios';
 
-cat > $CMS_SRC/app/admin/reset/page.tsx << 'CMSEOF'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3099';
+
+export const api = axios.create({ baseURL: API_BASE });
+
+// リクエストにアクセストークンを自動付与
+api.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('tlog_token');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// 401 → リフレッシュトークンで自動更新、失敗したらログインへ
+let isRefreshing = false;
+let pendingQueue: Array<{ resolve: (v: string) => void; reject: (e: unknown) => void }> = [];
+
+function flushQueue(token: string | null, error?: unknown) {
+  pendingQueue.forEach(({ resolve, reject }) => (token ? resolve(token) : reject(error)));
+  pendingQueue = [];
+}
+
+api.interceptors.response.use(
+  (res) => res,
+  async (err) => {
+    const original = err.config;
+    if (err.response?.status !== 401 || original._retry) {
+      return Promise.reject(err);
+    }
+    original._retry = true;
+
+    // 既にリフレッシュ中なら待機キューへ
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        pendingQueue.push({ resolve, reject });
+      }).then((token) => {
+        original.headers.Authorization = `Bearer ${token}`;
+        return api(original);
+      });
+    }
+
+    isRefreshing = true;
+    const rt = typeof window !== 'undefined' ? localStorage.getItem('tlog_refresh') : null;
+
+    if (!rt) {
+      isRefreshing = false;
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('tlog_token');
+        window.location.href = '/login';
+      }
+      return Promise.reject(err);
+    }
+
+    try {
+      const res = await axios.post(`${API_BASE}/api/auth/refresh`, { refreshToken: rt });
+      const { accessToken, refreshToken: newRt, user } = res.data;
+      localStorage.setItem('tlog_token', accessToken);
+      localStorage.setItem('tlog_refresh', newRt);
+      if (user) localStorage.setItem('tlog_user', JSON.stringify(user));
+      flushQueue(accessToken);
+      original.headers.Authorization = `Bearer ${accessToken}`;
+      return api(original);
+    } catch (refreshErr) {
+      flushQueue(null, refreshErr);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('tlog_token');
+        localStorage.removeItem('tlog_refresh');
+        localStorage.removeItem('tlog_user');
+        window.location.href = '/login';
+      }
+      return Promise.reject(refreshErr);
+    } finally {
+      isRefreshing = false;
+    }
+  }
+);
+
+export const authApi = {
+  login: (username: string, password: string) =>
+    api.post('/api/auth/login', { username, password }),
+  logout: () => {
+    const rt = typeof window !== 'undefined' ? localStorage.getItem('tlog_refresh') : null;
+    if (rt) api.post('/api/auth/logout', { refreshToken: rt }).catch(() => {});
+  },
+};
+TSEOF
+echo "  完了: api.ts"
+
+# login ページの localStorage保存にrefreshToken追加
+LOGIN_PAGE=$BASE/apps/cms/app/login/page.tsx
+if grep -q "tlog_refresh" "$LOGIN_PAGE" 2>/dev/null; then
+  echo "  login/page.tsx は既に refreshToken 対応済み"
+else
+  python3 - << 'PYEOF'
+path = "/home/karkyon/projects/log-server/apps/cms/app/login/page.tsx"
+with open(path) as f: src = f.read()
+# accessToken/refreshToken/user を保存
+old = "localStorage.setItem('tlog_token', res.data.accessToken);"
+new = """localStorage.setItem('tlog_token', res.data.accessToken);
+      if (res.data.refreshToken) localStorage.setItem('tlog_refresh', res.data.refreshToken);"""
+if old in src:
+    src = src.replace(old, new)
+    with open(path, 'w') as f: f.write(src)
+    print("  login/page.tsx 更新完了 (refreshToken保存追加)")
+else:
+    print("  [WARNING] login/page.tsx の保存コードが見つかりません。手動確認が必要です")
+PYEOF
+fi
+
+# logout関数にrefreshToken削除追加（projects/page.tsx）
+python3 - << 'PYEOF'
+path = "/home/karkyon/projects/log-server/apps/cms/app/projects/page.tsx"
+with open(path) as f: src = f.read()
+old = """  const logout = () => {
+    localStorage.removeItem("tlog_token");
+    localStorage.removeItem("tlog_user");
+    router.push("/login");
+  };"""
+new = """  const logout = () => {
+    const rt = localStorage.getItem("tlog_refresh");
+    if (rt) { import("@/lib/api").then(({ authApi }) => authApi.logout()); }
+    localStorage.removeItem("tlog_token");
+    localStorage.removeItem("tlog_refresh");
+    localStorage.removeItem("tlog_user");
+    router.push("/login");
+  };"""
+if "tlog_refresh" in src:
+    print("  projects/page.tsx は既に refreshToken 対応済み")
+elif old in src:
+    src = src.replace(old, new)
+    with open(path, 'w') as f: f.write(src)
+    print("  projects/page.tsx logout更新完了")
+else:
+    print("  [WARNING] projects/page.tsx の logout関数が見つかりません")
+PYEOF
+
+# ─────────────────────────────────────────────
+# [6] CMS: /admin/reset ページ作成
+# ─────────────────────────────────────────────
+echo "[6/6] CMS /admin/reset ページ作成..."
+mkdir -p $BASE/apps/cms/app/admin/reset
+
+cat > $BASE/apps/cms/app/admin/reset/page.tsx << 'TSEOF'
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useTheme } from "@/lib/useTheme";
 
-type Stats = {
-  logs: number; console_logs: number; screenshots: number;
-  issues: number; patterns: number; traces: number;
-  users: number; projects: number; api_keys: number;
-};
+type Project = { id: string; slug: string; name: string };
 
 export default function AdminResetPage() {
   const router = useRouter();
-  const { dark, toggle } = useTheme();
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [step, setStep] = useState<0 | 1 | 2>(0); // 0=通常, 1=第1確認, 2=第2確認
-  const [confirmInput, setConfirmInput] = useState("");
-  const [executing, setExecuting] = useState(false);
-  const [result, setResult] = useState<Record<string, number> | null>(null);
+  const { dark } = useTheme();
+  const [user, setUser]       = useState<{ displayName: string; role: string } | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selected, setSelected] = useState<Project | null>(null);
+  const [confirm, setConfirm]   = useState("");
+  const [step, setStep]         = useState<"select" | "confirm" | "done">("select");
+  const [result, setResult]     = useState<{ deleted: Record<string, number>; message: string } | null>(null);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState("");
 
-  const CONFIRM_WORD = "TLog";
-
-  const bg       = dark ? "bg-gray-950" : "bg-gray-50";
-  const headerBg = dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200";
-  const cardBg   = dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200";
-  const text     = dark ? "text-white" : "text-gray-900";
-  const subtext  = dark ? "text-gray-400" : "text-gray-500";
-  const modalBg  = dark ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200";
-  const inputCls = `w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-500 ${dark ? "bg-gray-800 border-gray-700 text-white placeholder-gray-500" : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"}`;
+  const bg   = dark ? "bg-gray-950 text-white" : "bg-gray-50 text-gray-900";
+  const card = dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200";
+  const sub  = dark ? "text-gray-400" : "text-gray-500";
+  const inp  = `w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 ${dark ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-300 text-gray-900"}`;
 
   useEffect(() => {
     const token = localStorage.getItem("tlog_token");
     if (!token) { router.push("/login"); return; }
-    const u = JSON.parse(localStorage.getItem("tlog_user") || "{}");
-    if (u.role !== "ADMIN") { router.push("/projects"); return; }
-    fetchStats();
+    const u = localStorage.getItem("tlog_user");
+    if (u) {
+      const parsed = JSON.parse(u);
+      setUser(parsed);
+      if (parsed.role !== "ADMIN") { router.push("/projects"); return; }
+    }
+    api.get("/api/projects").then(r => setProjects(r.data)).catch(() => {});
   }, []);
 
-  const fetchStats = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("/api/admin/stats");
-      setStats(res.data);
-    } catch {} finally { setLoading(false); }
+  const handleSelect = (p: Project) => {
+    setSelected(p);
+    setConfirm("");
+    setError("");
+    setStep("confirm");
   };
 
   const handleReset = async () => {
-    if (confirmInput !== CONFIRM_WORD) return;
-    setExecuting(true);
+    if (!selected || confirm !== selected.slug) {
+      setError("プロジェクトのスラッグが一致しません");
+      return;
+    }
+    setLoading(true);
+    setError("");
     try {
-      const res = await api.post("/api/admin/reset");
-      setResult(res.data.deleted);
-      setStep(0);
-      setConfirmInput("");
-      fetchStats();
+      const res = await api.delete(`/api/admin/reset?project=${selected.slug}`);
+      setResult(res.data);
+      setStep("done");
     } catch (e: any) {
-      alert(e.response?.data?.message || "削除に失敗しました");
-    } finally { setExecuting(false); }
+      setError(e.response?.data?.message || "削除に失敗しました");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const statItems = stats ? [
-    { label: "UIイベントログ", key: "logs",         value: stats.logs,         color: "text-blue-500" },
-    { label: "コンソールログ", key: "console_logs", value: stats.console_logs, color: "text-purple-500" },
-    { label: "スクリーンショット", key: "screenshots", value: stats.screenshots, color: "text-green-500" },
-    { label: "TraceIDセッション", key: "traces",    value: stats.traces,       color: "text-yellow-500" },
-    { label: "チケット",       key: "issues",       value: stats.issues,       color: "text-red-500" },
-    { label: "パターン",       key: "patterns",     value: stats.patterns,     color: "text-orange-500" },
-  ] : [];
-
-  const totalDeletable = stats
-    ? stats.logs + stats.console_logs + stats.screenshots + stats.traces + stats.issues + stats.patterns
-    : 0;
-
   return (
-    <div className={`min-h-screen ${bg} ${text} transition-colors`}>
+    <div className={`min-h-screen ${bg}`}>
       {/* ヘッダー */}
-      <header className={`${headerBg} border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10`}>
-        <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/projects")} className={`${subtext} hover:text-blue-500 text-sm transition`}>
-            ← プロジェクト一覧
-          </button>
-          <span className={subtext}>/</span>
-          <span className="text-red-500 font-bold text-sm">データ初期化</span>
-        </div>
-        <button onClick={toggle}
-          className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg ${dark ? "bg-gray-800" : "bg-gray-100"}`}>
-          {dark ? "☀️" : "🌙"}
-        </button>
+      <header className={`${dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"} border-b px-6 py-4 flex items-center gap-4`}>
+        <button onClick={() => router.push("/projects")} className={`text-sm ${sub} hover:text-blue-500 transition`}>← プロジェクト一覧</button>
+        <h1 className="text-lg font-bold text-red-500">🗑️ データ初期化</h1>
+        <span className={`text-xs ml-auto ${sub}`}>{user?.displayName} (ADMIN)</span>
       </header>
 
-      <main className="max-w-2xl mx-auto px-6 py-8">
+      <main className="max-w-lg mx-auto px-6 py-10">
 
-        {/* 完了メッセージ */}
-        {result && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
-            <p className="font-bold text-green-700 mb-2">✅ データ初期化が完了しました</p>
-            <div className="text-sm text-green-600 space-y-1">
-              {Object.entries(result).map(([k, v]) => (
-                <p key={k}>{k}: {v} 件削除</p>
-              ))}
+        {/* 警告バナー */}
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-8 text-red-700">
+          <p className="font-bold text-sm">⚠️ この操作は取り消せません</p>
+          <p className="text-xs mt-1">選択したプロジェクトのログ・パターン・チケット・APIキーがすべて削除されます。プロジェクト自体は残ります。</p>
+        </div>
+
+        {/* STEP 1: プロジェクト選択 */}
+        {step === "select" && (
+          <div className={`${card} border rounded-xl p-6`}>
+            <h2 className="font-semibold mb-4">初期化するプロジェクトを選択</h2>
+            {projects.length === 0 ? (
+              <p className={`text-sm ${sub}`}>プロジェクトがありません</p>
+            ) : (
+              <div className="space-y-2">
+                {projects.map(p => (
+                  <button key={p.id} onClick={() => handleSelect(p)}
+                    className={`w-full text-left px-4 py-3 rounded-lg border transition hover:border-red-400 ${dark ? "border-gray-700 hover:bg-gray-800" : "border-gray-200 hover:bg-red-50"}`}>
+                    <p className="font-medium text-sm">{p.name}</p>
+                    <p className={`text-xs ${sub}`}>{p.slug}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* STEP 2: スラッグ入力で2重確認 */}
+        {step === "confirm" && selected && (
+          <div className={`${card} border rounded-xl p-6`}>
+            <h2 className="font-semibold mb-2">確認：データを削除します</h2>
+            <p className={`text-sm ${sub} mb-5`}>
+              <span className="font-bold text-red-500">{selected.name}</span> のデータをすべて削除します。<br />
+              続行するには下のフィールドにプロジェクトのスラッグ（<code className="bg-gray-100 text-gray-800 px-1 rounded text-xs">{selected.slug}</code>）を入力してください。
+            </p>
+            <input
+              type="text"
+              value={confirm}
+              onChange={e => setConfirm(e.target.value)}
+              placeholder={selected.slug}
+              className={inp}
+            />
+            {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+            <div className="flex gap-3 mt-5">
+              <button onClick={() => setStep("select")}
+                className={`flex-1 py-2 rounded-lg border text-sm transition ${dark ? "border-gray-700 hover:bg-gray-800" : "border-gray-200 hover:bg-gray-50"}`}>
+                キャンセル
+              </button>
+              <button onClick={handleReset} disabled={loading || confirm !== selected.slug}
+                className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white text-sm font-medium transition">
+                {loading ? "削除中..." : "削除を実行"}
+              </button>
             </div>
           </div>
         )}
 
-        {/* 現在のデータ件数 */}
-        <div className={`${cardBg} border rounded-xl p-6 mb-6`}>
-          <h2 className="text-lg font-bold mb-4">現在のデータ件数</h2>
-          {loading ? (
-            <p className={subtext}>読み込み中...</p>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                {statItems.map(({ label, value, color }) => (
-                  <div key={label} className={`${dark ? "bg-gray-800" : "bg-gray-50"} rounded-lg p-3 flex justify-between items-center`}>
-                    <span className={`text-sm ${subtext}`}>{label}</span>
-                    <span className={`font-bold text-lg ${color}`}>{value.toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
-              <div className={`border-t ${dark ? "border-gray-700" : "border-gray-200"} pt-3 flex justify-between items-center`}>
-                <span className="text-sm font-medium">削除対象合計</span>
-                <span className="font-bold text-xl text-red-500">{totalDeletable.toLocaleString()} 件</span>
-              </div>
-              <div className={`mt-2 text-xs ${subtext}`}>
-                ※ ユーザー（{stats?.users}名）・プロジェクト（{stats?.projects}件）・APIキー（{stats?.api_keys}件）は削除されません
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* 初期化ボタン */}
-        <div className={`${cardBg} border border-red-200 rounded-xl p-6`}>
-          <h2 className="text-lg font-bold text-red-600 mb-2">⚠️ データ初期化</h2>
-          <p className={`text-sm ${subtext} mb-4`}>
-            全プロジェクトのログ・スクリーンショット・TraceID・チケット・パターンを完全に削除します。
-            この操作は取り消せません。
-          </p>
-          <button
-            onClick={() => { setStep(1); setConfirmInput(""); setResult(null); }}
-            disabled={totalDeletable === 0}
-            className="w-full bg-red-500 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed text-white py-3 rounded-lg font-bold transition"
-          >
-            データを初期化する
-          </button>
-        </div>
+        {/* STEP 3: 完了 */}
+        {step === "done" && result && (
+          <div className={`${card} border rounded-xl p-6 text-center`}>
+            <p className="text-2xl mb-3">✅</p>
+            <p className="font-semibold mb-4">{result.message}</p>
+            <div className={`${dark ? "bg-gray-800" : "bg-gray-50"} rounded-lg p-4 text-sm text-left space-y-1 mb-6`}>
+              <p>ログ削除数：<span className="font-mono font-bold">{result.deleted.logs}</span></p>
+              <p>パターン削除数：<span className="font-mono font-bold">{result.deleted.patterns}</span></p>
+              <p>チケット削除数：<span className="font-mono font-bold">{result.deleted.issues}</span></p>
+              <p>APIキー削除数：<span className="font-mono font-bold">{result.deleted.apiKeys}</span></p>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => { setStep("select"); setSelected(null); setConfirm(""); setResult(null); }}
+                className={`flex-1 py-2 rounded-lg border text-sm ${dark ? "border-gray-700 hover:bg-gray-800" : "border-gray-200 hover:bg-gray-50"}`}>
+                別のプロジェクトを初期化
+              </button>
+              <button onClick={() => router.push("/projects")}
+                className="flex-1 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium">
+                プロジェクト一覧へ
+              </button>
+            </div>
+          </div>
+        )}
       </main>
-
-      {/* Step 1: 第1確認モーダル */}
-      {step === 1 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className={`${modalBg} border border-red-300 rounded-xl p-6 w-full max-w-md shadow-2xl`}>
-            <div className="text-center mb-5">
-              <div className="text-4xl mb-3">⚠️</div>
-              <h2 className="text-xl font-bold text-red-600 mb-2">本当に削除しますか？</h2>
-              <p className={`text-sm ${subtext}`}>
-                <strong className="text-red-500">{totalDeletable.toLocaleString()} 件</strong>のデータが完全に削除されます。<br />
-                この操作は取り消せません。
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => setStep(0)}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium ${dark ? "bg-gray-700 text-gray-200" : "bg-gray-100 text-gray-700"} transition`}>
-                キャンセル
-              </button>
-              <button onClick={() => setStep(2)}
-                className="flex-1 py-2 rounded-lg text-sm font-bold bg-red-500 hover:bg-red-600 text-white transition">
-                続行する
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Step 2: 第2確認モーダル（確認ワード入力） */}
-      {step === 2 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className={`${modalBg} border border-red-300 rounded-xl p-6 w-full max-w-md shadow-2xl`}>
-            <div className="text-center mb-5">
-              <div className="text-4xl mb-3">🔐</div>
-              <h2 className="text-xl font-bold text-red-600 mb-2">最終確認</h2>
-              <p className={`text-sm ${subtext} mb-4`}>
-                削除を実行するには、下のテキストボックスに
-                <strong className="text-red-500 mx-1">"{CONFIRM_WORD}"</strong>
-                と入力してください。
-              </p>
-              <input
-                type="text"
-                value={confirmInput}
-                onChange={e => setConfirmInput(e.target.value)}
-                className={inputCls}
-                placeholder={`"${CONFIRM_WORD}" と入力`}
-                autoFocus
-              />
-              {confirmInput.length > 0 && confirmInput !== CONFIRM_WORD && (
-                <p className="text-red-500 text-xs mt-1">"{CONFIRM_WORD}" と正確に入力してください</p>
-              )}
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => { setStep(0); setConfirmInput(""); }}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium ${dark ? "bg-gray-700 text-gray-200" : "bg-gray-100 text-gray-700"} transition`}>
-                キャンセル
-              </button>
-              <button
-                onClick={handleReset}
-                disabled={confirmInput !== CONFIRM_WORD || executing}
-                className="flex-1 py-2 rounded-lg text-sm font-bold bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition"
-              >
-                {executing ? "削除中..." : "完全に削除する"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
-CMSEOF
-echo "  完了: CMS admin/reset/page.tsx"
+TSEOF
+echo "  完了: /admin/reset/page.tsx"
 
-# ─── ⑥ projects/page.tsx ヘッダーに管理者メニュー追加 ────
-echo "[5/5] projects/page.tsx に管理者メニュー追加..."
-python3 - << 'PYEOF'
-import re
-path = '/home/karkyon/projects/log-server/apps/cms/app/projects/page.tsx'
-with open(path) as f:
-    src = f.read()
-
-# バックアップ
-with open(path + '.bak4b', 'w') as f:
-    f.write(src)
-
-# 管理者メニュードロップダウン用 state 追加
-if 'showAdminMenu' not in src:
-    src = src.replace(
-        "  const [submitting, setSubmitting] = useState(false);",
-        "  const [submitting, setSubmitting] = useState(false);\n  const [showAdminMenu, setShowAdminMenu] = useState(false);"
-    )
-
-# ヘッダー内の「+ 新規プロジェクト」ボタンの後に管理者メニューを追加
-old_btn = '''          {isAdmin && (
-            <button onClick={() => { setForm(EMPTY_FORM); setSlugError(""); setShowModal(true); }}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-1.5 rounded-lg font-medium transition">
-              + 新規プロジェクト
-            </button>
-          )}'''
-
-new_btn = '''          {isAdmin && (
-            <div className="flex items-center gap-2">
-              <button onClick={() => { setForm(EMPTY_FORM); setSlugError(""); setShowModal(true); }}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-1.5 rounded-lg font-medium transition">
-                + 新規プロジェクト
-              </button>
-              {/* 管理者メニュー */}
-              <div className="relative">
-                <button onClick={() => setShowAdminMenu(v => !v)}
-                  className={`text-sm px-3 py-1.5 rounded-lg font-medium border transition ${dark ? "border-gray-700 hover:bg-gray-800 text-gray-300" : "border-gray-200 hover:bg-gray-50 text-gray-600"}`}>
-                  ⚙️ 管理
-                </button>
-                {showAdminMenu && (
-                  <div className={`absolute right-0 top-full mt-1 w-44 rounded-xl shadow-lg border z-20 overflow-hidden ${dark ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200"}`}
-                    onMouseLeave={() => setShowAdminMenu(false)}>
-                    <button onClick={() => { setShowAdminMenu(false); router.push("/admin/users"); }}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition ${dark ? "hover:bg-gray-800 text-gray-200" : "hover:bg-gray-50 text-gray-700"}`}>
-                      👥 ユーザー管理
-                    </button>
-                    <div className={`border-t ${dark ? "border-gray-700" : "border-gray-100"}`} />
-                    <button onClick={() => { setShowAdminMenu(false); router.push("/admin/reset"); }}
-                      className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition">
-                      🗑️ データ初期化
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}'''
-
-if old_btn in src:
-    src = src.replace(old_btn, new_btn)
-    print("管理者メニュー追加完了")
-else:
-    print("WARNING: ボタン箇所が見つからない — 手動確認が必要")
-
-with open(path, 'w') as f:
-    f.write(src)
-PYEOF
-
-# ─── API ビルド & 再起動 ────────────────────────────────────
+# ─────────────────────────────────────────────
+# API ビルド & 再起動
+# ─────────────────────────────────────────────
 echo "=== API ビルド & pm2 再起動 ==="
-cd ~/projects/log-server/apps/api
-npm run build && pm2 restart tlog-api && sleep 2
+cd $BASE/apps/api
+npm run build
 
-# 疎通確認
-TOKEN=$(curl -s -X POST http://localhost:3099/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin1234"}' | jq -r .accessToken)
+pm2 restart tlog-api --update-env
+sleep 3
 
-echo "=== GET /api/admin/stats ==="
-curl -s http://localhost:3099/api/admin/stats \
-  -H "Authorization: Bearer $TOKEN" | jq .
+pm2 status
+curl -s http://localhost:3099/ping | jq .
 
 echo ""
 echo "✅ Phase 4B 適用完了！"
 echo ""
-echo "【次の手順】"
-echo "1. CMS をビルド: cd ~/projects/log-server/apps/cms && npm run build && pm2 restart tlog-cms"
-echo "2. http://192.168.1.11:3002/projects にアクセス"
-echo "3. ヘッダーの「⚙️ 管理」ドロップダウンを確認"
-echo "4. 「データ初期化」→ 2段階確認フローを確認"
+echo "【動作確認手順】"
+echo "1. ログイン: curl -s -X POST http://localhost:3099/api/auth/login -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"admin1234\"}' | jq ."
+echo "   → accessToken と refreshToken が両方返ることを確認"
+echo "2. CMS ビルド後: http://192.168.1.11:3002/admin/reset にアクセス"
+echo "3. データ削除テスト（プロジェクトスラッグ入力 → 実行）"

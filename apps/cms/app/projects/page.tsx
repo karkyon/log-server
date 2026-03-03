@@ -74,7 +74,10 @@ export default function ProjectsPage() {
   };
 
   const logout = () => {
+    const rt = localStorage.getItem("tlog_refresh");
+    if (rt) { import("@/lib/api").then(({ authApi }) => authApi.logout()); }
     localStorage.removeItem("tlog_token");
+    localStorage.removeItem("tlog_refresh");
     localStorage.removeItem("tlog_user");
     router.push("/login");
   };

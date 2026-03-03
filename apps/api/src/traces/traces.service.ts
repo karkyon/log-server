@@ -78,4 +78,11 @@ export class TracesService {
       },
     });
   }
+
+  async getLogs(projectId: string, traceId: string) {
+    return this.prisma.log.findMany({
+      where: { traceId },
+      orderBy: { timestamp: 'asc' },
+    });
+  }
 }

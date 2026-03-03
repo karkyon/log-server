@@ -18,6 +18,11 @@ export class TracesController {
   findOne(@Param('id') id: string, @Param('tid') tid: string) {
     return this.traces.findOne(id, tid);
   }
+  @Get('traces/:tid/logs')
+  findLogs(@Param('id') id: string, @Param('tid') tid: string) {
+    return this.traces.getLogs(id, tid);
+  }
+
 
   @Get('issues')
   findIssues(@Param('id') id: string) {
