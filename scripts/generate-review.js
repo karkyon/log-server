@@ -1875,6 +1875,26 @@ ${renderScript(fids, allLogs, allShots, issData, allSeqs)}
 // main() v4.0 — PostgreSQL(Prisma) からデータを読み込む
 // ============================================================
 async function main() {
+  // USE_FILE_LOADER=1 の場合はファイルベースローダーを使用（TLog NEXT review.service.ts から呼ばれる場合）
+  const USE_FILE = process.env.USE_FILE_LOADER === '1';
+
+  if (USE_FILE) {
+    console.log('[generate-review v4.1] ファイルモード開始 (USE_FILE_LOADER=1)');
+    const allLogs        = loadLogs();
+    const allConsoleLogs = loadConsoleLogs();
+    const allShots       = loadScreenshots();
+    const issData        = loadIssues();
+    const fids           = Object.keys(allLogs).filter(k => allLogs[k].length > 0).sort();
+    if (!fids.length) console.warn('[generate-review v4.1] ログが見つかりません (logs/features/ を確認してください)');
+    console.log('[generate-review v4.1] 画面:', fids.join(', ') || 'なし');
+    const html = buildHtml(fids, allLogs, allShots, issData, allConsoleLogs);
+    fs.mkdirSync(OUT_DIR, { recursive: true });
+    fs.writeFileSync(OUT_FILE, html, 'utf8');
+    const kb = (Buffer.byteLength(html, 'utf8') / 1024).toFixed(1);
+    console.log('[generate-review v4.1] 完了:', OUT_FILE, '(' + kb + ' KB)');
+    return; // prisma不要
+  }
+
   const PROJECT_ID = parseInt(process.env.PROJECT_ID || '1', 10);
 
   console.log('[generate-review v4.1] 開始 PROJECT_ID=' + PROJECT_ID);
@@ -1903,11 +1923,7 @@ async function main() {
   console.log('[generate-review v4.1] 画面:', fids.join(', ') || 'なし');
   console.log('  ログあり画面:', logFids.length, '/ 合計:', fids.length);
 
-  // issues.json は引き続きファイルから読み込み（Step 4 以降でDB化予定）
   const issData = loadIssues();
-
-  // buildHtml に渡す（シグネチャは変更なし）
-  // function buildHtml(fids, allLogs, allShots, issData, allConsoleLogs)
   const html = buildHtml(fids, allLogs, allShots, issData, allConsoleLogs);
 
   fs.mkdirSync(OUT_DIR, { recursive: true });
