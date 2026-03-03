@@ -14,9 +14,12 @@ export function ProjectNav({ projectId }: Props) {
   const [project, setProject] = useState<Project | null>(null);
 
   useEffect(() => {
+    // トークンが確実にある状態でフェッチ
+    const token = localStorage.getItem("tlog_token");
+    if (!token) return;
     api.get(`/api/projects/${projectId}`)
       .then(r => setProject(r.data))
-      .catch(() => {});
+      .catch(e => console.error("ProjectNav fetch error:", e));
   }, [projectId]);
 
   const headerBg = dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200";
@@ -31,13 +34,14 @@ export function ProjectNav({ projectId }: Props) {
   ];
 
   const isActive = (path: string) => pathname.startsWith(path);
+  const projectName = project?.name ?? "...";
 
   return (
     <header className={`${headerBg} border-b sticky top-0 z-10`}>
       {/* 上段: パンくず + テーマ切替 */}
       <div className="flex items-center justify-between px-6 py-3">
-        {/* パンくず */}
         <div className="flex items-center gap-2 min-w-0">
+          {/* プロジェクト一覧へ戻る */}
           <button
             onClick={() => router.push("/projects")}
             className={`${subtext} hover:text-blue-500 text-sm transition shrink-0`}
@@ -46,22 +50,20 @@ export function ProjectNav({ projectId }: Props) {
           </button>
           <span className={`${divider} text-lg font-light shrink-0`}>/</span>
 
-          {/* プロジェクト情報 */}
-          <div className="flex items-center gap-2 min-w-0">
-            {/* プロジェクト名 */}
-            <span className={`font-semibold text-sm truncate ${dark ? "text-white" : "text-gray-900"}`}>
-              {project?.name ?? projectId}
-            </span>
-            {/* スラッグバッジ */}
-            <span className={`
-              shrink-0 text-xs font-mono px-2 py-0.5 rounded-full border
-              ${dark
-                ? "bg-gray-800 border-gray-700 text-gray-400"
-                : "bg-gray-100 border-gray-200 text-gray-500"}
-            `}>
-              {projectId}
-            </span>
-          </div>
+          {/* プロジェクト名（表示名） */}
+          <span className={`font-semibold text-sm truncate ${dark ? "text-white" : "text-gray-900"}`}>
+            {projectName}
+          </span>
+
+          {/* スラッグ（URLの識別子） */}
+          <span className={`
+            shrink-0 text-xs font-mono px-2 py-0.5 rounded-full border
+            ${dark
+              ? "bg-gray-800 border-gray-700 text-gray-400"
+              : "bg-gray-100 border-gray-200 text-gray-400"}
+          `}>
+            {projectId}
+          </span>
         </div>
 
         {/* テーマ切替 */}
