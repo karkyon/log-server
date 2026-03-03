@@ -47,7 +47,7 @@ export default function TraceDetailPage() {
   const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [dark, setDark] = useState(true);
+  const { dark, toggle } = useTheme();
 
   useEffect(() => {
     const token = localStorage.getItem("tlog_token");
