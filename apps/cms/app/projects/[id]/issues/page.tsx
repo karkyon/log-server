@@ -93,7 +93,7 @@ export default function IssuesPage() {
   return (
     <div className={`min-h-screen ${bg} ${text} transition-colors`}>
       {/* ── ヘッダー */}
-      <ProjectNav projectId={id} />
+      <ProjectNav projectId={id} projectName={project?.name} />
 
       {/* ── メイン */}
       <main className="max-w-4xl mx-auto px-6 py-8">

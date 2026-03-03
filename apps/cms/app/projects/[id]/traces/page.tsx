@@ -111,14 +111,14 @@ export default function TracesPage() {
     return map[status] || "bg-gray-700 text-gray-300";
   };
 
-  const bg = dark ? "bg-slate-900 text-slate-100" : "bg-white text-slate-900";
-  const card = dark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200";
-  const th = dark ? "bg-slate-900 text-slate-400" : "bg-slate-50 text-slate-500";
+  const bg = dark ? "bg-gray-950 text-white" : "bg-gray-50 text-gray-900";
+  const card = dark ? "bg-gray-900 border-gray-800" : "bg-white border-slate-200";
+  const th = dark ? "bg-gray-900 text-gray-400" : "bg-slate-50 text-slate-500";
   const tr = dark ? "border-slate-700 hover:bg-slate-750" : "border-slate-100 hover:bg-slate-50";
 
   return (
     <div className={`min-h-screen ${bg}`}>
-      <ProjectNav projectId={projectId} />
+      <ProjectNav projectId={projectId} projectName={project?.name} />
 
       <main className="px-6 py-5 max-w-7xl mx-auto">
         {/* ツールバー */}
