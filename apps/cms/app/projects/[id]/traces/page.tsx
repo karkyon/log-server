@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { useTheme } from "@/lib/useTheme";
+import { ProjectNav } from "@/components/ProjectNav";
 
 type Trace = {
   id: string;
@@ -117,41 +118,7 @@ export default function TracesPage() {
 
   return (
     <div className={`min-h-screen ${bg}`}>
-      {/* ヘッダー */}
-      <header className={`border-b ${dark ? "bg-slate-950 border-slate-800" : "bg-white border-slate-200"} px-6 py-3 flex items-center justify-between`}>
-        <div className="flex items-center gap-3">
-          <span className="text-blue-500 font-bold text-lg">TLog</span>
-          <span className={`text-sm ${dark ? "text-slate-400" : "text-slate-500"}`}>/</span>
-          <span className="text-sm font-medium">{project?.name || "..."}</span>
-          <span className={`text-sm ${dark ? "text-slate-400" : "text-slate-500"}`}>/</span>
-          <span className="text-sm font-medium">TraceID一覧</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => toggle()} className={`text-xs px-2 py-1 rounded ${dark ? "bg-slate-700" : "bg-slate-100"}`}>
-            {dark ? "☀" : "🌙"}
-          </button>
-          <button onClick={() => router.push("/projects")} className={`text-xs px-3 py-1 rounded border ${dark ? "border-slate-600 text-slate-400" : "border-slate-300 text-slate-500"}`}>
-            ← プロジェクト一覧
-          </button>
-        </div>
-      </header>
-
-      {/* サブナビ */}
-      <nav className={`border-b ${dark ? "bg-slate-900 border-slate-800" : "bg-slate-50 border-slate-200"} px-6 flex gap-0`}>
-        {["traces","issues","patterns","apikeys"].map(tab => (
-          <button
-            key={tab}
-            onClick={() => router.push(`/projects/${projectId}/${tab}`)}
-            className={`px-4 py-2 text-sm border-b-2 transition-colors ${
-              tab === "traces"
-                ? "border-blue-500 text-blue-500 font-medium"
-                : `border-transparent ${dark ? "text-slate-400 hover:text-slate-200" : "text-slate-500 hover:text-slate-700"}`
-            }`}
-          >
-            {tab === "traces" ? "TraceID" : tab === "issues" ? "チケット" : tab === "patterns" ? "パターン" : "APIキー"}
-          </button>
-        ))}
-      </nav>
+      <ProjectNav projectId={projectId} />
 
       <main className="px-6 py-5 max-w-7xl mx-auto">
         {/* ツールバー */}
