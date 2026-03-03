@@ -75,7 +75,7 @@ export default function ApiKeysPage() {
 
   return (
     <div className={`min-h-screen ${bg} ${text} transition-colors`}>
-      <ProjectNav projectId={id} projectName={project?.name} />
+      <ProjectNav projectId={id} />
 
       <main className="max-w-2xl mx-auto px-6 py-8 space-y-6">
 

@@ -88,7 +88,7 @@ export default function PatternsPage() {
   return (
     <div className={`min-h-screen ${bg} ${text} transition-colors`}>
       {/* ヘッダー */}
-      <ProjectNav projectId={id} projectName={project?.name} />
+      <ProjectNav projectId={id} />
 
       {/* メインコンテンツ */}
       <main className="max-w-5xl mx-auto px-6 py-8 flex gap-6">
