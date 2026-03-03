@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { api } from "@/lib/api";
+import { useTheme } from "@/lib/useTheme";
 
 type Trace = {
   id: string;
@@ -25,7 +26,7 @@ export default function TracesPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string[]>([]);
   const [generating, setGenerating] = useState<string | null>(null);
-  const [dark, setDark] = useState(true);
+  const { dark, toggle } = useTheme();
 
   useEffect(() => {
     const token = localStorage.getItem("tlog_token");
