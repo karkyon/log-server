@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
 
-const LOG_SERVER_ROOT = path.join(__dirname, '..', '..', '..', '..', '..');
+const LOG_SERVER_ROOT = path.join(__dirname, '..', '..', '..', '..');
 const FEATURES_DIR = path.join(LOG_SERVER_ROOT, 'logs', 'features');
 const CONSOLE_DIR  = path.join(LOG_SERVER_ROOT, 'logs', 'features');
 const DOCS_DIR     = path.join(LOG_SERVER_ROOT, 'docs', 'review');
