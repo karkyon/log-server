@@ -8,7 +8,7 @@ export class ApiKeysService {
 
   async findAll(projectId: string) {
     return this.prisma.apiKey.findMany({
-      where: { projectId },
+      where: { projectId, isActive: true },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true, label: true, isActive: true,

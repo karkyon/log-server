@@ -286,7 +286,7 @@ export default function TracesPage() {
                       className="cursor-pointer accent-blue-500"
                     />
                   </th>
-                  <th className="px-3 py-3 text-left">TraceID</th>
+                  <th className="px-3 py-3 text-left" style={{minWidth:220}}>TraceID</th>
                   <th className="px-3 py-3 text-left">操作ユーザー</th>
                   <th className="px-3 py-3 text-left">開始</th>
                   <th className="px-3 py-3 text-left">終了</th>
@@ -315,15 +315,13 @@ export default function TracesPage() {
                           onClick={() => router.push(`/projects/${projectId}/traces/${t.id}`)}
                           className="font-mono text-xs text-blue-400 hover:text-blue-300 hover:underline"
                         >
-                          {t.metadata?.label || t.metadata?.userLabel
-                            ? <span className="text-blue-400 font-mono">{t.id.slice(0, 8)}…</span>
-                            : <span className="text-blue-400 font-mono">{t.id.slice(0, 8)}…</span>}
+                          <span className="text-blue-400 font-mono">{t.id.slice(0, 8)}…</span>
                           {t.metadata?.label && (
-                            <div className="text-[10px] text-slate-300 font-sans font-semibold truncate max-w-[160px]">{t.metadata.label}</div>
+                            <div className="text-[10px] font-semibold mt-0.5" style={{color: dark ? "#cbd5e1" : "#334155", maxWidth: 200}}>{t.metadata.label}</div>
                           )}
                           {t.screens && t.screens.length > 0 && (
-                            <div className="text-[10px] text-slate-500 truncate max-w-[160px] mt-0.5">
-                              {t.screens.map(s => s.replace("MC_","")).join(" → ")}
+                            <div className="text-[10px] mt-0.5" style={{color: dark ? "#64748b" : "#94a3b8", maxWidth: 200, whiteSpace: "normal", lineHeight: 1.4}}>
+                              {t.screens.map((s: string) => s.replace("MC_","")).join(" → ")}
                             </div>
                           )}
                         </button>
