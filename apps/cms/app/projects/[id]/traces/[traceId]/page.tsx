@@ -48,6 +48,146 @@ function formatDuration(start: string, end: string | null) {
   return h > 0 ? `${h}h${m % 60}m` : `${m}m`;
 }
 
+
+// ─────────────── アクションレビュー詳細パネル（HTML版と同等） ───────────────
+function ActionReviewDetail({ log, seqNo, dark, traceId }: { log: LogEntry; seqNo: number; dark: boolean; traceId: string }) {
+  const [verdict, setVerdict] = useState<"OK" | "NG">(
+    log.payload?.result === "NG" || log.eventType === "ERROR" ? "NG" : "OK"
+  );
+
+  const sub = dark ? "text-slate-400" : "text-slate-500";
+  const rowCls = `flex border-b last:border-0 ${dark ? "border-slate-700" : "border-slate-200"}`;
+  const labelCls = `px-4 py-2.5 text-xs font-medium w-24 flex-shrink-0 ${dark ? "bg-slate-900 text-slate-400" : "bg-slate-50 text-slate-500"}`;
+  const valCls = `px-4 py-2.5 text-xs flex-1`;
+  const borderCls = dark ? "border-slate-700" : "border-slate-200";
+
+  // ペイロードから各フィールドを抽出
+  const p = log.payload || {};
+  const inputValue = p.value ?? p.inputValue ?? p.text ?? null;
+  const consoleOutput = p.console ?? p.consoleLog ?? p.log ?? null;
+  const issues = p.issues ?? p.problems ?? p.remarks ?? null;
+
+  // 概要テキスト
+  const summary = (() => {
+    if (log.screenName && log.elementId) return `${log.screenName} — ${log.elementId}`;
+    if (log.screenName) return `${log.screenName} — ${log.eventType}`;
+    return log.eventType;
+  })();
+
+  const screenshotUrl = log.screenshotPath
+    ? `http://192.168.1.11:3099/screenshots/${encodeURIComponent(log.screenshotPath.replace(/.*screenshots\//, ""))}`
+    : null;
+
+  return (
+    <div className="p-0">
+      {/* SEQNOヘッダー */}
+      <div className={`flex items-baseline gap-6 px-5 py-3 border-b ${dark ? "bg-slate-900 border-slate-700" : "bg-slate-50 border-slate-200"}`}>
+        <div>
+          <span className={`text-[10px] font-bold ${sub} mr-2`}>SEQNO</span>
+          <span className="text-lg font-bold">{seqNo}</span>
+        </div>
+        <div className="text-sm font-semibold flex-1">{summary}</div>
+        <div className={`text-[10px] font-mono ${sub}`}>{new Date(log.timestamp).toLocaleString("ja-JP")}</div>
+      </div>
+
+      {/* TraceID / screenId バー */}
+      <div className={`flex items-center gap-4 px-5 py-2 text-[10px] font-mono border-b ${dark ? "border-slate-800 bg-slate-950 text-slate-500" : "border-slate-100 bg-white text-slate-400"}`}>
+        <span>TRACEID <span className="text-blue-400">{traceId.slice(0, 24)}...</span></span>
+        {log.screenName && <span>screenId <span className={dark ? "text-slate-300" : "text-slate-700"}>{log.screenName}</span></span>}
+      </div>
+
+      {/* スクリーンショット */}
+      {screenshotUrl && (
+        <div className={`px-5 py-3 border-b ${dark ? "border-slate-800" : "border-slate-200"}`}>
+          <div className={`text-[10px] font-semibold mb-2 flex items-center gap-1 ${sub}`}>📷 スクリーンショット</div>
+          <div className={`rounded border overflow-hidden ${dark ? "border-slate-700 bg-slate-950" : "border-slate-200 bg-slate-50"}`}>
+            <div className={`px-3 py-1.5 text-[10px] font-mono border-b ${dark ? "border-slate-700 text-slate-400" : "border-slate-200 text-slate-500"}`}>
+              {log.screenshotPath?.replace(/.*[\/]/, "") || "screenshot"}
+            </div>
+            <img
+              src={screenshotUrl}
+              alt="スクリーンショット"
+              className="w-full object-contain max-h-48"
+              onError={e => { (e.currentTarget.closest("div") as HTMLElement).style.display = "none"; }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 詳細テーブル */}
+      <div className={`border-b ${borderCls} overflow-hidden`}>
+        <div className={rowCls}>
+          <div className={labelCls}>操作内容</div>
+          <div className={valCls}>{summary}</div>
+        </div>
+        <div className={rowCls}>
+          <div className={labelCls}>イベント種別</div>
+          <div className={valCls}>
+            <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+              log.eventType === "ERROR" ? "bg-red-100 text-red-700" :
+              log.eventType === "UI_CLICK" ? "bg-purple-100 text-purple-700" :
+              log.eventType === "SCREEN_LOAD" ? "bg-blue-100 text-blue-700" :
+              "bg-gray-100 text-gray-600"
+            }`}>{log.eventType}</span>
+          </div>
+        </div>
+        <div className={rowCls}>
+          <div className={labelCls}>対象要素</div>
+          <div className={`${valCls} font-mono`}>{log.elementId || "—"}</div>
+        </div>
+        <div className={rowCls}>
+          <div className={labelCls}>入力値</div>
+          <div className={`${valCls} font-mono`}>{inputValue !== null ? String(inputValue) : "—"}</div>
+        </div>
+        <div className={rowCls}>
+          <div className={labelCls}>Console</div>
+          <div className={`${valCls} ${sub}`}>
+            {consoleOutput
+              ? <pre className="text-[10px] whitespace-pre-wrap">{typeof consoleOutput === "string" ? consoleOutput : JSON.stringify(consoleOutput, null, 2)}</pre>
+              : <span className="italic">このseqでのコンソール出力なし</span>
+            }
+          </div>
+        </div>
+        {/* 判定トグル */}
+        <div className={rowCls}>
+          <div className={labelCls}>判定</div>
+          <div className={`${valCls} flex items-center gap-3`}>
+            <button
+              onClick={() => setVerdict(v => v === "OK" ? "NG" : "OK")}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${verdict === "OK" ? "bg-green-500" : "bg-red-500"}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${verdict === "OK" ? "translate-x-6" : "translate-x-1"}`} />
+            </button>
+            <span className={`text-sm font-bold ${verdict === "OK" ? "text-green-600" : "text-red-600"}`}>{verdict}</span>
+            <span className={`text-[10px] ${sub}`}>クリックで切替</span>
+          </div>
+        </div>
+        {/* ペイロード全体 */}
+        {log.payload && Object.keys(log.payload).length > 0 && (
+          <div className={rowCls}>
+            <div className={labelCls}>ペイロード</div>
+            <div className={valCls}>
+              <pre className={`text-[10px] p-2 rounded overflow-x-auto ${dark ? "bg-slate-950 text-slate-300" : "bg-slate-50 text-slate-700"}`}>
+                {JSON.stringify(log.payload, null, 2)}
+              </pre>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 問題点課題 */}
+      {issues && (
+        <div className="px-5 py-3">
+          <div className={`text-[10px] font-semibold mb-2 ${sub}`}>問題点課題</div>
+          <div className={`rounded border px-3 py-2 text-xs ${dark ? "border-orange-800 bg-orange-900/20 text-orange-300" : "border-orange-200 bg-orange-50 text-orange-700"}`}>
+            {typeof issues === "string" ? issues : JSON.stringify(issues)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─────────────── タイムライン コンポーネント ───────────────
 function TimelineView({ items, projectId, traceId, dark }: {
   items: TLItem[]; projectId: string; traceId: string; dark: boolean;
@@ -510,35 +650,9 @@ export default function TraceDetailPage() {
           <div className="w-1/2 overflow-y-auto">
             <div className={`px-4 py-2 text-xs font-semibold border-b sticky top-0 z-10 ${dark ? "bg-slate-900 border-slate-800 text-slate-400" : "bg-slate-50 border-slate-200 text-slate-500"}`}>選択イベント詳細</div>
             {!selectedLog ? (
-              <div className={`text-center py-16 text-sm ${sub}`}>タイムラインのイベントをクリックしてください</div>
+              <div className={`text-center py-16 text-sm ${sub}`}>← イベントをクリックしてください</div>
             ) : (
-              <div className="p-4 space-y-4">
-                {selectedLog.screenshotPath && (
-                  <div>
-                    <div className={`text-[10px] font-semibold mb-2 ${sub}`}>📷 スクリーンショット</div>
-                    <div className={`rounded-lg border flex items-center justify-center h-36 ${dark ? "bg-slate-950 border-slate-700" : "bg-slate-50 border-slate-200"}`}>
-                      <img src={`http://192.168.1.11:3099/screenshots/${encodeURIComponent(selectedLog.screenshotPath.replace(/.*screenshots\//, ""))}`} alt="" className="rounded max-w-full max-h-32 object-contain" onError={e => (e.currentTarget.style.display = "none")} />
-                    </div>
-                  </div>
-                )}
-                <div>
-                  <div className={`text-[10px] font-semibold mb-2 ${sub}`}>基本情報</div>
-                  <div className={`rounded-lg border overflow-hidden ${card}`}>
-                    {([["イベント種別", selectedLog.eventType], ["画面ID", selectedLog.screenName || "—"], ["要素ID", selectedLog.elementId || "—"], ["タイムスタンプ", formatDt(selectedLog.timestamp)]] as [string, string][]).map(([label, value]) => (
-                      <div key={label} className={`flex border-b last:border-0 ${dark ? "border-slate-700" : "border-slate-100"}`}>
-                        <div className={`px-3 py-2 text-[10px] w-24 flex-shrink-0 ${dark ? "bg-slate-900 text-slate-400" : "bg-slate-50 text-slate-500"}`}>{label}</div>
-                        <div className="px-3 py-2 text-xs font-mono flex-1 break-all">{value}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {selectedLog.payload && Object.keys(selectedLog.payload).length > 0 && (
-                  <div>
-                    <div className={`text-[10px] font-semibold mb-2 ${sub}`}>ペイロード</div>
-                    <pre className={`text-[10px] p-3 rounded-lg overflow-x-auto ${dark ? "bg-slate-950 text-slate-300" : "bg-slate-50 text-slate-700"}`}>{JSON.stringify(selectedLog.payload, null, 2)}</pre>
-                  </div>
-                )}
-              </div>
+              <ActionReviewDetail log={selectedLog} seqNo={logs.indexOf(selectedLog) + 1} dark={dark} traceId={traceId} />
             )}
           </div>
         </div>
