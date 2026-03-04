@@ -80,10 +80,38 @@ export class TracesService {
   }
 
   async getLogs(projectId: string, traceId: string) {
-    return this.prisma.log.findMany({
-      where: { traceId },
-      orderBy: { timestamp: 'asc' },
+    const [logs, screenshots] = await Promise.all([
+      this.prisma.log.findMany({
+        where: { traceId },
+        orderBy: { timestamp: 'asc' },
+      }),
+      this.prisma.screenshot.findMany({
+        where: { traceId },
+        orderBy: { ts: 'asc' },
+      }),
+    ]);
+
+    // screenshotをtimestampで最近傍マッチしてlogに付与
+    const logsWithScreenshot = logs.map(log => {
+      const logTs = new Date(log.timestamp).getTime();
+      // 同じfeatureId(screenName)のscreenshot群から最近傍を探す
+      const candidates = screenshots.filter(
+        ss => ss.featureId === log.screenName || ss.featureId === 'UNKNOWN'
+      );
+      const nearest = candidates.reduce((best, ss) => {
+        if (!best) return ss;
+        const diff = Math.abs(new Date(ss.ts).getTime() - logTs);
+        const bestDiff = Math.abs(new Date(best.ts).getTime() - logTs);
+        return diff < bestDiff ? ss : best;
+      }, null as typeof screenshots[0] | null);
+
+      return {
+        ...log,
+        screenshotPath: log.screenshotPath || (nearest ? nearest.filePath : null),
+      };
     });
+
+    return logsWithScreenshot;
   }
 
   async forceStop(projectId: string, traceId: string) {

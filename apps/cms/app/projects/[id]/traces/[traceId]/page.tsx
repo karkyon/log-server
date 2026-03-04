@@ -51,9 +51,14 @@ function formatDuration(start: string, end: string | null) {
 
 // ─────────────── アクションレビュー詳細パネル（HTML版と同等） ───────────────
 function ActionReviewDetail({ log, seqNo, dark, traceId }: { log: LogEntry; seqNo: number; dark: boolean; traceId: string }) {
-  const [verdict, setVerdict] = useState<"OK" | "NG">(
-    log.payload?.result === "NG" || log.eventType === "ERROR" ? "NG" : "OK"
-  );
+  const initVerdict = log.payload?.result === "NG" || log.eventType === "ERROR" ? "NG" : "OK";
+  const [verdict, setVerdict] = useState<"OK" | "NG">(initVerdict);
+  // logが切り替わったらverdictをリセット
+  useEffect(() => {
+    setVerdict(log.payload?.result === "NG" || log.eventType === "ERROR" ? "NG" : "OK");
+    setIssueContent("");
+    setIssueMemo("");
+  }, [log.id]);
   const [issueType, setIssueType] = useState("不具合");
   const [issuePriority, setIssuePriority] = useState("高");
   const [issueStatus, setIssueStatus] = useState("未対応");
