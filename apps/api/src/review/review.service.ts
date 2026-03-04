@@ -20,9 +20,6 @@ export class ReviewService {
       where: { id: traceId, projectId },
     });
     if (!trace) throw new NotFoundException(`TraceID ${traceId} が見つかりません`);
-    if (trace.status === 'ACTIVE') {
-      throw new InternalServerErrorException('ACTIVE状態のTraceはレビュー生成できません。stopTrace()後に実行してください');
-    }
 
     // 2. ログを全件取得
     const logs = await this.prisma.log.findMany({
@@ -99,7 +96,7 @@ export class ReviewService {
     if (traceIds && traceIds.length > 0) {
       whereClause.id = { in: traceIds };
     } else {
-      whereClause.status = 'CLOSED';
+      // whereClause.status = 'CLOSED'; // 全ステータス対象
     }
 
     const traces = await this.prisma.trace.findMany({
