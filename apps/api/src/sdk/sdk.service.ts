@@ -84,4 +84,30 @@ export class SdkService {
       return { ok: false, error: e.message };
     }
   }
+
+  async startTrace(body: any, projectId: string) {
+    const traceId = require('crypto').randomUUID();
+    await this.prisma.trace.create({
+      data: {
+        id: traceId,
+        projectId,
+        operatorId: body.operatorId || 'unknown',
+        label: body.label || '',
+        metadata: body.metadata || {},
+        status: 'OPEN',
+        startedAt: new Date(),
+      },
+    });
+    return { traceId };
+  }
+
+  async stopTrace(body: any) {
+    const { traceId } = body;
+    if (!traceId) throw new Error('traceId required');
+    await this.prisma.trace.update({
+      where: { id: traceId },
+      data: { status: 'CLOSED', endedAt: new Date() },
+    });
+    return { ok: true };
+  }
 }

@@ -54,4 +54,16 @@ export class SdkController {
   ) {
     return this.sdk.saveScreenshot({ ...body, projectId: req.projectId }, file?.path);
   }
+
+  @Post('trace/start')
+  @UseGuards(ApiKeyAuthGuard)
+  async startTrace(@Body() body: any, @Req() req: any) {
+    return this.sdk.startTrace(body, req.projectId);
+  }
+
+  @Post('trace/stop')
+  @UseGuards(ApiKeyAuthGuard)
+  async stopTrace(@Body() body: any) {
+    return this.sdk.stopTrace(body);
+  }
 }
