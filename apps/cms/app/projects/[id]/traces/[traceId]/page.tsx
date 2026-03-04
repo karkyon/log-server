@@ -276,6 +276,7 @@ function TimelineView({ items, projectId, traceId, dark }: {
   const [lastIdx, setLastIdx] = useState(-1);
   const [saving, setSaving] = useState(false);
   const [patternName, setPatternName] = useState("");
+  const [patternMemo, setPatternMemo] = useState("");
   const [showModal, setShowModal] = useState(false);
 
   const fids = Array.from(new Set(items.map(i => i.featureId)));
@@ -312,7 +313,7 @@ function TimelineView({ items, projectId, traceId, dark }: {
     }
   };
   const clearSel = () => { setSelected([]); setLastIdx(-1); };
-  const openPatternModal = () => { setPatternName(""); setShowModal(true); };
+  const openPatternModal = () => { setPatternName(""); setPatternMemo(""); setShowModal(true); };
 
   const savePattern = async () => {
     if (!patternName.trim()) return;
@@ -326,7 +327,7 @@ function TimelineView({ items, projectId, traceId, dark }: {
           traceId,
           seqs: selItems.map(i => ({ seq: i.globalSeqNo, featureId: i.featureId, summary: i.summary, ts: i.ts })),
         },
-        memo: `TraceID: ${traceId.slice(0, 8)} から登録（${selItems.length} seq）`,
+        memo: patternMemo || `TraceID: ${traceId.slice(0, 8)} から登録（${selItems.length} seq）`,
       });
       setShowModal(false);
       clearSel();
@@ -460,7 +461,17 @@ function TimelineView({ items, projectId, traceId, dark }: {
             <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>📌 作業パターンとして登録</h3>
             <div style={{ fontSize: 12, color: "#475569", marginBottom: 12 }}>{selItems.length} seq を登録します</div>
             <input value={patternName} onChange={e => setPatternName(e.target.value)} placeholder="パターン名 *"
-              style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #cbd5e1", fontSize: 13, boxSizing: "border-box", marginBottom: 12 }} />
+              style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #cbd5e1", fontSize: 13, boxSizing: "border-box", marginBottom: 10 }} />
+            <textarea value={patternMemo} onChange={e => setPatternMemo(e.target.value)} placeholder="説明・メモ（任意）" rows={2}
+              style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #cbd5e1", fontSize: 12, boxSizing: "border-box", marginBottom: 10, resize: "none" }} />
+            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 700 }}>対象画面</div>
+            <div style={{ background: "#f1f5f9", borderRadius: 6, padding: "6px 10px", fontSize: 11, marginBottom: 10, color: "#334155" }}>
+              {[...new Set(selItems.map(i => i.featureId))].join(", ")}
+            </div>
+            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 700 }}>選択Seq</div>
+            <div style={{ background: "#f1f5f9", borderRadius: 6, padding: "6px 10px", fontSize: 11, marginBottom: 12, color: "#334155", maxHeight: 80, overflowY: "auto" }}>
+              {selItems.map(i => "#" + i.globalSeqNo + " " + i.summary.slice(0, 20)).join(" → ")}
+            </div>
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setShowModal(false)}
                 style={{ flex: 1, padding: "8px", borderRadius: 8, border: "1px solid #cbd5e1", background: "white", cursor: "pointer", fontSize: 13 }}>キャンセル</button>
