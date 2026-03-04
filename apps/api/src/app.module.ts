@@ -18,7 +18,7 @@ import { AdminModule } from './admin/admin.module';
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', '..', 'public'),
-      serveRoot: '/sdk',
+      serveRoot: '/assets',
     }),
     ApiKeysModule,
     UsersModule,
