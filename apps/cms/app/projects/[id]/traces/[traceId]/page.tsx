@@ -404,8 +404,24 @@ function TimelineView({ items, projectId, traceId, dark }: {
                 })}
               </div>
               {!isLastRow && (
-                <div style={{ display: "flex", justifyContent: isRtl ? "flex-start" : "flex-end", paddingLeft: isRtl ? 75 : 0, paddingRight: isRtl ? 0 : 75, height: 32, alignItems: "flex-end" }}>
-                  <div style={{ width: 36, height: 28, border: "2px solid #475569", borderTop: "none", borderRight: isRtl ? "none" : undefined, borderLeft: isRtl ? undefined : "none", borderRadius: isRtl ? "0 0 0 10px" : "0 0 10px 0" }} />
+                <div style={{ position: "relative", height: 36 }}>
+                  {/* 縦線: LTRなら右端BOX中央、RTLなら左端BOX中央 */}
+                  <div style={{
+                    position: "absolute",
+                    [isRtl ? "left" : "right"]: 80,
+                    top: 0, width: 3, height: 36,
+                    background: "#475569"
+                  }} />
+                  {/* 矢印 */}
+                  <div style={{
+                    position: "absolute",
+                    [isRtl ? "left" : "right"]: 74,
+                    bottom: -6,
+                    width: 0, height: 0,
+                    borderLeft: "6px solid transparent",
+                    borderRight: "6px solid transparent",
+                    borderTop: "9px solid #475569"
+                  }} />
                 </div>
               )}
             </div>
