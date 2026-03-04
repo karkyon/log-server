@@ -51,38 +51,53 @@ function formatDuration(start: string, end: string | null) {
 
 
 // ─────────────── アクションレビュー詳細パネル（HTML版と同等） ───────────────
-function ActionReviewDetail({ log, seqNo, dark, traceId, projectId }: { log: LogEntry; seqNo: number; dark: boolean; traceId: string; projectId: string }) {
+function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSaved }: { log: LogEntry; seqNo: number; dark: boolean; traceId: string; projectId: string; onVerdictSaved?: (logId: string, verdict: LogEntry["verdict"]) => void }) {
   const calcInitVerdict = (l: typeof log) =>
     l.verdict?.verdict === "NG" || l.payload?.result === "NG" || l.eventType === "ERROR" ? "NG" : "OK";
   const [verdict, setVerdict] = useState<"OK" | "NG">(calcInitVerdict(log));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [dirty, setDirty] = useState(false);
 
   const saveVerdict = async () => {
+    const url = `/api/projects/${projectId}/traces/${traceId}/logs/${log.id}/verdict`;
+    const payload = { verdict, issueType, priority: issuePriority,
+      status: issueStatus, content: issueContent, memo: issueMemo };
+    console.log("[saveVerdict] START", { url, payload });
+    console.log("[saveVerdict] token:", typeof window !== 'undefined' ? localStorage.getItem('tlog_token') : 'SSR');
     setSaving(true);
     try {
-      const res = await fetch(
-        `http://192.168.1.11:3099/api/projects/${projectId}/traces/${traceId}/logs/${log.id}/verdict`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("token") ?? ""}` },
-          body: JSON.stringify({ verdict, issueType, priority: issuePriority,
-            status: issueStatus, content: issueContent, memo: issueMemo }),
-        }
-      );
-      if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 3000); }
+      const res = await api.put(url, payload);
+      console.log("[saveVerdict] SUCCESS", res.data);
+      setSaved(true);
+      setDirty(false);
+      setTimeout(() => setSaved(false), 3000);
+      onVerdictSaved?.(log.id, res.data);
+    } catch (e: any) {
+      console.error("[saveVerdict] ERROR status:", e?.response?.status);
+      console.error("[saveVerdict] ERROR data:", e?.response?.data);
+      console.error("[saveVerdict] ERROR message:", e?.message);
     } finally { setSaving(false); }
   };
   // logが切り替わったらverdictとissue入力を復元
   useEffect(() => {
-    setVerdict(calcInitVerdict(log));
-    setIssueType(log.verdict?.issueType ?? "不具合");
-    setIssuePriority(log.verdict?.priority ?? "高");
-    setIssueStatus(log.verdict?.status ?? "未対応");
-    setIssueContent(log.verdict?.content ?? "");
-    setIssueMemo(log.verdict?.memo ?? "");
+    console.log("[logChange] log.id:", log.id);
+    console.log("[logChange] log.verdict raw:", log.verdict);
+    const v = calcInitVerdict(log);
+    const it = log.verdict?.issueType ?? "不具合";
+    const ip = log.verdict?.priority ?? "高";
+    const is = log.verdict?.status ?? "未対応";
+    const ic = log.verdict?.content ?? "";
+    const im = log.verdict?.memo ?? "";
+    console.log("[logChange] restore →", { verdict: v, issueType: it, priority: ip, status: is, content: ic, memo: im });
+    setVerdict(v);
+    setIssueType(it);
+    setIssuePriority(ip);
+    setIssueStatus(is);
+    setIssueContent(ic);
+    setIssueMemo(im);
     setSaved(false);
+    setDirty(false);
   }, [log.id]);
   const [issueType, setIssueType] = useState("不具合");
   const [issuePriority, setIssuePriority] = useState("高");
@@ -215,7 +230,7 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId }: { log: Log
           <div className={labelCls}>判定</div>
           <div className={`${valCls} flex items-center gap-3`}>
             <button
-              onClick={() => setVerdict(v => v === "OK" ? "NG" : "OK")}
+              onClick={() => { setVerdict(v => v === "OK" ? "NG" : "OK"); setDirty(true); }}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${verdict === "OK" ? "bg-green-500" : "bg-red-500"}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${verdict === "OK" ? "translate-x-6" : "translate-x-1"}`} />
@@ -223,11 +238,12 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId }: { log: Log
             <span className={`text-sm font-bold ${verdict === "OK" ? "text-green-600" : "text-red-600"}`}>{verdict}</span>
             <button
               onClick={saveVerdict}
-              disabled={saving}
+              disabled={saving || !dirty}
               className={`ml-auto px-3 py-1 rounded text-xs font-bold transition-colors ${
                 saved ? "bg-green-600 text-white" :
                 saving ? "bg-zinc-600 text-zinc-400 cursor-wait" :
-                "bg-blue-600 hover:bg-blue-500 text-white"
+                dirty ? "bg-blue-600 hover:bg-blue-500 text-white cursor-pointer" :
+                "bg-zinc-200 text-zinc-400 cursor-not-allowed"
               }`}
             >
               {saved ? "✅ 保存済" : saving ? "保存中..." : "更新する"}
@@ -264,30 +280,30 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId }: { log: Log
               <div className={`rounded border px-3 py-3 space-y-2 ${dark ? "border-red-800 bg-red-900/10" : "border-red-200 bg-red-50"}`}>
                 <div className="flex items-center gap-2 flex-wrap">
                   <label className={`text-[10px] font-semibold w-8 ${sub}`}>種別</label>
-                  <select value={issueType} onChange={e => setIssueType(e.target.value)}
+                  <select value={issueType} onChange={e => { setIssueType(e.target.value); setDirty(true); }}
                     className={`text-xs px-2 py-1 rounded border ${dark ? "bg-slate-800 border-slate-600 text-slate-200" : "bg-white border-slate-300"}`}>
                     {["不具合","仕様違い","改善提案","確認"].map(t => <option key={t}>{t}</option>)}
                   </select>
                   <label className={`text-[10px] font-semibold w-8 ${sub}`}>優先度</label>
-                  <select value={issuePriority} onChange={e => setIssuePriority(e.target.value)}
+                  <select value={issuePriority} onChange={e => { setIssuePriority(e.target.value); setDirty(true); }}
                     className={`text-xs px-2 py-1 rounded border ${dark ? "bg-slate-800 border-slate-600 text-slate-200" : "bg-white border-slate-300"}`}>
                     {["高","中","低"].map(t => <option key={t}>{t}</option>)}
                   </select>
                   <label className={`text-[10px] font-semibold w-10 ${sub}`}>対応状態</label>
-                  <select value={issueStatus} onChange={e => setIssueStatus(e.target.value)}
+                  <select value={issueStatus} onChange={e => { setIssueStatus(e.target.value); setDirty(true); }}
                     className={`text-xs px-2 py-1 rounded border ${dark ? "bg-slate-800 border-slate-600 text-slate-200" : "bg-white border-slate-300"}`}>
                     {["未対応","対応中","解決済","保留"].map(t => <option key={t}>{t}</option>)}
                   </select>
                 </div>
                 <div className="flex gap-2 items-start">
                   <label className={`text-[10px] font-semibold w-8 mt-1.5 flex-shrink-0 ${sub}`}>内容</label>
-                  <textarea value={issueContent} onChange={e => setIssueContent(e.target.value)}
+                  <textarea value={issueContent} onChange={e => { setIssueContent(e.target.value); setDirty(true); }}
                     placeholder="課題・問題点..." rows={2}
                     className={`flex-1 text-xs px-2 py-1 rounded border resize-none ${dark ? "bg-slate-800 border-slate-600 text-slate-200 placeholder:text-slate-500" : "bg-white border-slate-300 placeholder:text-slate-400"}`} />
                 </div>
                 <div className="flex gap-2 items-start">
                   <label className={`text-[10px] font-semibold w-8 mt-1.5 flex-shrink-0 ${sub}`}>備考</label>
-                  <input value={issueMemo} onChange={e => setIssueMemo(e.target.value)}
+                  <input value={issueMemo} onChange={e => { setIssueMemo(e.target.value); setDirty(true); }}
                     placeholder="担当者・期限など"
                     className={`flex-1 text-xs px-2 py-1 rounded border ${dark ? "bg-slate-800 border-slate-600 text-slate-200 placeholder:text-slate-500" : "bg-white border-slate-300 placeholder:text-slate-400"}`} />
                 </div>
@@ -758,7 +774,7 @@ export default function TraceDetailPage() {
                 const isActive = selectedLog?.id === log.id;
                 return (
                   <button key={log.id} onClick={() => setSelectedLog(log)}
-                    className={`w-full text-left px-4 py-2.5 border-b flex items-start gap-3 transition-colors ${isActive ? tlA : tl}`}>
+                    className={`w-full text-left px-4 py-2.5 border-b flex items-start gap-3 transition-colors ${isActive ? tlA : tl} ${!isActive && (log.verdict?.verdict === "NG" || log.payload?.result === "NG" || log.eventType === "ERROR") ? (dark ? "bg-red-900/20" : "bg-red-50") : ""}`}>
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] flex-shrink-0 mt-0.5 ${style.bg}`}>{style.icon}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -780,7 +796,18 @@ export default function TraceDetailPage() {
             {!selectedLog ? (
               <div className={`text-center py-16 text-sm ${sub}`}>← イベントをクリックしてください</div>
             ) : (
-              <ActionReviewDetail log={selectedLog} seqNo={logs.indexOf(selectedLog) + 1} dark={dark} traceId={traceId} projectId={projectId} />
+              <ActionReviewDetail
+              log={selectedLog}
+              seqNo={logs.indexOf(selectedLog) + 1}
+              dark={dark}
+              traceId={traceId}
+              projectId={projectId}
+              onVerdictSaved={(logId, verdictData) => {
+                setLogs(prev => prev.map(l =>
+                  l.id === logId ? { ...l, verdict: verdictData } : l
+                ));
+              }}
+            />
             )}
           </div>
         </div>

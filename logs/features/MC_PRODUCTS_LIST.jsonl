@@ -1,2 +1,2 @@
-{"traceId":"c9ec16b8-99b7-4374-8ec3-778ff4d3609e","type":"TEST","featureId":"MC_PRODUCTS_LIST","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-04T04:37:27.207Z","elementId":"test_button","screenshot":null,"test":true}
-{"traceId":"c9ec16b8-99b7-4374-8ec3-778ff4d3609e","type":"TEST","featureId":"MC_PRODUCTS_LIST","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-04T04:37:42.294Z","elementId":"test_button","screenshot":null,"test":true}
+{"traceId":"8e98ca23-bbf7-47c9-a752-6a65fcbec240","type":"SCREEN_LOAD","featureId":"MC_PRODUCTS_LIST","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-04T08:29:00.240Z","elementId":null,"screenshot":null,"title":"部品一覧"}
+{"traceId":"8e98ca23-bbf7-47c9-a752-6a65fcbec240","type":"UI_CLICK","featureId":"MC_PRODUCTS_LIST","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-04T08:29:00.356Z","elementId":"btn_search","screenshot":null,"label":"検索ボタン"}
