@@ -147,7 +147,7 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
           </div>
           {screenshotUrl ? (
             <div className="relative">
-              <img src={screenshotUrl} alt="スクリーンショット" className="w-full object-contain" style={{ minHeight: 80 }}
+              <img src={screenshotUrl} alt="スクリーンショット" className="w-full object-contain" style={{ maxHeight: 280, minHeight: 60 }}
                 onError={e => {
                   e.currentTarget.style.display = "none";
                   const fb = e.currentTarget.nextSibling as HTMLElement;
@@ -382,16 +382,27 @@ function TimelineView({ items, projectId, traceId, dark }: {
                       <div key={item.globalSeqNo}
                         onClick={e => handleClick(e as any, item.globalSeqNo, r * cols + c)}
                         style={{
-                          width: 160, minHeight: 80, borderRadius: 8,
+                          width: 160, borderRadius: 8,
                           border: `2px solid ${isSelected ? "#3b82f6" : color}`,
                           background: isSelected ? "#eff6ff" : item.hasNg ? "#fff5f5" : "white",
-                          cursor: "pointer", padding: "6px 8px", fontSize: 11, userSelect: "none",
-                          boxShadow: isSelected ? "0 0 0 2px #3b82f680" : "none",
+                          cursor: "pointer", fontSize: 11, userSelect: "none", overflow: "hidden",
+                          boxShadow: isSelected ? "0 0 0 2px #3b82f680" : "0 1px 4px rgba(0,0,0,.08)",
                         }}>
-                        <div style={{ fontWeight: 700, color, fontSize: 10 }}>{item.featureId.replace("MC_", "")}</div>
-                        <div style={{ color: "#334155", fontSize: 11, marginTop: 2 }}>{item.summary.slice(0, 20)}</div>
-                        <div style={{ color: "#94a3b8", fontSize: 10, marginTop: 2 }}>seq {item.globalSeqNo}</div>
-                        {item.hasNg && <div style={{ color: "#dc2626", fontSize: 10, fontWeight: 700 }}>❌ NG</div>}
+                        {/* サムネ */}
+                        <div style={{ height: 80, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", borderBottom: `1px solid ${color}44` }}>
+                          {item.imgPath
+                            ? <img src={item.imgPath} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { e.currentTarget.style.display="none"; }} />
+                            : <span style={{ fontSize: 20, opacity: 0.3 }}>🖼</span>}
+                        </div>
+                        {/* テキスト部 */}
+                        <div style={{ padding: "5px 7px" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                            <span style={{ fontWeight: 700, color, fontSize: 10 }}>{item.featureId.replace("MC_", "")}</span>
+                            <span style={{ color: "#94a3b8", fontSize: 10 }}>seq {item.globalSeqNo}</span>
+                          </div>
+                          <div style={{ color: "#334155", fontSize: 10, marginTop: 2, lineHeight: 1.3 }}>{item.summary.slice(0, 24)}</div>
+                          {item.hasNg && <div style={{ color: "#dc2626", fontSize: 10, fontWeight: 700, marginTop: 2 }}>❌ NG</div>}
+                        </div>
                       </div>
                       {!isLastInRow && (
                         <div style={{ flex: "1 1 0", display: "flex", alignItems: "center", minWidth: 20 }}>
@@ -585,7 +596,15 @@ export default function TraceDetailPage() {
     summary: log.elementId ? `${log.screenName} — ${log.elementId}` : (log.screenName || log.eventType),
     ts: log.timestamp,
     hasNg: log.verdict?.verdict === "NG" || log.eventType === "ERROR" || log.payload?.result === "NG",
-    imgPath: null, eventType: log.eventType, log,
+    imgPath: (() => {
+      const sp = log.screenshotPath;
+      if (!sp) return null;
+      const mLogs = sp.match(/logs[\/\\]screenshots[\/\\](.+)/);
+      if (mLogs) return "http://192.168.1.11:3099/logs-screenshots/" + mLogs[1].replace(/\\/g,"/").split("/").map(encodeURIComponent).join("/");
+      const mSs = sp.match(/screenshots[\/\\](.+)/);
+      if (mSs) return "http://192.168.1.11:3099/screenshots/" + mSs[1].replace(/\\/g,"/").split("/").map(encodeURIComponent).join("/");
+      return null;
+    })(), eventType: log.eventType, log,
   }));
 
   const bg   = dark ? "bg-slate-900 text-slate-100" : "bg-white text-slate-900";
