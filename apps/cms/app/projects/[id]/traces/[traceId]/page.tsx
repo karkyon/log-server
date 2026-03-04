@@ -121,7 +121,7 @@ export default function TraceDetailPage() {
           <div className="flex items-center gap-4 text-sm">
             <span className="font-mono text-blue-400">{traceId.slice(0, 16)}...</span>
             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-              trace.status === "CLOSED" || trace.status === "COMPLETED" ? "bg-green-900 text-green-300" :
+              (trace.status === "CLOSED" || trace.status === "COMPLETED") ? "bg-green-900 text-green-300" :
               trace.status === "ACTIVE" ? "bg-blue-900 text-blue-300" :
               "bg-yellow-900 text-yellow-300"
             }`}>{trace.status}</span>
