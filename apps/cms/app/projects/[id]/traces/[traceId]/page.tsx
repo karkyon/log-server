@@ -59,11 +59,6 @@ function ActionReviewDetail({ log, seqNo, dark, traceId }: { log: LogEntry; seqN
   const [issueStatus, setIssueStatus] = useState("未対応");
   const [issueContent, setIssueContent] = useState("");
   const [issueMemo, setIssueMemo] = useState("");
-  const [issueType, setIssueType] = useState("不具合");
-  const [issuePriority, setIssuePriority] = useState("高");
-  const [issueStatus, setIssueStatus] = useState("未対応");
-  const [issueContent, setIssueContent] = useState("");
-  const [issueMemo, setIssueMemo] = useState("");
 
   const sub = dark ? "text-slate-400" : "text-slate-500";
   const rowCls = `flex border-b last:border-0 ${dark ? "border-slate-700" : "border-slate-200"}`;
