@@ -10,7 +10,7 @@ import { ApiKeyAuthGuard } from './apikey-auth.guard';
 import * as path from 'path';
 import * as fs from 'fs';
 
-@Controller()
+@Controller('sdk')
 export class SdkController {
   constructor(private readonly sdk: SdkService) {}
 
