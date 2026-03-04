@@ -1,13 +1,13 @@
 {
   "summary": {
-    "generatedAt": "2026-03-01T01:48:05.909Z",
+    "generatedAt": "2026-03-04T05:03:54.113Z",
     "totalFeatures": 9,
-    "totalLogs": 406,
-    "totalIssues": 34,
+    "totalLogs": 375,
+    "totalIssues": 25,
     "critical": 9,
-    "high": 7,
-    "medium": 8,
-    "low": 10
+    "high": 4,
+    "medium": 6,
+    "low": 6
   },
   "features": {
     "MC_LOG_OPERATION_HISTORY": {
@@ -55,8 +55,8 @@
     "MC_PRODUCTS_LIST": {
       "featureId": "MC_PRODUCTS_LIST",
       "screenName": "部品一覧",
-      "logCount": 32,
-      "issueCount": 9
+      "logCount": 1,
+      "issueCount": 0
     },
     "UNKNOWN": {
       "featureId": "UNKNOWN",
@@ -67,7 +67,7 @@
   },
   "issues": [
     {
-      "issueId": "R01-UNKNOWN-1772329685909-0",
+      "issueId": "R01-UNKNOWN-1772600634113-0",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -88,10 +88,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-23-50-942Z_UNKNOWN_JS_ERROR_TR-1772328228889-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.909Z"
+      "detectedAt": "2026-03-04T05:03:54.113Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772329685909-1",
+      "issueId": "R01-UNKNOWN-1772600634113-1",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -112,10 +112,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-23-50-911Z_UNKNOWN_JS_ERROR_TR-1772328229168-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.909Z"
+      "detectedAt": "2026-03-04T05:03:54.113Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772329685909-2",
+      "issueId": "R01-UNKNOWN-1772600634113-2",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -136,10 +136,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-26-17-070Z_UNKNOWN_JS_ERROR_TR-1772328375591-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.909Z"
+      "detectedAt": "2026-03-04T05:03:54.113Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772329685909-3",
+      "issueId": "R01-UNKNOWN-1772600634113-3",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -160,10 +160,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-27-07-969Z_UNKNOWN_JS_ERROR_TR-1772328426365-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.909Z"
+      "detectedAt": "2026-03-04T05:03:54.113Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772329685909-4",
+      "issueId": "R01-UNKNOWN-1772600634113-4",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -184,10 +184,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-28-35-876Z_UNKNOWN_JS_ERROR_TR-1772328514518-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.909Z"
+      "detectedAt": "2026-03-04T05:03:54.113Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772329685909-5",
+      "issueId": "R01-UNKNOWN-1772600634113-5",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -208,10 +208,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-30-42-412Z_UNKNOWN_JS_ERROR_TR-1772328640859-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.909Z"
+      "detectedAt": "2026-03-04T05:03:54.113Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772329685909-6",
+      "issueId": "R01-UNKNOWN-1772600634113-6",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -232,10 +232,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-30-42-772Z_UNKNOWN_JS_ERROR_TR-1772328641144-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.909Z"
+      "detectedAt": "2026-03-04T05:03:54.113Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772329685909-7",
+      "issueId": "R01-UNKNOWN-1772600634113-7",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -256,10 +256,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-32-11-760Z_UNKNOWN_JS_ERROR_TR-1772328729993-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.909Z"
+      "detectedAt": "2026-03-04T05:03:54.113Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772329685909-8",
+      "issueId": "R01-UNKNOWN-1772600634113-8",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -280,10 +280,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-32-11-983Z_UNKNOWN_JS_ERROR_TR-1772328730375-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.909Z"
+      "detectedAt": "2026-03-04T05:03:54.113Z"
     },
     {
-      "issueId": "R02-UNKNOWN-1772329685909-0",
+      "issueId": "R02-UNKNOWN-1772600634113-0",
       "ruleId": "R02",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -307,10 +307,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-27-08-198Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328426358-c6mf.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.909Z"
+      "detectedAt": "2026-03-04T05:03:54.113Z"
     },
     {
-      "issueId": "R03-MC_OPERATOR_AUTHENTICATION-1772329685906-0",
+      "issueId": "R03-MC_OPERATOR_AUTHENTICATION-1772600634111-0",
       "ruleId": "R03",
       "featureId": "MC_OPERATOR_AUTHENTICATION",
       "screenName": "ユーザ認証",
@@ -329,10 +329,10 @@
       "contextSummary": "モード:auth | 遷移元:MC_PRODUCTS_LIST | URLパラメータ:{ faces-redirect=false, COLUMN_0=called_function_id_from, FORMULA_0==, VALUE_0=MC_PRODUCTS_LIST, VALUE_TO_0=, COLUMN_1=called_function_id_to, FORMULA_1==, VALUE_1=MC_MACHINING, VALUE_TO_1=, COLUMN_2=processing_id, FORMULA_2==, VALUE_2=9091, VALUE_TO_2=, COLUMN_3=mc_process_no, FORMULA_3==, VALUE_3=1, VALUE_TO_3=, COLUMN_4=parts_id, FORMULA_4==, VALUE_4=8304, VALUE_TO_4=, COLUMN_5=parts_machining_id, FORMULA_5==, VALUE_5=9091, VALUE_TO_5=, COLUMN_6=parameter_val1, FORMULA_6==, VALUE_6=1, VALUE_TO_6=, PARAM_CALL_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MC, A_HREF_ELM_NAME=1_編集_0, WIN_H=140, WIN_W=690, WIN_POS=WIN_C_MDL, IS_CHILD_FUNC=1, CALL_AUTH=1, PARAM_FUNC_ID=MC_OPERATOR_AUTHENTICATION, INIT_SEARCH=true } | 見出し:マシニングオペレーター認証画面 | 操作:TLN_1_password | 入力:{ elementType=TEXTBOX, newValue=ATOM }",
       "screenshots": [],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.906Z"
+      "detectedAt": "2026-03-04T05:03:54.112Z"
     },
     {
-      "issueId": "R03-MC_OPERATOR_AUTHENTICATION-1772329685906-1",
+      "issueId": "R03-MC_OPERATOR_AUTHENTICATION-1772600634112-1",
       "ruleId": "R03",
       "featureId": "MC_OPERATOR_AUTHENTICATION",
       "screenName": "ユーザ認証",
@@ -353,10 +353,10 @@
         "logs/screenshots/MC_OPERATOR_AUTHENTICATION/2026-03-01T01-45-57-064Z_MC_OPERATOR_AUTHENTICATION_TLN_1_password_CALL_JAVASCRIPT_AFTER_TR-1772329553853-9lg8.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.906Z"
+      "detectedAt": "2026-03-04T05:03:54.112Z"
     },
     {
-      "issueId": "R03-MC_OPERATOR_AUTHENTICATION-1772329685906-2",
+      "issueId": "R03-MC_OPERATOR_AUTHENTICATION-1772600634112-2",
       "ruleId": "R03",
       "featureId": "MC_OPERATOR_AUTHENTICATION",
       "screenName": "ユーザ認証",
@@ -375,82 +375,10 @@
       "contextSummary": "モード:auth | 遷移元:MC_PRODUCTS_LIST | URLパラメータ:{ faces-redirect=false, COLUMN_0=called_function_id_from, FORMULA_0==, VALUE_0=MC_PRODUCTS_LIST, VALUE_TO_0=, COLUMN_1=called_function_id_to, FORMULA_1==, VALUE_1=MC_MACHINING, VALUE_TO_1=, COLUMN_2=processing_id, FORMULA_2==, VALUE_2=9091, VALUE_TO_2=, COLUMN_3=mc_process_no, FORMULA_3==, VALUE_3=1, VALUE_TO_3=, COLUMN_4=parts_id, FORMULA_4==, VALUE_4=8304, VALUE_TO_4=, COLUMN_5=parts_machining_id, FORMULA_5==, VALUE_5=9091, VALUE_TO_5=, COLUMN_6=parameter_val1, FORMULA_6==, VALUE_6=1, VALUE_TO_6=, PARAM_CALL_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MC, A_HREF_ELM_NAME=1_編集_0, WIN_H=140, WIN_W=690, WIN_POS=WIN_C_MDL, IS_CHILD_FUNC=1, CALL_AUTH=1, PARAM_FUNC_ID=MC_OPERATOR_AUTHENTICATION, INIT_SEARCH=true } | 見出し:マシニングオペレーター認証画面 | 操作:TLN_1_マシニング情報 | 入力:{ elementType=BUTTON, buttonLabel=マシニング情報, formSnapshot=[object Object] }",
       "screenshots": [],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.906Z"
+      "detectedAt": "2026-03-04T05:03:54.112Z"
     },
     {
-      "issueId": "R03-MC_PRODUCTS_LIST-1772329685907-0",
-      "ruleId": "R03",
-      "featureId": "MC_PRODUCTS_LIST",
-      "screenName": "部品一覧",
-      "category": "DUPLICATE_BIND",
-      "categoryLabel": "ボタン重複バインド",
-      "severity": "High",
-      "difficulty": "Medium",
-      "description": "ボタン \"CLEAR_BUTTON\" が 1ms 以内に 2 回記録されています。addEventListener が複数回バインドされている可能性があります。",
-      "logEvidence": "elementId=CLEAR_BUTTON | 時刻差=1ms | ts1=2026-03-01T01:45:37.116Z | ts2=2026-03-01T01:45:37.117Z",
-      "fixSuggestion": "resizeContents_end() が複数回呼ばれていないか確認してください。isValid フラグで初期化ガードを実装し、addEventListener の二重登録を防いでください。",
-      "reproducibility": "Likely",
-      "confidence": 0.9,
-      "occurrences": 1,
-      "priorityScore": 73,
-      "relatedTraceId": "TR-1772329537117-728x",
-      "contextSummary": "URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 } | 操作:CLEAR_BUTTON | 入力:{ elementType=BUTTON, buttonLabel=CLEAR_BUTTON, formSnapshot=[object Object] }",
-      "screenshots": [],
-      "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.907Z"
-    },
-    {
-      "issueId": "R05-MC_PRODUCTS_LIST-1772329685908-0",
-      "ruleId": "R05",
-      "featureId": "MC_PRODUCTS_LIST",
-      "screenName": "部品一覧",
-      "category": "API_NOT_CALLED",
-      "categoryLabel": "ボタン押下後API無応答",
-      "severity": "High",
-      "difficulty": "High",
-      "description": "ボタン \"BUTTON_MDL_R:0:POS_SEARCH_BTN\" 押下後 3秒以内にBACKENDログが記録されていません。REST API呼び出しが失敗しているか、レスポンス取得コードが未実装の可能性があります。",
-      "logEvidence": "UI_CLICK elementId=BUTTON_MDL_R:0:POS_SEARCH_BTN | ts=2026-03-01T01:45:29.717Z | traceId=TR-1772329529671-85jj | 3秒以内BACKEND=なし",
-      "fixSuggestion": "ブラウザのF12 > Networkタブで実際にREST APIが呼ばれているか確認してください。PrimeFaces AJAXのコールバック内にTLog.backend()の記録を追加してください。",
-      "reproducibility": "Sometimes",
-      "confidence": 0.7,
-      "occurrences": 1,
-      "priorityScore": 64,
-      "relatedTraceId": "TR-1772329529671-85jj",
-      "contextSummary": "URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 } | 操作:BUTTON_MDL_R:0:POS_SEARCH_BTN | 入力:{ elementType=BUTTON, buttonLabel=検索, formSnapshot=[object Object] }",
-      "screenshots": [
-        "logs/screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-31-331Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_BEFORE_TR-1772329529671-85jj.jpg",
-        "logs/screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-32-552Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_AFTER_TR-1772329529671-85jj.jpg"
-      ],
-      "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.908Z"
-    },
-    {
-      "issueId": "R05-MC_PRODUCTS_LIST-1772329685908-1",
-      "ruleId": "R05",
-      "featureId": "MC_PRODUCTS_LIST",
-      "screenName": "部品一覧",
-      "category": "API_NOT_CALLED",
-      "categoryLabel": "ボタン押下後API無応答",
-      "severity": "High",
-      "difficulty": "High",
-      "description": "ボタン \"BUTTON_MDL_R:0:POS_SEARCH_BTN\" 押下後 3秒以内にBACKENDログが記録されていません。REST API呼び出しが失敗しているか、レスポンス取得コードが未実装の可能性があります。",
-      "logEvidence": "UI_CLICK elementId=BUTTON_MDL_R:0:POS_SEARCH_BTN | ts=2026-03-01T01:45:41.382Z | traceId=TR-1772329541329-8zyx | 3秒以内BACKEND=なし",
-      "fixSuggestion": "ブラウザのF12 > Networkタブで実際にREST APIが呼ばれているか確認してください。PrimeFaces AJAXのコールバック内にTLog.backend()の記録を追加してください。",
-      "reproducibility": "Sometimes",
-      "confidence": 0.7,
-      "occurrences": 1,
-      "priorityScore": 64,
-      "relatedTraceId": "TR-1772329541329-8zyx",
-      "contextSummary": "遷移元:MC_PRODUCTS_LIST | 操作:BUTTON_MDL_R:0:POS_SEARCH_BTN | 入力:{ elementType=BUTTON, buttonLabel=検索, formSnapshot=[object Object] }",
-      "screenshots": [
-        "logs/screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-42-527Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_BEFORE_TR-1772329541329-8zyx.jpg",
-        "logs/screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-44-224Z_MC_PRODUCTS_LIST_BUTTON_MDL_R:0:POS_SEARCH_BTN_AFTER_TR-1772329541329-8zyx.jpg"
-      ],
-      "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.908Z"
-    },
-    {
-      "issueId": "R07-MC_LOG_OPERATION_HISTORY-1772329685902-0",
+      "issueId": "R07-MC_LOG_OPERATION_HISTORY-1772600634107-0",
       "ruleId": "R07",
       "featureId": "MC_LOG_OPERATION_HISTORY",
       "screenName": "MC_LOG_OPERATION_HISTORY",
@@ -472,10 +400,10 @@
         "logs/screenshots/MC_LOG_OPERATION_HISTORY/2026-03-01T01-46-18-824Z_MC_LOG_OPERATION_HISTORY_SCREEN_LOAD_TR-1772329577139-nwos.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.902Z"
+      "detectedAt": "2026-03-04T05:03:54.107Z"
     },
     {
-      "issueId": "R07-MC_MACHINING_WORK_HISTORY-1772329685905-0",
+      "issueId": "R07-MC_MACHINING_WORK_HISTORY-1772600634110-0",
       "ruleId": "R07",
       "featureId": "MC_MACHINING_WORK_HISTORY",
       "screenName": "MC_MACHINING_WORK_HISTORY",
@@ -497,10 +425,10 @@
         "logs/screenshots/MC_MACHINING_WORK_HISTORY/2026-03-01T01-46-28-653Z_MC_MACHINING_WORK_HISTORY_SCREEN_LOAD_TR-1772329586901-roab.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.905Z"
+      "detectedAt": "2026-03-04T05:03:54.110Z"
     },
     {
-      "issueId": "R07-MC_OPERATOR_AUTHENTICATION-1772329685906-0",
+      "issueId": "R07-MC_OPERATOR_AUTHENTICATION-1772600634112-0",
       "ruleId": "R07",
       "featureId": "MC_OPERATOR_AUTHENTICATION",
       "screenName": "ユーザ認証",
@@ -522,60 +450,10 @@
         "logs/screenshots/MC_OPERATOR_AUTHENTICATION/2026-03-01T01-45-47-818Z_MC_OPERATOR_AUTHENTICATION_SCREEN_LOAD_TR-1772329546560-apye.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.906Z"
+      "detectedAt": "2026-03-04T05:03:54.112Z"
     },
     {
-      "issueId": "R07-MC_PRODUCTS_LIST-1772329685908-0",
-      "ruleId": "R07",
-      "featureId": "MC_PRODUCTS_LIST",
-      "screenName": "部品一覧",
-      "category": "DUPLICATE_LOAD",
-      "categoryLabel": "画面重複ロード",
-      "severity": "Medium",
-      "difficulty": "Medium",
-      "description": "SCREEN_LOAD が 94ms 以内に2回記録されています。resizeContents_end() が複数回呼ばれているか、isValid ガードが正しく機能していない可能性があります。",
-      "logEvidence": "SCREEN_LOAD 2回 | diff=94ms | ts1=2026-03-01T01:45:30.114Z | ts2=2026-03-01T01:45:30.208Z",
-      "fixSuggestion": "resizeContents_end() にisValidフラグによる実行ガードが実装されているか確認してください。TALONのライフサイクル上、resizeContents_end() が複数回呼ばれることがあります。",
-      "reproducibility": "Likely",
-      "confidence": 0.85,
-      "occurrences": 1,
-      "priorityScore": 60,
-      "relatedTraceId": "TR-1772329530208-p83j",
-      "contextSummary": "URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 }",
-      "screenshots": [
-        "logs/screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-31-808Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772329530114-ua8u.jpg",
-        "logs/screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-31-773Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772329530208-p83j.jpg"
-      ],
-      "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.908Z"
-    },
-    {
-      "issueId": "R07-MC_PRODUCTS_LIST-1772329685908-1",
-      "ruleId": "R07",
-      "featureId": "MC_PRODUCTS_LIST",
-      "screenName": "部品一覧",
-      "category": "DUPLICATE_LOAD",
-      "categoryLabel": "画面重複ロード",
-      "severity": "Medium",
-      "difficulty": "Medium",
-      "description": "SCREEN_LOAD が 60ms 以内に2回記録されています。resizeContents_end() が複数回呼ばれているか、isValid ガードが正しく機能していない可能性があります。",
-      "logEvidence": "SCREEN_LOAD 2回 | diff=60ms | ts1=2026-03-01T01:45:41.799Z | ts2=2026-03-01T01:45:41.859Z",
-      "fixSuggestion": "resizeContents_end() にisValidフラグによる実行ガードが実装されているか確認してください。TALONのライフサイクル上、resizeContents_end() が複数回呼ばれることがあります。",
-      "reproducibility": "Likely",
-      "confidence": 0.85,
-      "occurrences": 1,
-      "priorityScore": 60,
-      "relatedTraceId": "TR-1772329541859-urno",
-      "contextSummary": "遷移元:MC_PRODUCTS_LIST",
-      "screenshots": [
-        "logs/screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-43-374Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772329541799-vme3.jpg",
-        "logs/screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-43-343Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772329541859-urno.jpg"
-      ],
-      "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.908Z"
-    },
-    {
-      "issueId": "R07-UNKNOWN-1772329685909-0",
+      "issueId": "R07-UNKNOWN-1772600634113-0",
       "ruleId": "R07",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -597,10 +475,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-23-50-899Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328228992-y8j7.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.909Z"
+      "detectedAt": "2026-03-04T05:03:54.113Z"
     },
     {
-      "issueId": "R07-UNKNOWN-1772329685909-1",
+      "issueId": "R07-UNKNOWN-1772600634113-1",
       "ruleId": "R07",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -622,10 +500,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-30-42-585Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328641094-gjw6.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.909Z"
+      "detectedAt": "2026-03-04T05:03:54.113Z"
     },
     {
-      "issueId": "R07-UNKNOWN-1772329685909-2",
+      "issueId": "R07-UNKNOWN-1772600634113-2",
       "ruleId": "R07",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -647,10 +525,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-32-11-765Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328730309-gbun.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.909Z"
+      "detectedAt": "2026-03-04T05:03:54.113Z"
     },
     {
-      "issueId": "R11-MC_LOG_OPERATION_HISTORY-1772329685902-0",
+      "issueId": "R11-MC_LOG_OPERATION_HISTORY-1772600634107-0",
       "ruleId": "R11",
       "featureId": "MC_LOG_OPERATION_HISTORY",
       "screenName": "MC_LOG_OPERATION_HISTORY",
@@ -672,10 +550,10 @@
         "logs/screenshots/MC_LOG_OPERATION_HISTORY/2026-03-01T01-46-18-824Z_MC_LOG_OPERATION_HISTORY_SCREEN_LOAD_TR-1772329577139-nwos.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.902Z"
+      "detectedAt": "2026-03-04T05:03:54.107Z"
     },
     {
-      "issueId": "R11-MC_MACHINING_WORK_HISTORY-1772329685905-0",
+      "issueId": "R11-MC_MACHINING_WORK_HISTORY-1772600634110-0",
       "ruleId": "R11",
       "featureId": "MC_MACHINING_WORK_HISTORY",
       "screenName": "MC_MACHINING_WORK_HISTORY",
@@ -697,35 +575,10 @@
         "logs/screenshots/MC_MACHINING_WORK_HISTORY/2026-03-01T01-46-28-653Z_MC_MACHINING_WORK_HISTORY_SCREEN_LOAD_TR-1772329586901-roab.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.905Z"
+      "detectedAt": "2026-03-04T05:03:54.110Z"
     },
     {
-      "issueId": "R11-MC_PRODUCTS_LIST-1772329685908-0",
-      "ruleId": "R11",
-      "featureId": "MC_PRODUCTS_LIST",
-      "screenName": "部品一覧",
-      "category": "NO_SCREEN_MODE",
-      "categoryLabel": "画面モード未設定（v2.0未対応）",
-      "severity": "Low",
-      "difficulty": "Low",
-      "description": "全ログで context.screenMode が \"unknown\" のままです。TLogAutoInstrument.init() の第2引数 { screenMode: \"...\" } が未設定です。",
-      "logEvidence": "context付きログ 20 件中、screenMode設定なし 100%",
-      "fixSuggestion": "init() の第2引数に { screenMode: \"search\" } など画面のモードを指定してください。例: TLogAutoInstrument.init(\"MC_PRODUCTS_LIST\", { screenMode: \"search\" })",
-      "reproducibility": "Always",
-      "confidence": 0.8,
-      "occurrences": 1,
-      "priorityScore": 52,
-      "relatedTraceId": "",
-      "contextSummary": "",
-      "screenshots": [
-        "logs/screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-10-578Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772329508659-p4kn.jpg",
-        "logs/screenshots/MC_PRODUCTS_LIST/2026-03-01T01-45-31-808Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772329530114-ua8u.jpg"
-      ],
-      "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.908Z"
-    },
-    {
-      "issueId": "R11-UNKNOWN-1772329685909-0",
+      "issueId": "R11-UNKNOWN-1772600634113-0",
       "ruleId": "R11",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -747,76 +600,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-23-50-899Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328228992-y8j7.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.909Z"
+      "detectedAt": "2026-03-04T05:03:54.113Z"
     },
     {
-      "issueId": "R09-MC_PRODUCTS_LIST-1772329685908-0",
-      "ruleId": "R09",
-      "featureId": "MC_PRODUCTS_LIST",
-      "screenName": "部品一覧",
-      "category": "FORM_RESIDUAL",
-      "categoryLabel": "クリア後フォーム値残存",
-      "severity": "Low",
-      "difficulty": "Low",
-      "description": "クリアボタン押下後にフォームに値が残存しています。残存フィールド: CNDTN_STD:0:_TEXT, PAGINATOR_ROWS_1",
-      "logEvidence": "elementId=CLEAR_BUTTON | 残存フィールド=CNDTN_STD:0:_TEXT, PAGINATOR_ROWS_1 | ts=2026-03-01T01:45:37.116Z",
-      "fixSuggestion": "クリアボタンのクリックイベントで全フォーム要素のvalueを空文字にリセットするコードを追加してください。PrimeFacesの場合 p:resetInput を使用することも検討してください。",
-      "reproducibility": "Likely",
-      "confidence": 0.7,
-      "occurrences": 1,
-      "priorityScore": 45,
-      "relatedTraceId": "TR-1772329537116-k1qk",
-      "contextSummary": "URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 } | 操作:CLEAR_BUTTON | 入力:{ elementType=BUTTON, buttonLabel=CLEAR_BUTTON, formSnapshot=[object Object] }",
-      "screenshots": [],
-      "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.908Z"
-    },
-    {
-      "issueId": "R09-MC_PRODUCTS_LIST-1772329685908-1",
-      "ruleId": "R09",
-      "featureId": "MC_PRODUCTS_LIST",
-      "screenName": "部品一覧",
-      "category": "FORM_RESIDUAL",
-      "categoryLabel": "クリア後フォーム値残存",
-      "severity": "Low",
-      "difficulty": "Low",
-      "description": "クリアボタン押下後にフォームに値が残存しています。残存フィールド: CNDTN_STD:0:_TEXT, PAGINATOR_ROWS_1",
-      "logEvidence": "elementId=CLEAR_BUTTON | 残存フィールド=CNDTN_STD:0:_TEXT, PAGINATOR_ROWS_1 | ts=2026-03-01T01:45:37.117Z",
-      "fixSuggestion": "クリアボタンのクリックイベントで全フォーム要素のvalueを空文字にリセットするコードを追加してください。PrimeFacesの場合 p:resetInput を使用することも検討してください。",
-      "reproducibility": "Likely",
-      "confidence": 0.7,
-      "occurrences": 1,
-      "priorityScore": 45,
-      "relatedTraceId": "TR-1772329537117-728x",
-      "contextSummary": "URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 } | 操作:CLEAR_BUTTON | 入力:{ elementType=BUTTON, buttonLabel=CLEAR_BUTTON, formSnapshot=[object Object] }",
-      "screenshots": [],
-      "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.908Z"
-    },
-    {
-      "issueId": "R09-MC_PRODUCTS_LIST-1772329685908-2",
-      "ruleId": "R09",
-      "featureId": "MC_PRODUCTS_LIST",
-      "screenName": "部品一覧",
-      "category": "FORM_RESIDUAL",
-      "categoryLabel": "クリア後フォーム値残存",
-      "severity": "Low",
-      "difficulty": "Low",
-      "description": "クリアボタン押下後にフォームに値が残存しています。残存フィールド: CNDTN_STD:0:_TEXT, PAGINATOR_ROWS_1",
-      "logEvidence": "elementId=BUTTON_MDL_R:1:POS_CLEAR_BTN | 残存フィールド=CNDTN_STD:0:_TEXT, PAGINATOR_ROWS_1 | ts=2026-03-01T01:45:37.122Z",
-      "fixSuggestion": "クリアボタンのクリックイベントで全フォーム要素のvalueを空文字にリセットするコードを追加してください。PrimeFacesの場合 p:resetInput を使用することも検討してください。",
-      "reproducibility": "Likely",
-      "confidence": 0.7,
-      "occurrences": 1,
-      "priorityScore": 45,
-      "relatedTraceId": "TR-1772329537122-jkt1",
-      "contextSummary": "URLパラメータ:{ PARAM_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MENU, FUNC_ID=MC_PRODUCTS_LIST, MENU_GROUP_ID=IMOTO_MC_BASICS, A_HREF_ELM_NAME=FUNC_LINK_12 } | 操作:BUTTON_MDL_R:1:POS_CLEAR_BTN | 入力:{ elementType=BUTTON, buttonLabel=クリア, formSnapshot=[object Object] }",
-      "screenshots": [],
-      "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.908Z"
-    },
-    {
-      "issueId": "R10-MC_LOG_OPERATION_HISTORY-1772329685902-0",
+      "issueId": "R10-MC_LOG_OPERATION_HISTORY-1772600634107-0",
       "ruleId": "R10",
       "featureId": "MC_LOG_OPERATION_HISTORY",
       "screenName": "MC_LOG_OPERATION_HISTORY",
@@ -838,10 +625,10 @@
         "logs/screenshots/MC_LOG_OPERATION_HISTORY/2026-03-01T01-46-18-824Z_MC_LOG_OPERATION_HISTORY_SCREEN_LOAD_TR-1772329577139-nwos.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.902Z"
+      "detectedAt": "2026-03-04T05:03:54.107Z"
     },
     {
-      "issueId": "R10-MC_MACHINING_WORK_HISTORY-1772329685905-0",
+      "issueId": "R10-MC_MACHINING_WORK_HISTORY-1772600634110-0",
       "ruleId": "R10",
       "featureId": "MC_MACHINING_WORK_HISTORY",
       "screenName": "MC_MACHINING_WORK_HISTORY",
@@ -863,10 +650,10 @@
         "logs/screenshots/MC_MACHINING_WORK_HISTORY/2026-03-01T01-46-28-653Z_MC_MACHINING_WORK_HISTORY_SCREEN_LOAD_TR-1772329586901-roab.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.905Z"
+      "detectedAt": "2026-03-04T05:03:54.110Z"
     },
     {
-      "issueId": "R10-UNKNOWN-1772329685909-0",
+      "issueId": "R10-UNKNOWN-1772600634113-0",
       "ruleId": "R10",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -888,7 +675,7 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-23-50-899Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328228992-y8j7.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-01T01:48:05.909Z"
+      "detectedAt": "2026-03-04T05:03:54.113Z"
     }
   ]
 }
