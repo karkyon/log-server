@@ -8,12 +8,27 @@ export class TracesService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(projectId: string) {
-    return this.prisma.trace.findMany({
+    const traces = await this.prisma.trace.findMany({
       where: { projectId },
       orderBy: { startedAt: 'desc' },
       take: 100,
       include: { _count: { select: { logs: true } } },
     });
+    // 各TraceのSCREEN_LOADから画面遷移順を集約
+    const ids = traces.map(t => t.id);
+    const screenLogs = await this.prisma.log.findMany({
+      where: { traceId: { in: ids }, eventType: 'SCREEN_LOAD' },
+      orderBy: { timestamp: 'asc' },
+      select: { traceId: true, screenName: true },
+    });
+    const screenMap: Record<string, string[]> = {};
+    for (const l of screenLogs) {
+      if (!l.traceId || !l.screenName) continue;
+      if (!screenMap[l.traceId]) screenMap[l.traceId] = [];
+      const last = screenMap[l.traceId].at(-1);
+      if (last !== l.screenName) screenMap[l.traceId].push(l.screenName);
+    }
+    return traces.map(t => ({ ...t, screens: screenMap[t.id] ?? [] }));
   }
 
   async findOne(projectId: string, traceId: string) {

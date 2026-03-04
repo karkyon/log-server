@@ -9,6 +9,7 @@ type Trace = {
   id: string; status: string; operatorId: string | null;
   startedAt: string; endedAt: string | null; metadata: any;
   _count?: { logs: number };
+  screens?: string[];
 };
 type Project = { id: string; name: string; slug: string };
 
@@ -314,7 +315,17 @@ export default function TracesPage() {
                           onClick={() => router.push(`/projects/${projectId}/traces/${t.id}`)}
                           className="font-mono text-xs text-blue-400 hover:text-blue-300 hover:underline"
                         >
-                          {t.id.slice(0, 8)}…
+                          {t.metadata?.label || t.metadata?.userLabel
+                            ? <span className="text-blue-400 font-mono">{t.id.slice(0, 8)}…</span>
+                            : <span className="text-blue-400 font-mono">{t.id.slice(0, 8)}…</span>}
+                          {t.metadata?.label && (
+                            <div className="text-[10px] text-slate-300 font-sans font-semibold truncate max-w-[160px]">{t.metadata.label}</div>
+                          )}
+                          {t.screens && t.screens.length > 0 && (
+                            <div className="text-[10px] text-slate-500 truncate max-w-[160px] mt-0.5">
+                              {t.screens.map(s => s.replace("MC_","")).join(" → ")}
+                            </div>
+                          )}
                         </button>
                       </td>
                       <td className="px-3 py-2.5 text-xs">
