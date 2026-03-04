@@ -37,7 +37,7 @@ export class ApiKeysService {
     });
   }
 
-  async verifyKey(plain: string): Promise<string | null> {
+  async verifyKey(plain: string): Promise<{ projectId: string; apiKeyId: string } | null> {
     const hash = crypto.createHash('sha256').update(plain).digest('hex');
     const key  = await this.prisma.apiKey.findFirst({
       where: { keyHash: hash, isActive: true },
@@ -47,6 +47,6 @@ export class ApiKeysService {
       where: { id: key.id },
       data:  { lastUsedAt: new Date() },
     }).catch(() => {});
-    return key.projectId;
+    return { projectId: key.projectId, apiKeyId: key.id };
   }
 }

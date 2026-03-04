@@ -7,17 +7,16 @@ export class ApiKeyAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
-    const auth: string = req.headers['authorization'] ?? '';
-    const plain = auth.startsWith('Bearer ') ? auth.slice(7) : auth;
+    const raw: string = req.headers['x-api-key'] ?? req.headers['authorization'] ?? '';
+    const plain = raw.startsWith('Bearer ') ? raw.slice(7) : raw;
 
     if (!plain) throw new UnauthorizedException('APIキーが必要です');
 
-    const projectId = await this.apiKeys.verifyKey(plain);
-    if (!projectId) throw new UnauthorizedException('無効なAPIキーです');
+    const result = await this.apiKeys.verifyKey(plain);
+    if (!result) throw new UnauthorizedException('無効なAPIキーです');
 
-    // SDK側で projectId を使えるよう req に注入
-    req.projectId = projectId;
-    req.apiKeyId = apiKey.id;
+    req.projectId = result.projectId;
+    req.apiKeyId  = result.apiKeyId;
     return true;
   }
 }
