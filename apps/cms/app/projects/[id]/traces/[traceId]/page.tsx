@@ -49,61 +49,48 @@ function formatDuration(start: string, end: string | null) {
   return h > 0 ? `${h}h${m % 60}m` : `${m}m`;
 }
 
-
-// ─────────────── アクションレビュー詳細パネル（HTML版と同等） ───────────────
-function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSaved }: { log: LogEntry; seqNo: number; dark: boolean; traceId: string; projectId: string; onVerdictSaved?: (logId: string, verdict: LogEntry["verdict"]) => void }) {
+// ─────────────── ActionReviewDetail ───────────────
+function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSaved }: {
+  log: LogEntry; seqNo: number; dark: boolean; traceId: string; projectId: string;
+  onVerdictSaved?: (logId: string, verdict: LogEntry["verdict"]) => void
+}) {
   const calcInitVerdict = (l: typeof log) =>
     l.verdict?.verdict === "NG" || l.payload?.result === "NG" || l.eventType === "ERROR" ? "NG" : "OK";
   const [verdict, setVerdict] = useState<"OK" | "NG">(calcInitVerdict(log));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [dirty, setDirty] = useState(false);
-
-  const saveVerdict = async () => {
-    const url = `/api/projects/${projectId}/traces/${traceId}/logs/${log.id}/verdict`;
-    const payload = { verdict, issueType, priority: issuePriority,
-      status: issueStatus, content: issueContent, memo: issueMemo };
-    console.log("[saveVerdict] START", { url, payload });
-    console.log("[saveVerdict] token:", typeof window !== 'undefined' ? localStorage.getItem('tlog_token') : 'SSR');
-    setSaving(true);
-    try {
-      const res = await api.put(url, payload);
-      console.log("[saveVerdict] SUCCESS", res.data);
-      setSaved(true);
-      setDirty(false);
-      setTimeout(() => setSaved(false), 3000);
-      onVerdictSaved?.(log.id, res.data);
-    } catch (e: any) {
-      console.error("[saveVerdict] ERROR status:", e?.response?.status);
-      console.error("[saveVerdict] ERROR data:", e?.response?.data);
-      console.error("[saveVerdict] ERROR message:", e?.message);
-    } finally { setSaving(false); }
-  };
-  // logが切り替わったらverdictとissue入力を復元
-  useEffect(() => {
-    console.log("[logChange] log.id:", log.id);
-    console.log("[logChange] log.verdict raw:", log.verdict);
-    const v = calcInitVerdict(log);
-    const it = log.verdict?.issueType ?? "不具合";
-    const ip = log.verdict?.priority ?? "高";
-    const is = log.verdict?.status ?? "未対応";
-    const ic = log.verdict?.content ?? "";
-    const im = log.verdict?.memo ?? "";
-    console.log("[logChange] restore →", { verdict: v, issueType: it, priority: ip, status: is, content: ic, memo: im });
-    setVerdict(v);
-    setIssueType(it);
-    setIssuePriority(ip);
-    setIssueStatus(is);
-    setIssueContent(ic);
-    setIssueMemo(im);
-    setSaved(false);
-    setDirty(false);
-  }, [log.id]);
   const [issueType, setIssueType] = useState("不具合");
   const [issuePriority, setIssuePriority] = useState("高");
   const [issueStatus, setIssueStatus] = useState("未対応");
   const [issueContent, setIssueContent] = useState("");
   const [issueMemo, setIssueMemo] = useState("");
+
+  useEffect(() => {
+    const v = calcInitVerdict(log);
+    setVerdict(v);
+    setIssueType(log.verdict?.issueType ?? "不具合");
+    setIssuePriority(log.verdict?.priority ?? "高");
+    setIssueStatus(log.verdict?.status ?? "未対応");
+    setIssueContent(log.verdict?.content ?? "");
+    setIssueMemo(log.verdict?.memo ?? "");
+    setSaved(false);
+    setDirty(false);
+  }, [log.id]);
+
+  const saveVerdict = async () => {
+    setSaving(true);
+    try {
+      const res = await api.put(`/api/projects/${projectId}/traces/${traceId}/logs/${log.id}/verdict`, {
+        verdict, issueType, priority: issuePriority, status: issueStatus, content: issueContent, memo: issueMemo
+      });
+      setSaved(true); setDirty(false);
+      setTimeout(() => setSaved(false), 3000);
+      onVerdictSaved?.(log.id, res.data);
+    } catch (e: any) {
+      console.error("[saveVerdict] ERROR", e?.response?.status, e?.message);
+    } finally { setSaving(false); }
+  };
 
   const sub = dark ? "text-slate-400" : "text-slate-500";
   const rowCls = `flex border-b last:border-0 ${dark ? "border-slate-700" : "border-slate-200"}`;
@@ -111,41 +98,35 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
   const valCls = `px-4 py-2.5 text-xs flex-1`;
   const borderCls = dark ? "border-slate-700" : "border-slate-200";
 
-  // ペイロードから各フィールドを抽出
   const p = log.payload || {};
   const inputValue = p.value ?? p.inputValue ?? p.text ?? null;
   const consoleOutput = p.console ?? p.consoleLog ?? p.log ?? null;
   const issues = p.issues ?? p.problems ?? p.remarks ?? null;
 
-  // 概要テキスト
   const summary = (() => {
     if (log.screenName && log.elementId) return `${log.screenName} — ${log.elementId}`;
     if (log.screenName) return `${log.screenName} — ${log.eventType}`;
     return log.eventType;
   })();
 
-  // スクリーンショットURLを構築
   const screenshotUrl = (() => {
     if (!log.screenshotPath) return null;
-    const p = log.screenshotPath;
-    // logs/screenshots/{featureId}/{filename} 形式
-    const mLogs = p.match(/logs[/\\]screenshots[/\\](.+)/);
+    const sp = log.screenshotPath;
+    const mLogs = sp.match(/logs[/\\]screenshots[/\\](.+)/);
     if (mLogs) {
       const parts = mLogs[1].replace(/\\/g, "/").split("/");
       return "http://192.168.1.11:3099/logs-screenshots/" + parts.map(encodeURIComponent).join("/");
     }
-    // screenshots/{featureId}/{filename} 形式（SDK保存）
-    const mSs = p.match(/screenshots[/\\](.+)/);
+    const mSs = sp.match(/screenshots[/\\](.+)/);
     if (mSs) {
       const parts = mSs[1].replace(/\\/g, "/").split("/");
       return "http://192.168.1.11:3099/screenshots/" + parts.map(encodeURIComponent).join("/");
     }
-    return "http://192.168.1.11:3099/logs-screenshots/" + encodeURIComponent(p.replace(/.*[/\\]/, ""));
+    return "http://192.168.1.11:3099/logs-screenshots/" + encodeURIComponent(sp.replace(/.*[/\\]/, ""));
   })();
 
   return (
     <div className="p-0">
-      {/* SEQNOヘッダー */}
       <div className={`flex items-baseline gap-6 px-5 py-3 border-b ${dark ? "bg-slate-900 border-slate-700" : "bg-slate-50 border-slate-200"}`}>
         <div>
           <span className={`text-[10px] font-bold ${sub} mr-2`}>SEQNO</span>
@@ -154,14 +135,10 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
         <div className="text-sm font-semibold flex-1">{summary}</div>
         <div className={`text-[10px] font-mono ${sub}`}>{new Date(log.timestamp).toLocaleString("ja-JP")}</div>
       </div>
-
-      {/* TraceID / screenId バー */}
       <div className={`flex items-center gap-4 px-5 py-2 text-[10px] font-mono border-b ${dark ? "border-slate-800 bg-slate-950 text-slate-500" : "border-slate-100 bg-white text-slate-400"}`}>
         <span>TRACEID <span className="text-blue-400">{traceId.slice(0, 24)}...</span></span>
         {log.screenName && <span>screenId <span className={dark ? "text-slate-300" : "text-slate-700"}>{log.screenName}</span></span>}
       </div>
-
-      {/* スクリーンショット */}
       <div className={`px-5 py-3 border-b ${dark ? "border-slate-800" : "border-slate-200"}`}>
         <div className={`text-[10px] font-semibold mb-2 flex items-center gap-1 ${sub}`}>📷 スクリーンショット</div>
         <div className={`rounded border overflow-hidden ${dark ? "border-slate-700 bg-slate-950" : "border-slate-200 bg-slate-50"}`}>
@@ -170,17 +147,12 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
           </div>
           {screenshotUrl ? (
             <div className="relative">
-              <img
-                src={screenshotUrl}
-                alt="スクリーンショット"
-                className="w-full object-contain"
-                style={{ minHeight: 80 }}
+              <img src={screenshotUrl} alt="スクリーンショット" className="w-full object-contain" style={{ minHeight: 80 }}
                 onError={e => {
                   e.currentTarget.style.display = "none";
                   const fb = e.currentTarget.nextSibling as HTMLElement;
                   if (fb) fb.style.display = "flex";
-                }}
-              />
+                }} />
               <div style={{ display: "none" }} className={`p-4 text-xs text-center ${sub} flex items-center justify-center`}>
                 画像を読み込めませんでした<br/><span className="font-mono text-[10px] mt-1">{screenshotUrl}</span>
               </div>
@@ -190,68 +162,47 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
           )}
         </div>
       </div>
-
-      {/* 詳細テーブル */}
       <div className={`border-b ${borderCls} overflow-hidden`}>
-        <div className={rowCls}>
-          <div className={labelCls}>操作内容</div>
-          <div className={valCls}>{summary}</div>
-        </div>
+        <div className={rowCls}><div className={labelCls}>操作内容</div><div className={valCls}>{summary}</div></div>
         <div className={rowCls}>
           <div className={labelCls}>イベント種別</div>
           <div className={valCls}>
             <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
               log.eventType === "ERROR" ? "bg-red-100 text-red-700" :
               log.eventType === "UI_CLICK" ? "bg-purple-100 text-purple-700" :
-              log.eventType === "SCREEN_LOAD" ? "bg-blue-100 text-blue-700" :
-              "bg-gray-100 text-gray-600"
+              log.eventType === "SCREEN_LOAD" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"
             }`}>{log.eventType}</span>
           </div>
         </div>
-        <div className={rowCls}>
-          <div className={labelCls}>対象要素</div>
-          <div className={`${valCls} font-mono`}>{log.elementId || "—"}</div>
-        </div>
-        <div className={rowCls}>
-          <div className={labelCls}>入力値</div>
-          <div className={`${valCls} font-mono`}>{inputValue !== null ? String(inputValue) : "—"}</div>
-        </div>
+        <div className={rowCls}><div className={labelCls}>対象要素</div><div className={`${valCls} font-mono`}>{log.elementId || "—"}</div></div>
+        <div className={rowCls}><div className={labelCls}>入力値</div><div className={`${valCls} font-mono`}>{inputValue !== null ? String(inputValue) : "—"}</div></div>
         <div className={rowCls}>
           <div className={labelCls}>Console</div>
           <div className={`${valCls} ${sub}`}>
             {consoleOutput
               ? <pre className="text-[10px] whitespace-pre-wrap">{typeof consoleOutput === "string" ? consoleOutput : JSON.stringify(consoleOutput, null, 2)}</pre>
-              : <span className="italic">このseqでのコンソール出力なし</span>
-            }
+              : <span className="italic">このseqでのコンソール出力なし</span>}
           </div>
         </div>
-        {/* 判定トグル */}
         <div className={rowCls}>
           <div className={labelCls}>判定</div>
           <div className={`${valCls} flex items-center gap-3`}>
-            <button
-              onClick={() => { setVerdict(v => v === "OK" ? "NG" : "OK"); setDirty(true); }}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${verdict === "OK" ? "bg-green-500" : "bg-red-500"}`}
-            >
+            <button onClick={() => { setVerdict(v => v === "OK" ? "NG" : "OK"); setDirty(true); }}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${verdict === "OK" ? "bg-green-500" : "bg-red-500"}`}>
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${verdict === "OK" ? "translate-x-6" : "translate-x-1"}`} />
             </button>
             <span className={`text-sm font-bold ${verdict === "OK" ? "text-green-600" : "text-red-600"}`}>{verdict}</span>
-            <button
-              onClick={saveVerdict}
-              disabled={saving || !dirty}
+            <button onClick={saveVerdict} disabled={saving || !dirty}
               className={`ml-auto px-3 py-1 rounded text-xs font-bold transition-colors ${
                 saved ? "bg-green-600 text-white" :
                 saving ? "bg-zinc-600 text-zinc-400 cursor-wait" :
                 dirty ? "bg-blue-600 hover:bg-blue-500 text-white cursor-pointer" :
-                "bg-zinc-200 text-zinc-400 cursor-not-allowed"
-              }`}
-            >
+                "bg-zinc-200 text-zinc-400 cursor-not-allowed"}`}>
               {saved ? "✅ 保存済" : saving ? "保存中..." : "更新する"}
             </button>
             <span className={`text-[10px] ${sub}`}>クリックで切替</span>
           </div>
         </div>
-        {/* ペイロード全体 */}
         {log.payload && Object.keys(log.payload).length > 0 && (
           <div className={rowCls}>
             <div className={labelCls}>ペイロード</div>
@@ -263,8 +214,6 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
           </div>
         )}
       </div>
-
-      {/* 問題点課題 */}
       <div className={`border-b ${dark ? "border-slate-700" : "border-slate-200"}`}>
         <div className={rowCls} style={{ borderBottom: "none" }}>
           <div className={labelCls}>問題点課題</div>
@@ -275,7 +224,6 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
                 {(issues as any).suggestion && <div className={`text-[10px] mt-1 ${sub}`}>提案: {(issues as any).suggestion}</div>}
               </div>
             ) : null}
-            {/* NG時の課題入力フォーム */}
             {verdict === "NG" && (
               <div className={`rounded border px-3 py-3 space-y-2 ${dark ? "border-red-800 bg-red-900/10" : "border-red-200 bg-red-50"}`}>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -317,7 +265,7 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
   );
 }
 
-// ─────────────── タイムライン コンポーネント ───────────────
+// ─────────────── TimelineView ───────────────
 function TimelineView({ items, projectId, traceId, dark }: {
   items: TLItem[]; projectId: string; traceId: string; dark: boolean;
 }) {
@@ -330,14 +278,12 @@ function TimelineView({ items, projectId, traceId, dark }: {
   const [patternName, setPatternName] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  // featureId ごとの色
   const fids = Array.from(new Set(items.map(i => i.featureId)));
   const colorMap: Record<string, string> = {};
   fids.forEach((f, i) => { colorMap[f] = PALETTE[i % PALETTE.length]; });
 
   const visItems = visible ? items.filter(i => i.featureId === visible) : items;
 
-  // コンテナ幅でカラム数を計算
   useEffect(() => {
     const calc = () => {
       if (containerRef.current) {
@@ -366,8 +312,8 @@ function TimelineView({ items, projectId, traceId, dark }: {
     }
   };
   const clearSel = () => { setSelected([]); setLastIdx(-1); };
-
   const openPatternModal = () => { setPatternName(""); setShowModal(true); };
+
   const savePattern = async () => {
     if (!patternName.trim()) return;
     setSaving(true);
@@ -390,7 +336,6 @@ function TimelineView({ items, projectId, traceId, dark }: {
     } finally { setSaving(false); }
   };
 
-  // 蛇行レイアウト描画
   const rows: TLItem[][] = [];
   for (let r = 0; r * cols < visItems.length; r++) {
     rows.push(visItems.slice(r * cols, (r + 1) * cols));
@@ -400,11 +345,286 @@ function TimelineView({ items, projectId, traceId, dark }: {
   const selFids = Array.from(new Set(selItems.map(i => i.featureId)));
 
   return (
-    <div style={{ fontFamily: "system-ui,sans-serif" }}>
+    <div ref={containerRef} style={{ fontFamily: "system-ui,sans-serif" }}>
       {/* フィルターバー */}
       <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 16px", marginBottom: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b" }}>画面フィルター:</span>
+          <button onClick={() => setVisible(null)}
+            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 6, border: `1px solid ${visible === null ? "#3b82f6" : "#cbd5e1"}`, background: visible === null ? "#eff6ff" : "white", color: visible === null ? "#1d4ed8" : "#64748b", cursor: "pointer" }}>
+            すべて表示
+          </button>
+          {fids.map(fid => (
+            <button key={fid} onClick={() => setVisible(v => v === fid ? null : fid)}
+              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 6, border: `1px solid ${colorMap[fid]}`, background: visible === fid ? colorMap[fid] + "22" : "white", color: colorMap[fid], cursor: "pointer" }}>
+              {fid.replace("MC_", "")}
+            </button>
+          ))}
+          <span style={{ marginLeft: "auto", fontSize: 11, color: "#94a3b8" }}>{visItems.length} seq</span>
+        </div>
+      </div>
+
+      {/* 蛇行レイアウト */}
+      <div>
+        {rows.map((row, r) => {
+          const isRtl = r % 2 === 1;
+          const isLastRow = r === rows.length - 1;
+          return (
+            <div key={r}>
+              <div style={{ display: "flex", flexDirection: isRtl ? "row-reverse" : "row", alignItems: "center", justifyContent: "space-between", padding: "0 4px" }}>
+                {row.map((item, c) => {
+                  const isSelected = selected.includes(item.globalSeqNo);
+                  const color = colorMap[item.featureId] || "#94a3b8";
+                  const isLastInRow = c === row.length - 1;
+                  return (
+                    <>
+                      <div key={item.globalSeqNo}
+                        onClick={e => handleClick(e as any, item.globalSeqNo, r * cols + c)}
+                        style={{
+                          width: 160, minHeight: 80, borderRadius: 8,
+                          border: `2px solid ${isSelected ? "#3b82f6" : color}`,
+                          background: isSelected ? "#eff6ff" : item.hasNg ? "#fff5f5" : "white",
+                          cursor: "pointer", padding: "6px 8px", fontSize: 11, userSelect: "none",
+                          boxShadow: isSelected ? "0 0 0 2px #3b82f680" : "none",
+                        }}>
+                        <div style={{ fontWeight: 700, color, fontSize: 10 }}>{item.featureId.replace("MC_", "")}</div>
+                        <div style={{ color: "#334155", fontSize: 11, marginTop: 2 }}>{item.summary.slice(0, 20)}</div>
+                        <div style={{ color: "#94a3b8", fontSize: 10, marginTop: 2 }}>seq {item.globalSeqNo}</div>
+                        {item.hasNg && <div style={{ color: "#dc2626", fontSize: 10, fontWeight: 700 }}>❌ NG</div>}
+                      </div>
+                      {!isLastInRow && (
+                        <div style={{ flex: "1 1 0", display: "flex", alignItems: "center", minWidth: 20 }}>
+                          <div style={{ width: "100%", height: 2, background: "#475569", position: "relative" }}>
+                            <div style={{ position: "absolute", right: isRtl ? "auto" : -1, left: isRtl ? -1 : "auto", top: "50%", transform: "translateY(-50%)", width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", ...(isRtl ? { borderRight: "8px solid #475569" } : { borderLeft: "8px solid #475569" }) }} />
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })}
+              </div>
+              {!isLastRow && (
+                <div style={{ display: "flex", justifyContent: isRtl ? "flex-start" : "flex-end", paddingLeft: isRtl ? 75 : 0, paddingRight: isRtl ? 0 : 75, height: 32, alignItems: "flex-end" }}>
+                  <div style={{ width: 36, height: 28, border: "2px solid #475569", borderTop: "none", borderRight: isRtl ? "none" : undefined, borderLeft: isRtl ? undefined : "none", borderRadius: isRtl ? "0 0 0 10px" : "0 0 10px 0" }} />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 選択パネル */}
+      {selected.length > 0 && (
+        <div style={{ marginTop: 14, border: "2px solid #3b82f6", borderRadius: 10, background: "#eff6ff", padding: "14px 18px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#1d4ed8" }}>📌 選択中: {selected.length} seq</div>
+            <div style={{ fontSize: 12, color: "#475569", flex: 1 }}>
+              seq {selItems[0]?.globalSeqNo} ～ {selItems[selItems.length - 1]?.globalSeqNo} | {selFids.map(f => f.replace("MC_", "")).join(", ")}
+            </div>
+            <button onClick={clearSel} style={{ fontSize: 11, padding: "4px 10px", borderRadius: 6, border: "1px solid #94a3b8", background: "white", cursor: "pointer" }}>選択解除</button>
+            <button onClick={openPatternModal} style={{ fontSize: 12, fontWeight: 700, padding: "6px 16px", borderRadius: 8, border: "none", background: "#3b82f6", color: "white", cursor: "pointer" }}>
+              📌 作業パターンとして登録
+            </button>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {selItems.map(s => (
+              <div key={s.globalSeqNo} style={{ background: "white", border: `1px solid ${colorMap[s.featureId] || "#94a3b8"}`, borderRadius: 6, padding: "4px 8px", fontSize: 11 }}>
+                <span style={{ color: colorMap[s.featureId] || "#94a3b8", fontWeight: 700 }}>seq {s.globalSeqNo}</span>{" "}
+                {s.featureId.replace("MC_", "")} — {s.summary.slice(0, 20)}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* パターン登録モーダル */}
+      {showModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "white", borderRadius: 12, padding: 24, width: 420, boxShadow: "0 20px 60px rgba(0,0,0,.3)" }}>
+            <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>📌 作業パターンとして登録</h3>
+            <div style={{ fontSize: 12, color: "#475569", marginBottom: 12 }}>{selItems.length} seq を登録します</div>
+            <input value={patternName} onChange={e => setPatternName(e.target.value)} placeholder="パターン名 *"
+              style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #cbd5e1", fontSize: 13, boxSizing: "border-box", marginBottom: 12 }} />
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setShowModal(false)}
+                style={{ flex: 1, padding: "8px", borderRadius: 8, border: "1px solid #cbd5e1", background: "white", cursor: "pointer", fontSize: 13 }}>キャンセル</button>
+              <button onClick={savePattern} disabled={saving || !patternName.trim()}
+                style={{ flex: 2, padding: "8px", borderRadius: 8, border: "none", background: saving ? "#94a3b8" : "#3b82f6", color: "white", cursor: saving ? "not-allowed" : "pointer", fontWeight: 700, fontSize: 13 }}>
+                {saving ? "登録中..." : "登録する"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────── メインページ ───────────────
+export default function TraceDetailPage() {
+  const router = useRouter();
+  const { id: projectId, traceId } = useParams<{ id: string; traceId: string }>();
+  const { dark, toggle } = useTheme();
+
+  const [loading, setLoading] = useState(true);
+  const [trace, setTrace] = useState<Trace | null>(null);
+  const [project, setProject] = useState<Project | null>(null);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "timeline">("list");
+  const [forceStoping, setForceStoping] = useState(false);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [genProgress, setGenProgress] = useState<string[]>([]);
+  const [genDone, setGenDone] = useState(false);
+  const [genResult, setGenResult] = useState<{ events: number; size: number; url?: string } | null>(null);
+  const [generateMode, setGenerateMode] = useState<"browser" | "download">("browser");
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [ticketTitle, setTicketTitle] = useState("");
+  const [ticketFeatureId, setTicketFeatureId] = useState("");
+  const [ticketType, setTicketType] = useState("バグ");
+  const [ticketPriority, setTicketPriority] = useState("HIGH");
+  const [ticketDesc, setTicketDesc] = useState("");
+  const [ticketSaving, setTicketSaving] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("tlog_token");
+    if (!token) { router.push("/login"); return; }
+    const load = async () => {
+      try {
+        const [traceRes, logsRes] = await Promise.all([
+          api.get(`/api/projects/${projectId}/traces/${traceId}`),
+          api.get(`/api/projects/${projectId}/traces/${traceId}/logs`),
+        ]);
+        setTrace(traceRes.data);
+        setLogs(logsRes.data);
+        try { const pr = await api.get(`/api/projects/${projectId}`); setProject(pr.data); } catch {}
+      } catch { router.push("/login"); }
+      finally { setLoading(false); }
+    };
+    load();
+  }, [projectId, traceId]);
+
+  const forceStop = async () => {
+    setForceStoping(true);
+    try {
+      await api.post(`/api/projects/${projectId}/traces/${traceId}/stop`);
+      const res = await api.get(`/api/projects/${projectId}/traces/${traceId}`);
+      setTrace(res.data);
+    } catch (e: any) { alert(`失敗: ${e.response?.data?.message || e.message}`); }
+    finally { setForceStoping(false); }
+  };
+
+  const openGenerateModal = () => { setGenProgress([]); setGenDone(false); setGenResult(null); setShowGenerateModal(true); };
+
+  const executeGenerate = async () => {
+    setGenProgress(["ログデータを取得中..."]);
+    try {
+      setGenProgress(p => [...p, "HTMLレビューを生成中..."]);
+      const res = await api.post(`/api/projects/${projectId}/traces/${traceId}/generate-review`, {}, { responseType: "blob" });
+      const blob = new Blob([res.data], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      setGenProgress(p => [...p, "生成完了"]);
+      setGenResult({ events: logs.length, size: Math.round(blob.size / 1024), url });
+      setGenDone(true);
+    } catch (e: any) {
+      alert(`生成失敗: ${e.response?.data?.message || e.message}`);
+      setGenProgress([]);
+    }
+  };
+
+  const openResult = () => {
+    if (!genResult?.url) return;
+    if (generateMode === "browser") { window.open(genResult.url, "_blank"); }
+    else { const a = document.createElement("a"); a.href = genResult.url; a.download = `review_${traceId.slice(0, 8)}.html`; a.click(); }
+  };
+
+  const saveTicket = async () => {
+    if (!ticketTitle.trim()) return;
+    setTicketSaving(true);
+    try {
+      await api.post(`/api/projects/${projectId}/issues`, {
+        title: ticketTitle, type: ticketType, priority: ticketPriority,
+        description: ticketDesc, featureId: ticketFeatureId || undefined,
+      });
+      setShowTicketModal(false); setTicketTitle(""); setTicketFeatureId(""); setTicketDesc("");
+      alert("✅ チケットを発行しました");
+    } catch (e: any) { alert(`失敗: ${e.response?.data?.message || e.message}`); }
+    finally { setTicketSaving(false); }
+  };
+
+  const tlItems: TLItem[] = logs.map((log, idx) => ({
+    idx, globalSeqNo: idx + 1,
+    featureId: log.screenName || "UNKNOWN",
+    summary: log.elementId ? `${log.screenName} — ${log.elementId}` : (log.screenName || log.eventType),
+    ts: log.timestamp,
+    hasNg: log.verdict?.verdict === "NG" || log.eventType === "ERROR" || log.payload?.result === "NG",
+    imgPath: null, eventType: log.eventType, log,
+  }));
+
+  const bg   = dark ? "bg-slate-900 text-slate-100" : "bg-white text-slate-900";
+  const hdr  = dark ? "bg-slate-950 border-slate-800" : "bg-white border-slate-200";
+  const meta = dark ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200";
+  const sub  = dark ? "text-slate-400" : "text-slate-500";
+  const tl   = dark ? "border-slate-800 hover:bg-slate-800/60" : "border-slate-100 hover:bg-slate-50";
+  const tlA  = dark ? "bg-blue-900/30 border-l-2 border-l-blue-500" : "bg-blue-50 border-l-2 border-l-blue-500";
+
+  const screenCount = logs.filter(l => l.eventType === "SCREEN_LOAD").length;
+  const clickCount  = logs.filter(l => l.eventType === "UI_CLICK").length;
+  const errorCount  = logs.filter(l => l.eventType === "ERROR").length;
+
+  if (loading) return <div className={`min-h-screen ${bg} flex items-center justify-center`}><span className={sub}>読み込み中...</span></div>;
+
+  return (
+    <div className={`min-h-screen ${bg} flex flex-col`}>
+      {/* ヘッダー */}
+      <header className={`border-b ${hdr} px-6 py-2.5 flex items-center justify-between flex-shrink-0`}>
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-blue-500 font-bold">TLog</span>
+          <span className={sub}>/</span>
+          <button onClick={() => router.push("/projects")} className="hover:text-blue-400">{project?.name || "..."}</button>
+          <span className={sub}>/</span>
+          <button onClick={() => router.push(`/projects/${projectId}/traces`)} className="hover:text-blue-400">トレース一覧</button>
+          <span className={sub}>/</span>
+          <span className="font-mono text-blue-400">{traceId.slice(0, 8)}...</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1 text-xs">
+            {[
+              { label: "📋 トレース一覧", path: "traces", active: true },
+              { label: "📊 パターン", path: "patterns" },
+              { label: "🎫 チケット", path: "issues" },
+              { label: "🔑 APIキー", path: "apikeys" },
+            ].map(item => (
+              <button key={item.path} onClick={() => router.push(`/projects/${projectId}/${item.path}`)}
+                className={`px-3 py-1 rounded transition-colors ${item.active ? "bg-blue-600 text-white" : dark ? "text-slate-400 hover:text-slate-200 hover:bg-slate-800" : "text-slate-500 hover:bg-slate-100"}`}>
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => toggle()} className={`text-xs px-2 py-1 rounded ${dark ? "bg-slate-700" : "bg-slate-100"}`}>{dark ? "☀" : "🌙"}</button>
+        </div>
+      </header>
+
+      {/* メタバー */}
+      {trace && (
+        <div className={`border-b ${meta} px-6 py-2.5 flex items-center gap-4 flex-wrap flex-shrink-0 text-xs`}>
+          <div><div className={`text-[10px] ${sub}`}>TraceID</div><span className="font-mono text-blue-400">{traceId.slice(0, 16)}...</span></div>
+          <div><div className={`text-[10px] ${sub}`}>操作ユーザー</div><span>{trace.operatorId || trace.metadata?.userLabel || "—"}</span></div>
+          <div><div className={`text-[10px] ${sub}`}>セッション</div><span>{formatDt(trace.startedAt)} 〜 {trace.endedAt ? formatDt(trace.endedAt) : "継続中"} ({formatDuration(trace.startedAt, trace.endedAt)})</span></div>
+          <div className="flex items-center gap-3">
+            <span>画面 <strong>{screenCount}</strong></span>
+            <span>クリック <strong>{clickCount}</strong></span>
+            <span className={errorCount > 0 ? "text-red-400" : ""}>エラー <strong>{errorCount}</strong></span>
+          </div>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${STATUS_STYLE[trace.status] || STATUS_STYLE.ERROR}`}>{trace.status}</span>
+          <div className="flex-1" />
+          <div className="flex items-center gap-2">
+            {trace.status === "ACTIVE" && (
+              <button onClick={forceStop} disabled={forceStoping} className="px-3 py-1.5 rounded border border-orange-700 text-orange-400 hover:bg-orange-900/40 disabled:opacity-40">
+                {forceStoping ? "⏳" : "⏹ 強制終了"}
+              </button>
+            )}
+            <button onClick={openGenerateModal} className="bg-green-700 hover:bg-green-600 text-white px-4 py-1.5 rounded-md font-semibold">📄 アクションレビュー生成</button>
           </div>
         </div>
       )}
@@ -423,7 +643,6 @@ function TimelineView({ items, projectId, traceId, dark }: {
       {/* コンテンツ */}
       {viewMode === "list" ? (
         <div className="flex flex-1 overflow-hidden">
-          {/* 左: タイムラインリスト */}
           <div className={`w-1/2 border-r overflow-y-auto ${dark ? "border-slate-800" : "border-slate-200"}`}>
             {logs.length === 0 ? (
               <div className={`text-center py-12 text-sm ${sub}`}>ログがありません</div>
@@ -449,24 +668,21 @@ function TimelineView({ items, projectId, traceId, dark }: {
               })
             )}
           </div>
-          {/* 右: 詳細 */}
           <div className="w-1/2 overflow-y-auto">
             <div className={`px-4 py-2 text-xs font-semibold border-b sticky top-0 z-10 ${dark ? "bg-slate-900 border-slate-800 text-slate-400" : "bg-slate-50 border-slate-200 text-slate-500"}`}>選択イベント詳細</div>
             {!selectedLog ? (
               <div className={`text-center py-16 text-sm ${sub}`}>← イベントをクリックしてください</div>
             ) : (
               <ActionReviewDetail
-              log={selectedLog}
-              seqNo={logs.indexOf(selectedLog) + 1}
-              dark={dark}
-              traceId={traceId}
-              projectId={projectId}
-              onVerdictSaved={(logId, verdictData) => {
-                setLogs(prev => prev.map(l =>
-                  l.id === logId ? { ...l, verdict: verdictData } : l
-                ));
-              }}
-            />
+                log={selectedLog}
+                seqNo={logs.indexOf(selectedLog) + 1}
+                dark={dark}
+                traceId={traceId}
+                projectId={projectId}
+                onVerdictSaved={(logId, verdictData) => {
+                  setLogs(prev => prev.map(l => l.id === logId ? { ...l, verdict: verdictData } : l));
+                }}
+              />
             )}
           </div>
         </div>
