@@ -51,4 +51,12 @@ export class TracesController {
   ) {
     return this.traces.createPattern(id, dto, req.user?.userId);
   }
+
+  @Post(':traceId/force-stop')
+  async forceStop(
+    @Param('id') projectId: string,
+    @Param('traceId') traceId: string,
+  ) {
+    return this.traces.forceStop(projectId, traceId);
+  }
 }

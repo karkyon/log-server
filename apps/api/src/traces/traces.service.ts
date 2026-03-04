@@ -85,4 +85,15 @@ export class TracesService {
       orderBy: { timestamp: 'asc' },
     });
   }
+
+  async forceStop(projectId: string, traceId: string) {
+    const trace = await this.prisma.trace.findFirst({
+      where: { id: traceId, projectId },
+    });
+    if (!trace) throw new Error('Trace not found');
+    return this.prisma.trace.update({
+      where: { id: traceId },
+      data: { status: 'COMPLETED', endedAt: new Date() },
+    });
+  }
 }

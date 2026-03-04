@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, UseGuards, Request } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProjectsService } from './projects.service';
 
@@ -22,5 +22,11 @@ export class ProjectsController {
     return this.projects.create(
       body.name, body.slug, body.description, req.user.sub
     );
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async deleteProject(@Param('id') id: string) {
+    return this.projects.deleteProject(id);
   }
 }

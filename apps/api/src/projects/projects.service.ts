@@ -32,4 +32,18 @@ export class ProjectsService {
       : { id, members: { some: { userId } } };
     return this.prisma.project.findFirst({ where });
   }
+
+  async deleteProject(id: string) {
+    // 配下データを順番に削除（FK制約対応）
+    const traces = await this.prisma.trace.findMany({ where: { projectId: id }, select: { id: true } });
+    const traceIds = traces.map(t => t.id);
+    if (traceIds.length > 0) {
+      await this.prisma.log.deleteMany({ where: { traceId: { in: traceIds } } });
+    }
+    await this.prisma.trace.deleteMany({ where: { projectId: id } });
+    await this.prisma.issue.deleteMany({ where: { projectId: id } });
+    await this.prisma.pattern.deleteMany({ where: { projectId: id } });
+    await this.prisma.apiKey.deleteMany({ where: { projectId: id } });
+    return this.prisma.project.delete({ where: { id } });
+  }
 }
