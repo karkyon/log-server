@@ -84,14 +84,23 @@ function ActionReviewDetail({ log, seqNo, dark, traceId }: { log: LogEntry; seqN
     return log.eventType;
   })();
 
-  // スクリーンショットURLを構築（screenshotPathはフルパス or ファイル名）
+  // スクリーンショットURLを構築
   const screenshotUrl = (() => {
     if (!log.screenshotPath) return null;
     const p = log.screenshotPath;
-    // "screenshots/" 以降を取り出す
-    const m = p.match(/screenshots[\/](.+)/);
-    const rel = m ? m[1] : p.replace(/^[\/]/, "");
-    return `http://192.168.1.11:3099/screenshots/${rel.split("/").map(encodeURIComponent).join("/")}`;
+    // logs/screenshots/{featureId}/{filename} 形式
+    const mLogs = p.match(/logs[/\\]screenshots[/\\](.+)/);
+    if (mLogs) {
+      const parts = mLogs[1].replace(/\\/g, "/").split("/");
+      return "http://192.168.1.11:3099/logs-screenshots/" + parts.map(encodeURIComponent).join("/");
+    }
+    // screenshots/{featureId}/{filename} 形式（SDK保存）
+    const mSs = p.match(/screenshots[/\\](.+)/);
+    if (mSs) {
+      const parts = mSs[1].replace(/\\/g, "/").split("/");
+      return "http://192.168.1.11:3099/screenshots/" + parts.map(encodeURIComponent).join("/");
+    }
+    return "http://192.168.1.11:3099/logs-screenshots/" + encodeURIComponent(p.replace(/.*[/\\]/, ""));
   })();
 
   return (
