@@ -384,24 +384,26 @@ function TimelineView({ items, projectId, traceId, dark }: {
                         style={{
                           width: 160, borderRadius: 8,
                           border: `2px solid ${isSelected ? "#3b82f6" : color}`,
-                          background: isSelected ? "#eff6ff" : item.hasNg ? "#fff5f5" : "white",
+                          background: "white",
                           cursor: "pointer", fontSize: 11, userSelect: "none", overflow: "hidden",
-                          boxShadow: isSelected ? "0 0 0 2px #3b82f680" : "0 1px 4px rgba(0,0,0,.08)",
+                          boxShadow: isSelected ? "0 0 0 3px #3b82f680" : "0 1px 4px rgba(0,0,0,.10)",
                         }}>
-                        {/* サムネ */}
-                        <div style={{ height: 80, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", borderBottom: `1px solid ${color}44` }}>
+                        {/* ヘッダー: 機能名 + seq */}
+                        <div style={{ background: color, padding: "3px 7px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <span style={{ color: "white", fontWeight: 700, fontSize: 10, letterSpacing: "0.3px" }}>{item.featureId.replace("MC_", "")}</span>
+                          <span style={{ color: "rgba(255,255,255,0.85)", fontSize: 10, fontWeight: 600 }}>seq {item.globalSeqNo}</span>
+                        </div>
+                        {/* スクショ */}
+                        <div style={{ height: 90, background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                           {item.imgPath
-                            ? <img src={item.imgPath} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { e.currentTarget.style.display="none"; }} />
-                            : <span style={{ fontSize: 20, opacity: 0.3 }}>🖼</span>}
+                            ? <img src={item.imgPath} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { (e.currentTarget.parentNode as HTMLElement).innerHTML='<span style="font-size:11px;color:#94a3b8;">No img</span>'; }} />
+                            : <span style={{ fontSize: 11, color: "#94a3b8" }}>No img</span>}
                         </div>
                         {/* テキスト部 */}
-                        <div style={{ padding: "5px 7px" }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                            <span style={{ fontWeight: 700, color, fontSize: 10 }}>{item.featureId.replace("MC_", "")}</span>
-                            <span style={{ color: "#94a3b8", fontSize: 10 }}>seq {item.globalSeqNo}</span>
-                          </div>
-                          <div style={{ color: "#334155", fontSize: 10, marginTop: 2, lineHeight: 1.3 }}>{item.summary.slice(0, 24)}</div>
-                          {item.hasNg && <div style={{ color: "#dc2626", fontSize: 10, fontWeight: 700, marginTop: 2 }}>❌ NG</div>}
+                        <div style={{ padding: "4px 7px", background: item.hasNg ? "#fff5f5" : "white" }}>
+                          <div style={{ color: "#334155", fontSize: 10, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.summary.replace(/^.*? — /, "").slice(0, 20)}</div>
+                          <div style={{ color: "#94a3b8", fontSize: 10, marginTop: 1 }}>{new Date(item.ts).toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}</div>
+                          {item.hasNg && <div style={{ color: "#dc2626", fontSize: 10, fontWeight: 700 }}>❌ NG</div>}
                         </div>
                       </div>
                       {!isLastInRow && (
