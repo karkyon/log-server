@@ -74,6 +74,9 @@ export default function TraceDetailPage() {
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [ticketTitle, setTicketTitle] = useState("");
   const [ticketDesc, setTicketDesc] = useState("");
+  const [ticketFeatureId, setTicketFeatureId] = useState("");
+  const [ticketType, setTicketType] = useState("バグ");
+  const [ticketPriority, setTicketPriority] = useState("MEDIUM");
   const [ticketSaving, setTicketSaving] = useState(false);
   const [forceStoping, setForceStoping] = useState(false);
 
@@ -149,6 +152,9 @@ export default function TraceDetailPage() {
       await api.post(`/api/projects/${projectId}/issues`, {
         title: ticketTitle,
         description: ticketDesc,
+        featureId: ticketFeatureId || "UNKNOWN",
+        type: ticketType,
+        priority: ticketPriority,
         traceId,
       });
       setShowTicketModal(false);
@@ -175,11 +181,14 @@ export default function TraceDetailPage() {
   };
 
   const addPattern = async () => {
-    const label = prompt("パターン名を入力してください:");
-    if (!label) return;
+    const name = prompt("パターン名を入力してください:");
+    if (!name) return;
     try {
       await api.post(`/api/projects/${projectId}/patterns`, {
-        label, traceId, description: `TraceID: ${traceId} から追加`,
+        name,
+        screenMode: "",
+        seqData: { traceId },
+        memo: `TraceID: ${traceId} から追加`,
       });
       alert("✅ パターンに追加しました");
     } catch (e: any) {
@@ -518,6 +527,33 @@ export default function TraceDetailPage() {
                   placeholder="チケットのタイトル"
                   className={`w-full px-3 py-2 text-sm rounded border outline-none ${dark ? "bg-slate-800 border-slate-700 text-slate-100 focus:border-blue-500" : "bg-white border-slate-300 text-slate-900 focus:border-blue-500"}`}
                 />
+              </div>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className={`text-[10px] font-semibold ${sub} block mb-1`}>機能ID</label>
+                  <input
+                    value={ticketFeatureId}
+                    onChange={e => setTicketFeatureId(e.target.value)}
+                    placeholder="例: MC_PRODUCTS_LIST"
+                    className={`w-full px-3 py-2 text-sm rounded border outline-none ${dark ? "bg-slate-800 border-slate-700 text-slate-100 focus:border-blue-500" : "bg-white border-slate-300 text-slate-900 focus:border-blue-500"}`}
+                  />
+                </div>
+                <div>
+                  <label className={`text-[10px] font-semibold ${sub} block mb-1`}>種別</label>
+                  <select value={ticketType} onChange={e => setTicketType(e.target.value)}
+                    className={`px-2 py-2 text-sm rounded border outline-none ${dark ? "bg-slate-800 border-slate-700 text-slate-100" : "bg-white border-slate-300 text-slate-900"}`}>
+                    {["バグ","改善","質問","確認"].map(t => <option key={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={`text-[10px] font-semibold ${sub} block mb-1`}>優先度</label>
+                  <select value={ticketPriority} onChange={e => setTicketPriority(e.target.value)}
+                    className={`px-2 py-2 text-sm rounded border outline-none ${dark ? "bg-slate-800 border-slate-700 text-slate-100" : "bg-white border-slate-300 text-slate-900"}`}>
+                    <option value="HIGH">HIGH</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="LOW">LOW</option>
+                  </select>
+                </div>
               </div>
               <div>
                 <label className={`text-[10px] font-semibold ${sub} block mb-1`}>説明</label>

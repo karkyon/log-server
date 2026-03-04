@@ -51,12 +51,12 @@ export default function ApiKeysPage() {
   };
 
   const handleRevoke = async (keyId: string, keyLabel: string) => {
-    if (!confirm(`「${keyLabel}」を無効化しますか？`)) return;
+    if (!confirm(`「${keyLabel}」を完全に削除しますか？\n※この操作は取り消せません。`)) return;
     try {
       await api.delete(`/api/projects/${id}/apikeys/${keyId}`);
       fetchKeys();
     } catch {
-      alert("無効化に失敗しました");
+      alert("削除に失敗しました");
     }
   };
 
@@ -133,7 +133,7 @@ export default function ApiKeysPage() {
                   {k.isActive && (
                     <button onClick={() => handleRevoke(k.id, k.label)}
                       className="text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded border border-red-200 hover:bg-red-50 transition shrink-0">
-                      無効化
+                      削除
                     </button>
                   )}
                 </div>

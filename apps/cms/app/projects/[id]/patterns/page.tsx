@@ -168,6 +168,17 @@ export default function PatternsPage() {
               <div>
                 <label className={`block text-sm font-medium mb-1 ${subtext}`}>シーケンスデータ（JSON）<span className="text-red-500">*</span></label>
                 <textarea rows={5} value={form.seqData} onChange={e => handleSeqDataChange(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Tab') {
+                        e.preventDefault();
+                        const ta = e.currentTarget;
+                        const s = ta.selectionStart, end = ta.selectionEnd;
+                        const v = ta.value;
+                        ta.value = v.substring(0, s) + '  ' + v.substring(end);
+                        ta.selectionStart = ta.selectionEnd = s + 2;
+                        handleSeqDataChange(ta.value);
+                      }
+                    }}
                   className={`${inputCls} font-mono resize-none`}
                   placeholder='{"steps": [{"action": "click", "target": "btn_search"}]}' />
                 {jsonError && <p className="text-red-500 text-xs mt-1">{jsonError}</p>}
