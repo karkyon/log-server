@@ -15,8 +15,8 @@ export function ProjectNav({ projectId, projectName }: Props) {
 
   const navItems = [
     { label: "トレース", path: `/projects/${projectId}/traces`   },
-    { label: "チケット", path: `/projects/${projectId}/issues`   },
     { label: "パターン", path: `/projects/${projectId}/patterns` },
+    { label: "チケット", path: `/projects/${projectId}/issues`   },
     { label: "APIキー",  path: `/projects/${projectId}/apikeys`  },
   ];
 
