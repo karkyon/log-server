@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, Request, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TracesService } from './traces.service';
 import { CreateIssueDto } from './create-issue.dto';
@@ -58,5 +58,20 @@ export class TracesController {
     @Param('traceId') traceId: string,
   ) {
     return this.traces.forceStop(projectId, traceId);
+  }
+
+  @Put('traces/:traceId/logs/:logId/verdict')
+  async upsertVerdict(
+    @Param('logId') logId: string,
+    @Body() body: {
+      verdict: string;
+      issueType?: string;
+      priority?: string;
+      status?: string;
+      content?: string;
+      memo?: string;
+    },
+  ) {
+    return this.traces.upsertVerdict(logId, body);
   }
 }

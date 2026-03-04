@@ -91,6 +91,12 @@ export class TracesService {
       }),
     ]);
 
+    // verdictを取得
+    const verdicts = await this.prisma.logVerdict.findMany({
+      where: { logId: { in: logs.map(l => l.id) } },
+    });
+    const verdictMap = new Map(verdicts.map(v => [v.logId, v]));
+
     // screenshotをtimestampで最近傍マッチしてlogに付与
     const logsWithScreenshot = logs.map(log => {
       const logTs = new Date(log.timestamp).getTime();
@@ -108,10 +114,26 @@ export class TracesService {
       return {
         ...log,
         screenshotPath: log.screenshotPath || (nearest ? nearest.filePath : null),
+        verdict: verdictMap.get(log.id) ?? null,
       };
     });
 
     return logsWithScreenshot;
+  }
+
+  async upsertVerdict(logId: string, data: {
+    verdict: string;
+    issueType?: string;
+    priority?: string;
+    status?: string;
+    content?: string;
+    memo?: string;
+  }) {
+    return this.prisma.logVerdict.upsert({
+      where: { logId },
+      create: { logId, ...data },
+      update: { ...data },
+    });
   }
 
   async forceStop(projectId: string, traceId: string) {

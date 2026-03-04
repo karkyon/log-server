@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 type LogEntry = {
   id: string; eventType: string; screenName: string | null;
   elementId: string | null; payload: any; screenshotPath: string | null; timestamp: string;
+  verdict?: { verdict: string; issueType?: string; priority?: string; status?: string; content?: string; memo?: string; } | null;
 };
 type Trace = { id: string; status: string; operatorId: string | null; startedAt: string; endedAt: string | null; metadata: any; };
 type Project = { id: string; name: string; slug: string };
@@ -50,14 +51,38 @@ function formatDuration(start: string, end: string | null) {
 
 
 // ─────────────── アクションレビュー詳細パネル（HTML版と同等） ───────────────
-function ActionReviewDetail({ log, seqNo, dark, traceId }: { log: LogEntry; seqNo: number; dark: boolean; traceId: string }) {
-  const initVerdict = log.payload?.result === "NG" || log.eventType === "ERROR" ? "NG" : "OK";
-  const [verdict, setVerdict] = useState<"OK" | "NG">(initVerdict);
-  // logが切り替わったらverdictをリセット
+function ActionReviewDetail({ log, seqNo, dark, traceId, projectId }: { log: LogEntry; seqNo: number; dark: boolean; traceId: string; projectId: string }) {
+  const calcInitVerdict = (l: typeof log) =>
+    l.verdict?.verdict === "NG" || l.payload?.result === "NG" || l.eventType === "ERROR" ? "NG" : "OK";
+  const [verdict, setVerdict] = useState<"OK" | "NG">(calcInitVerdict(log));
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const saveVerdict = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch(
+        `http://192.168.1.11:3099/api/projects/${projectId}/traces/${traceId}/logs/${log.id}/verdict`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("token") ?? ""}` },
+          body: JSON.stringify({ verdict, issueType, priority: issuePriority,
+            status: issueStatus, content: issueContent, memo: issueMemo }),
+        }
+      );
+      if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 3000); }
+    } finally { setSaving(false); }
+  };
+  // logが切り替わったらverdictとissue入力を復元
   useEffect(() => {
-    setVerdict(log.payload?.result === "NG" || log.eventType === "ERROR" ? "NG" : "OK");
-    setIssueContent("");
-    setIssueMemo("");
+    setVerdict(calcInitVerdict(log));
+    setIssueType(log.verdict?.issueType ?? "不具合");
+    setIssuePriority(log.verdict?.priority ?? "高");
+    setIssueStatus(log.verdict?.status ?? "未対応");
+    setIssueContent(log.verdict?.content ?? "");
+    setIssueMemo(log.verdict?.memo ?? "");
+    setSaved(false);
   }, [log.id]);
   const [issueType, setIssueType] = useState("不具合");
   const [issuePriority, setIssuePriority] = useState("高");
@@ -196,6 +221,17 @@ function ActionReviewDetail({ log, seqNo, dark, traceId }: { log: LogEntry; seqN
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${verdict === "OK" ? "translate-x-6" : "translate-x-1"}`} />
             </button>
             <span className={`text-sm font-bold ${verdict === "OK" ? "text-green-600" : "text-red-600"}`}>{verdict}</span>
+            <button
+              onClick={saveVerdict}
+              disabled={saving}
+              className={`ml-auto px-3 py-1 rounded text-xs font-bold transition-colors ${
+                saved ? "bg-green-600 text-white" :
+                saving ? "bg-zinc-600 text-zinc-400 cursor-wait" :
+                "bg-blue-600 hover:bg-blue-500 text-white"
+              }`}
+            >
+              {saved ? "✅ 保存済" : saving ? "保存中..." : "更新する"}
+            </button>
             <span className={`text-[10px] ${sub}`}>クリックで切替</span>
           </div>
         </div>
@@ -407,7 +443,7 @@ function TimelineView({ items, projectId, traceId, dark }: {
                           {/* サムネイル or No img */}
                           <div style={{ width: "100%", height: 52, background: "#f1f5f9", borderRadius: 4, marginBottom: 4, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                             {item.imgPath ? (
-                              <img src={`http://192.168.1.11:3099/screenshots/${encodeURIComponent(item.imgPath.replace(/.*screenshots\//, ""))}`}
+                              <img src={item.imgPath}
                                 alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }}
                                 onError={e => { (e.currentTarget.parentElement!).innerHTML = '<span style="font-size:9px;color:#94a3b8;">No img</span>'; }} />
                             ) : (
@@ -552,13 +588,28 @@ export default function TraceDetailPage() {
   }, [fetchData]);
 
   // logs → TL_DATA 変換
+  const toImgUrl = (p: string | null): string | null => {
+    if (!p) return null;
+    const m = p.match(/logs[\/\\]screenshots[\/\\](.+)/);
+    if (m) {
+      const parts = m[1].replace(/\\/g, "/").split("/");
+      return "http://192.168.1.11:3099/logs-screenshots/" + parts.map(encodeURIComponent).join("/");
+    }
+    const m2 = p.match(/screenshots[\/\\](.+)/);
+    if (m2) {
+      const parts = m2[1].replace(/\\/g, "/").split("/");
+      return "http://192.168.1.11:3099/screenshots/" + parts.map(encodeURIComponent).join("/");
+    }
+    return null;
+  };
+
   const tlItems: TLItem[] = logs.map((log, i) => ({
     idx: i, globalSeqNo: i + 1,
     featureId: log.screenName || "UNKNOWN",
     summary: log.elementId || log.eventType,
     ts: log.timestamp,
     hasNg: log.eventType === "ERROR" || log.payload?.result === "NG",
-    imgPath: log.screenshotPath,
+    imgPath: toImgUrl(log.screenshotPath),
     eventType: log.eventType,
     log,
   }));
@@ -729,7 +780,7 @@ export default function TraceDetailPage() {
             {!selectedLog ? (
               <div className={`text-center py-16 text-sm ${sub}`}>← イベントをクリックしてください</div>
             ) : (
-              <ActionReviewDetail log={selectedLog} seqNo={logs.indexOf(selectedLog) + 1} dark={dark} traceId={traceId} />
+              <ActionReviewDetail log={selectedLog} seqNo={logs.indexOf(selectedLog) + 1} dark={dark} traceId={traceId} projectId={projectId} />
             )}
           </div>
         </div>

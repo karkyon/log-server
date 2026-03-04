@@ -117,6 +117,7 @@ model Log {
   screenshotPath String? @map("screenshot_path")
   timestamp   DateTime @default(now())
   trace       Trace?   @relation(fields: [traceId], references: [id])
+  verdict     LogVerdict?
 
   @@map("logs")
 }
@@ -207,4 +208,19 @@ model Issue {
   @@index([projectId, featureId])
   @@index([projectId, traceId])
   @@map("issues")
+}
+
+model LogVerdict {
+  id          String   @id @default(uuid())
+  logId       String   @unique @map("log_id")
+  verdict     String   @default("OK")
+  issueType   String?  @map("issue_type")
+  priority    String?
+  status      String?
+  content     String?
+  memo        String?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  log         Log      @relation(fields: [logId], references: [id], onDelete: Cascade)
+
+  @@map("log_verdicts")
 }
