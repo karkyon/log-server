@@ -54,6 +54,16 @@ function ActionReviewDetail({ log, seqNo, dark, traceId }: { log: LogEntry; seqN
   const [verdict, setVerdict] = useState<"OK" | "NG">(
     log.payload?.result === "NG" || log.eventType === "ERROR" ? "NG" : "OK"
   );
+  const [issueType, setIssueType] = useState("不具合");
+  const [issuePriority, setIssuePriority] = useState("高");
+  const [issueStatus, setIssueStatus] = useState("未対応");
+  const [issueContent, setIssueContent] = useState("");
+  const [issueMemo, setIssueMemo] = useState("");
+  const [issueType, setIssueType] = useState("不具合");
+  const [issuePriority, setIssuePriority] = useState("高");
+  const [issueStatus, setIssueStatus] = useState("未対応");
+  const [issueContent, setIssueContent] = useState("");
+  const [issueMemo, setIssueMemo] = useState("");
 
   const sub = dark ? "text-slate-400" : "text-slate-500";
   const rowCls = `flex border-b last:border-0 ${dark ? "border-slate-700" : "border-slate-200"}`;
@@ -74,9 +84,15 @@ function ActionReviewDetail({ log, seqNo, dark, traceId }: { log: LogEntry; seqN
     return log.eventType;
   })();
 
-  const screenshotUrl = log.screenshotPath
-    ? `http://192.168.1.11:3099/screenshots/${encodeURIComponent(log.screenshotPath.replace(/.*screenshots\//, ""))}`
-    : null;
+  // スクリーンショットURLを構築（screenshotPathはフルパス or ファイル名）
+  const screenshotUrl = (() => {
+    if (!log.screenshotPath) return null;
+    const p = log.screenshotPath;
+    // "screenshots/" 以降を取り出す
+    const m = p.match(/screenshots[\/](.+)/);
+    const rel = m ? m[1] : p.replace(/^[\/]/, "");
+    return `http://192.168.1.11:3099/screenshots/${rel.split("/").map(encodeURIComponent).join("/")}`;
+  })();
 
   return (
     <div className="p-0">
@@ -97,22 +113,34 @@ function ActionReviewDetail({ log, seqNo, dark, traceId }: { log: LogEntry; seqN
       </div>
 
       {/* スクリーンショット */}
-      {screenshotUrl && (
-        <div className={`px-5 py-3 border-b ${dark ? "border-slate-800" : "border-slate-200"}`}>
-          <div className={`text-[10px] font-semibold mb-2 flex items-center gap-1 ${sub}`}>📷 スクリーンショット</div>
-          <div className={`rounded border overflow-hidden ${dark ? "border-slate-700 bg-slate-950" : "border-slate-200 bg-slate-50"}`}>
-            <div className={`px-3 py-1.5 text-[10px] font-mono border-b ${dark ? "border-slate-700 text-slate-400" : "border-slate-200 text-slate-500"}`}>
-              {log.screenshotPath?.replace(/.*[\/]/, "") || "screenshot"}
-            </div>
-            <img
-              src={screenshotUrl}
-              alt="スクリーンショット"
-              className="w-full object-contain max-h-48"
-              onError={e => { (e.currentTarget.closest("div") as HTMLElement).style.display = "none"; }}
-            />
+      <div className={`px-5 py-3 border-b ${dark ? "border-slate-800" : "border-slate-200"}`}>
+        <div className={`text-[10px] font-semibold mb-2 flex items-center gap-1 ${sub}`}>📷 スクリーンショット</div>
+        <div className={`rounded border overflow-hidden ${dark ? "border-slate-700 bg-slate-950" : "border-slate-200 bg-slate-50"}`}>
+          <div className={`px-3 py-1.5 text-[10px] font-mono border-b ${dark ? "border-slate-700 text-slate-400" : "border-slate-200 text-slate-500"}`}>
+            {log.screenshotPath ? log.screenshotPath.replace(/.*[\/]/, "") : "スクリーンショットなし"}
           </div>
+          {screenshotUrl ? (
+            <div className="relative">
+              <img
+                src={screenshotUrl}
+                alt="スクリーンショット"
+                className="w-full object-contain"
+                style={{ minHeight: 80 }}
+                onError={e => {
+                  e.currentTarget.style.display = "none";
+                  const fb = e.currentTarget.nextSibling as HTMLElement;
+                  if (fb) fb.style.display = "flex";
+                }}
+              />
+              <div style={{ display: "none" }} className={`p-4 text-xs text-center ${sub} flex items-center justify-center`}>
+                画像を読み込めませんでした<br/><span className="font-mono text-[10px] mt-1">{screenshotUrl}</span>
+              </div>
+            </div>
+          ) : (
+            <div className={`p-4 text-xs text-center ${sub}`}>スクリーンショットなし</div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* 詳細テーブル */}
       <div className={`border-b ${borderCls} overflow-hidden`}>
@@ -176,14 +204,54 @@ function ActionReviewDetail({ log, seqNo, dark, traceId }: { log: LogEntry; seqN
       </div>
 
       {/* 問題点課題 */}
-      {issues && (
-        <div className="px-5 py-3">
-          <div className={`text-[10px] font-semibold mb-2 ${sub}`}>問題点課題</div>
-          <div className={`rounded border px-3 py-2 text-xs ${dark ? "border-orange-800 bg-orange-900/20 text-orange-300" : "border-orange-200 bg-orange-50 text-orange-700"}`}>
-            {typeof issues === "string" ? issues : JSON.stringify(issues)}
+      <div className={`border-b ${dark ? "border-slate-700" : "border-slate-200"}`}>
+        <div className={rowCls} style={{ borderBottom: "none" }}>
+          <div className={labelCls}>問題点課題</div>
+          <div className={valCls}>
+            {issues ? (
+              <div className={`rounded border px-3 py-2 text-xs mb-2 ${dark ? "border-orange-800 bg-orange-900/20 text-orange-300" : "border-orange-200 bg-orange-50 text-orange-800"}`}>
+                <div className="font-semibold mb-1">📌 {typeof issues === "string" ? issues : (issues as any).rule || "問題あり"}</div>
+                {(issues as any).suggestion && <div className={`text-[10px] mt-1 ${sub}`}>提案: {(issues as any).suggestion}</div>}
+              </div>
+            ) : null}
+            {/* NG時の課題入力フォーム */}
+            {verdict === "NG" && (
+              <div className={`rounded border px-3 py-3 space-y-2 ${dark ? "border-red-800 bg-red-900/10" : "border-red-200 bg-red-50"}`}>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <label className={`text-[10px] font-semibold w-8 ${sub}`}>種別</label>
+                  <select value={issueType} onChange={e => setIssueType(e.target.value)}
+                    className={`text-xs px-2 py-1 rounded border ${dark ? "bg-slate-800 border-slate-600 text-slate-200" : "bg-white border-slate-300"}`}>
+                    {["不具合","仕様違い","改善提案","確認"].map(t => <option key={t}>{t}</option>)}
+                  </select>
+                  <label className={`text-[10px] font-semibold w-8 ${sub}`}>優先度</label>
+                  <select value={issuePriority} onChange={e => setIssuePriority(e.target.value)}
+                    className={`text-xs px-2 py-1 rounded border ${dark ? "bg-slate-800 border-slate-600 text-slate-200" : "bg-white border-slate-300"}`}>
+                    {["高","中","低"].map(t => <option key={t}>{t}</option>)}
+                  </select>
+                  <label className={`text-[10px] font-semibold w-10 ${sub}`}>対応状態</label>
+                  <select value={issueStatus} onChange={e => setIssueStatus(e.target.value)}
+                    className={`text-xs px-2 py-1 rounded border ${dark ? "bg-slate-800 border-slate-600 text-slate-200" : "bg-white border-slate-300"}`}>
+                    {["未対応","対応中","解決済","保留"].map(t => <option key={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div className="flex gap-2 items-start">
+                  <label className={`text-[10px] font-semibold w-8 mt-1.5 flex-shrink-0 ${sub}`}>内容</label>
+                  <textarea value={issueContent} onChange={e => setIssueContent(e.target.value)}
+                    placeholder="課題・問題点..." rows={2}
+                    className={`flex-1 text-xs px-2 py-1 rounded border resize-none ${dark ? "bg-slate-800 border-slate-600 text-slate-200 placeholder:text-slate-500" : "bg-white border-slate-300 placeholder:text-slate-400"}`} />
+                </div>
+                <div className="flex gap-2 items-start">
+                  <label className={`text-[10px] font-semibold w-8 mt-1.5 flex-shrink-0 ${sub}`}>備考</label>
+                  <input value={issueMemo} onChange={e => setIssueMemo(e.target.value)}
+                    placeholder="担当者・期限など"
+                    className={`flex-1 text-xs px-2 py-1 rounded border ${dark ? "bg-slate-800 border-slate-600 text-slate-200 placeholder:text-slate-500" : "bg-white border-slate-300 placeholder:text-slate-400"}`} />
+                </div>
+              </div>
+            )}
+            {verdict === "OK" && !issues && <span className={`text-xs italic ${sub}`}>なし</span>}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
