@@ -31,9 +31,8 @@ export class ApiKeysService {
       where: { id: keyId, projectId },
     });
     if (!key) throw new NotFoundException('APIキーが見つかりません');
-    return this.prisma.apiKey.update({
+    return this.prisma.apiKey.delete({
       where: { id: keyId },
-      data: { isActive: false },
     });
   }
 
