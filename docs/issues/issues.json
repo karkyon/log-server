@@ -1,8 +1,8 @@
 {
   "summary": {
-    "generatedAt": "2026-03-04T05:03:54.113Z",
+    "generatedAt": "2026-03-04T06:47:46.556Z",
     "totalFeatures": 9,
-    "totalLogs": 375,
+    "totalLogs": 376,
     "totalIssues": 25,
     "critical": 9,
     "high": 4,
@@ -55,7 +55,7 @@
     "MC_PRODUCTS_LIST": {
       "featureId": "MC_PRODUCTS_LIST",
       "screenName": "部品一覧",
-      "logCount": 1,
+      "logCount": 2,
       "issueCount": 0
     },
     "UNKNOWN": {
@@ -67,7 +67,7 @@
   },
   "issues": [
     {
-      "issueId": "R01-UNKNOWN-1772600634113-0",
+      "issueId": "R01-UNKNOWN-1772606866556-0",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -88,10 +88,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-23-50-942Z_UNKNOWN_JS_ERROR_TR-1772328228889-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.113Z"
+      "detectedAt": "2026-03-04T06:47:46.556Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772600634113-1",
+      "issueId": "R01-UNKNOWN-1772606866556-1",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -112,10 +112,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-23-50-911Z_UNKNOWN_JS_ERROR_TR-1772328229168-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.113Z"
+      "detectedAt": "2026-03-04T06:47:46.556Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772600634113-2",
+      "issueId": "R01-UNKNOWN-1772606866556-2",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -136,10 +136,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-26-17-070Z_UNKNOWN_JS_ERROR_TR-1772328375591-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.113Z"
+      "detectedAt": "2026-03-04T06:47:46.556Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772600634113-3",
+      "issueId": "R01-UNKNOWN-1772606866556-3",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -160,10 +160,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-27-07-969Z_UNKNOWN_JS_ERROR_TR-1772328426365-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.113Z"
+      "detectedAt": "2026-03-04T06:47:46.556Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772600634113-4",
+      "issueId": "R01-UNKNOWN-1772606866556-4",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -184,10 +184,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-28-35-876Z_UNKNOWN_JS_ERROR_TR-1772328514518-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.113Z"
+      "detectedAt": "2026-03-04T06:47:46.556Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772600634113-5",
+      "issueId": "R01-UNKNOWN-1772606866556-5",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -208,10 +208,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-30-42-412Z_UNKNOWN_JS_ERROR_TR-1772328640859-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.113Z"
+      "detectedAt": "2026-03-04T06:47:46.556Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772600634113-6",
+      "issueId": "R01-UNKNOWN-1772606866556-6",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -232,10 +232,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-30-42-772Z_UNKNOWN_JS_ERROR_TR-1772328641144-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.113Z"
+      "detectedAt": "2026-03-04T06:47:46.556Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772600634113-7",
+      "issueId": "R01-UNKNOWN-1772606866556-7",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -256,10 +256,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-32-11-760Z_UNKNOWN_JS_ERROR_TR-1772328729993-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.113Z"
+      "detectedAt": "2026-03-04T06:47:46.556Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1772600634113-8",
+      "issueId": "R01-UNKNOWN-1772606866556-8",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -280,10 +280,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-32-11-983Z_UNKNOWN_JS_ERROR_TR-1772328730375-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.113Z"
+      "detectedAt": "2026-03-04T06:47:46.556Z"
     },
     {
-      "issueId": "R02-UNKNOWN-1772600634113-0",
+      "issueId": "R02-UNKNOWN-1772606866556-0",
       "ruleId": "R02",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -307,10 +307,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-27-08-198Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328426358-c6mf.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.113Z"
+      "detectedAt": "2026-03-04T06:47:46.556Z"
     },
     {
-      "issueId": "R03-MC_OPERATOR_AUTHENTICATION-1772600634111-0",
+      "issueId": "R03-MC_OPERATOR_AUTHENTICATION-1772606866553-0",
       "ruleId": "R03",
       "featureId": "MC_OPERATOR_AUTHENTICATION",
       "screenName": "ユーザ認証",
@@ -329,10 +329,10 @@
       "contextSummary": "モード:auth | 遷移元:MC_PRODUCTS_LIST | URLパラメータ:{ faces-redirect=false, COLUMN_0=called_function_id_from, FORMULA_0==, VALUE_0=MC_PRODUCTS_LIST, VALUE_TO_0=, COLUMN_1=called_function_id_to, FORMULA_1==, VALUE_1=MC_MACHINING, VALUE_TO_1=, COLUMN_2=processing_id, FORMULA_2==, VALUE_2=9091, VALUE_TO_2=, COLUMN_3=mc_process_no, FORMULA_3==, VALUE_3=1, VALUE_TO_3=, COLUMN_4=parts_id, FORMULA_4==, VALUE_4=8304, VALUE_TO_4=, COLUMN_5=parts_machining_id, FORMULA_5==, VALUE_5=9091, VALUE_TO_5=, COLUMN_6=parameter_val1, FORMULA_6==, VALUE_6=1, VALUE_TO_6=, PARAM_CALL_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MC, A_HREF_ELM_NAME=1_編集_0, WIN_H=140, WIN_W=690, WIN_POS=WIN_C_MDL, IS_CHILD_FUNC=1, CALL_AUTH=1, PARAM_FUNC_ID=MC_OPERATOR_AUTHENTICATION, INIT_SEARCH=true } | 見出し:マシニングオペレーター認証画面 | 操作:TLN_1_password | 入力:{ elementType=TEXTBOX, newValue=ATOM }",
       "screenshots": [],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.112Z"
+      "detectedAt": "2026-03-04T06:47:46.554Z"
     },
     {
-      "issueId": "R03-MC_OPERATOR_AUTHENTICATION-1772600634112-1",
+      "issueId": "R03-MC_OPERATOR_AUTHENTICATION-1772606866554-1",
       "ruleId": "R03",
       "featureId": "MC_OPERATOR_AUTHENTICATION",
       "screenName": "ユーザ認証",
@@ -353,10 +353,10 @@
         "logs/screenshots/MC_OPERATOR_AUTHENTICATION/2026-03-01T01-45-57-064Z_MC_OPERATOR_AUTHENTICATION_TLN_1_password_CALL_JAVASCRIPT_AFTER_TR-1772329553853-9lg8.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.112Z"
+      "detectedAt": "2026-03-04T06:47:46.554Z"
     },
     {
-      "issueId": "R03-MC_OPERATOR_AUTHENTICATION-1772600634112-2",
+      "issueId": "R03-MC_OPERATOR_AUTHENTICATION-1772606866554-2",
       "ruleId": "R03",
       "featureId": "MC_OPERATOR_AUTHENTICATION",
       "screenName": "ユーザ認証",
@@ -375,10 +375,10 @@
       "contextSummary": "モード:auth | 遷移元:MC_PRODUCTS_LIST | URLパラメータ:{ faces-redirect=false, COLUMN_0=called_function_id_from, FORMULA_0==, VALUE_0=MC_PRODUCTS_LIST, VALUE_TO_0=, COLUMN_1=called_function_id_to, FORMULA_1==, VALUE_1=MC_MACHINING, VALUE_TO_1=, COLUMN_2=processing_id, FORMULA_2==, VALUE_2=9091, VALUE_TO_2=, COLUMN_3=mc_process_no, FORMULA_3==, VALUE_3=1, VALUE_TO_3=, COLUMN_4=parts_id, FORMULA_4==, VALUE_4=8304, VALUE_TO_4=, COLUMN_5=parts_machining_id, FORMULA_5==, VALUE_5=9091, VALUE_TO_5=, COLUMN_6=parameter_val1, FORMULA_6==, VALUE_6=1, VALUE_TO_6=, PARAM_CALL_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MC, A_HREF_ELM_NAME=1_編集_0, WIN_H=140, WIN_W=690, WIN_POS=WIN_C_MDL, IS_CHILD_FUNC=1, CALL_AUTH=1, PARAM_FUNC_ID=MC_OPERATOR_AUTHENTICATION, INIT_SEARCH=true } | 見出し:マシニングオペレーター認証画面 | 操作:TLN_1_マシニング情報 | 入力:{ elementType=BUTTON, buttonLabel=マシニング情報, formSnapshot=[object Object] }",
       "screenshots": [],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.112Z"
+      "detectedAt": "2026-03-04T06:47:46.554Z"
     },
     {
-      "issueId": "R07-MC_LOG_OPERATION_HISTORY-1772600634107-0",
+      "issueId": "R07-MC_LOG_OPERATION_HISTORY-1772606866549-0",
       "ruleId": "R07",
       "featureId": "MC_LOG_OPERATION_HISTORY",
       "screenName": "MC_LOG_OPERATION_HISTORY",
@@ -400,10 +400,10 @@
         "logs/screenshots/MC_LOG_OPERATION_HISTORY/2026-03-01T01-46-18-824Z_MC_LOG_OPERATION_HISTORY_SCREEN_LOAD_TR-1772329577139-nwos.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.107Z"
+      "detectedAt": "2026-03-04T06:47:46.549Z"
     },
     {
-      "issueId": "R07-MC_MACHINING_WORK_HISTORY-1772600634110-0",
+      "issueId": "R07-MC_MACHINING_WORK_HISTORY-1772606866553-0",
       "ruleId": "R07",
       "featureId": "MC_MACHINING_WORK_HISTORY",
       "screenName": "MC_MACHINING_WORK_HISTORY",
@@ -425,10 +425,10 @@
         "logs/screenshots/MC_MACHINING_WORK_HISTORY/2026-03-01T01-46-28-653Z_MC_MACHINING_WORK_HISTORY_SCREEN_LOAD_TR-1772329586901-roab.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.110Z"
+      "detectedAt": "2026-03-04T06:47:46.553Z"
     },
     {
-      "issueId": "R07-MC_OPERATOR_AUTHENTICATION-1772600634112-0",
+      "issueId": "R07-MC_OPERATOR_AUTHENTICATION-1772606866554-0",
       "ruleId": "R07",
       "featureId": "MC_OPERATOR_AUTHENTICATION",
       "screenName": "ユーザ認証",
@@ -450,10 +450,10 @@
         "logs/screenshots/MC_OPERATOR_AUTHENTICATION/2026-03-01T01-45-47-818Z_MC_OPERATOR_AUTHENTICATION_SCREEN_LOAD_TR-1772329546560-apye.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.112Z"
+      "detectedAt": "2026-03-04T06:47:46.554Z"
     },
     {
-      "issueId": "R07-UNKNOWN-1772600634113-0",
+      "issueId": "R07-UNKNOWN-1772606866556-0",
       "ruleId": "R07",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -475,10 +475,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-23-50-899Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328228992-y8j7.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.113Z"
+      "detectedAt": "2026-03-04T06:47:46.556Z"
     },
     {
-      "issueId": "R07-UNKNOWN-1772600634113-1",
+      "issueId": "R07-UNKNOWN-1772606866556-1",
       "ruleId": "R07",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -500,10 +500,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-30-42-585Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328641094-gjw6.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.113Z"
+      "detectedAt": "2026-03-04T06:47:46.556Z"
     },
     {
-      "issueId": "R07-UNKNOWN-1772600634113-2",
+      "issueId": "R07-UNKNOWN-1772606866556-2",
       "ruleId": "R07",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -525,10 +525,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-32-11-765Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328730309-gbun.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.113Z"
+      "detectedAt": "2026-03-04T06:47:46.556Z"
     },
     {
-      "issueId": "R11-MC_LOG_OPERATION_HISTORY-1772600634107-0",
+      "issueId": "R11-MC_LOG_OPERATION_HISTORY-1772606866550-0",
       "ruleId": "R11",
       "featureId": "MC_LOG_OPERATION_HISTORY",
       "screenName": "MC_LOG_OPERATION_HISTORY",
@@ -550,10 +550,10 @@
         "logs/screenshots/MC_LOG_OPERATION_HISTORY/2026-03-01T01-46-18-824Z_MC_LOG_OPERATION_HISTORY_SCREEN_LOAD_TR-1772329577139-nwos.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.107Z"
+      "detectedAt": "2026-03-04T06:47:46.550Z"
     },
     {
-      "issueId": "R11-MC_MACHINING_WORK_HISTORY-1772600634110-0",
+      "issueId": "R11-MC_MACHINING_WORK_HISTORY-1772606866553-0",
       "ruleId": "R11",
       "featureId": "MC_MACHINING_WORK_HISTORY",
       "screenName": "MC_MACHINING_WORK_HISTORY",
@@ -575,10 +575,10 @@
         "logs/screenshots/MC_MACHINING_WORK_HISTORY/2026-03-01T01-46-28-653Z_MC_MACHINING_WORK_HISTORY_SCREEN_LOAD_TR-1772329586901-roab.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.110Z"
+      "detectedAt": "2026-03-04T06:47:46.553Z"
     },
     {
-      "issueId": "R11-UNKNOWN-1772600634113-0",
+      "issueId": "R11-UNKNOWN-1772606866556-0",
       "ruleId": "R11",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -600,10 +600,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-23-50-899Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328228992-y8j7.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.113Z"
+      "detectedAt": "2026-03-04T06:47:46.556Z"
     },
     {
-      "issueId": "R10-MC_LOG_OPERATION_HISTORY-1772600634107-0",
+      "issueId": "R10-MC_LOG_OPERATION_HISTORY-1772606866550-0",
       "ruleId": "R10",
       "featureId": "MC_LOG_OPERATION_HISTORY",
       "screenName": "MC_LOG_OPERATION_HISTORY",
@@ -625,10 +625,10 @@
         "logs/screenshots/MC_LOG_OPERATION_HISTORY/2026-03-01T01-46-18-824Z_MC_LOG_OPERATION_HISTORY_SCREEN_LOAD_TR-1772329577139-nwos.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.107Z"
+      "detectedAt": "2026-03-04T06:47:46.550Z"
     },
     {
-      "issueId": "R10-MC_MACHINING_WORK_HISTORY-1772600634110-0",
+      "issueId": "R10-MC_MACHINING_WORK_HISTORY-1772606866553-0",
       "ruleId": "R10",
       "featureId": "MC_MACHINING_WORK_HISTORY",
       "screenName": "MC_MACHINING_WORK_HISTORY",
@@ -650,10 +650,10 @@
         "logs/screenshots/MC_MACHINING_WORK_HISTORY/2026-03-01T01-46-28-653Z_MC_MACHINING_WORK_HISTORY_SCREEN_LOAD_TR-1772329586901-roab.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.110Z"
+      "detectedAt": "2026-03-04T06:47:46.553Z"
     },
     {
-      "issueId": "R10-UNKNOWN-1772600634113-0",
+      "issueId": "R10-UNKNOWN-1772606866556-0",
       "ruleId": "R10",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -675,7 +675,7 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-23-50-899Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328228992-y8j7.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-04T05:03:54.113Z"
+      "detectedAt": "2026-03-04T06:47:46.556Z"
     }
   ]
 }
