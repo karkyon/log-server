@@ -55,7 +55,7 @@ export default function TracesPage() {
   };
 
   const selectAll = () => {
-    const closedIds = traces.filter(t => t.canGenerate).map(t => t.id);
+    const closedIds = traces.filter(t => true).map(t => t.id);
     setSelected(selected.length === closedIds.length ? [] : closedIds);
   };
 
@@ -139,7 +139,7 @@ export default function TracesPage() {
                 {generating === "bulk" ? "⏳ 生成中..." : `📄 選択してレビュー生成（${selected.length}件）`}
               </button>
             )}
-            <button onClick={fetchData} className={`text-xs px-3 py-2 rounded border ${dark ? "border-slate-600 text-slate-400" : "border-slate-300 text-slate-500"}`}>
+            <button onClick={fetchData} className={`text-xs px-3 py-2 rounded border transition hover:opacity-70 active:scale-95 ${dark ? "border-slate-600 text-slate-400 hover:bg-slate-700" : "border-slate-300 text-slate-500 hover:bg-slate-100"}`}>
               🔄 更新
             </button>
           </div>
@@ -160,7 +160,7 @@ export default function TracesPage() {
                   <th className="px-3 py-3 text-left w-10">
                     <input
                       type="checkbox"
-                      checked={selected.length === traces.filter(t => t.canGenerate).length && traces.filter(t => t.canGenerate).length > 0}
+                      checked={selected.length === traces.filter(t => true).length && traces.filter(t => true).length > 0}
                       onChange={selectAll}
                       className="cursor-pointer"
                     />

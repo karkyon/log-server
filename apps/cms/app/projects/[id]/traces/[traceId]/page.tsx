@@ -121,20 +121,20 @@ export default function TraceDetailPage() {
           <div className="flex items-center gap-4 text-sm">
             <span className="font-mono text-blue-400">{traceId.slice(0, 16)}...</span>
             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-              trace.status === "CLOSED" ? "bg-green-900 text-green-300" :
+              trace.status === "CLOSED" || trace.status === "COMPLETED" ? "bg-green-900 text-green-300" :
               trace.status === "ACTIVE" ? "bg-blue-900 text-blue-300" :
               "bg-yellow-900 text-yellow-300"
             }`}>{trace.status}</span>
             <span className={sub}>{trace.operatorId || (trace.metadata?.userLabel) || "—"}</span>
-            <span className={sub}>{formatDt(trace.startedAt)}</span>
+            <span className={sub}>{formatDt(trace.startedAt || trace.createdAt)}</span>
             {trace.endedAt && <span className={sub}>〜{formatDt(trace.endedAt)}</span>}
             <span className={sub}>{logs.length}イベント</span>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={generateReview}
-              disabled={trace.status === "ACTIVE" || generating}
-              title={trace.status === "ACTIVE" ? "ACTIVE状態のTraceは生成できません" : ""}
+              disabled={generating}
+              
               className="bg-orange-600 hover:bg-orange-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm px-4 py-2 rounded-lg font-semibold flex items-center gap-2"
             >
               {generating ? "⏳ 生成中..." : "📄 アクションレビュー生成"}
