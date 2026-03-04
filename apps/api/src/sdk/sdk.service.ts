@@ -94,7 +94,7 @@ export class SdkService {
         operatorId: body.operatorId || 'unknown',
         label: body.label || '',
         metadata: body.metadata || {},
-        status: 'OPEN',
+        status: 'ACTIVE',
         startedAt: new Date(),
       },
     });
@@ -106,7 +106,7 @@ export class SdkService {
     if (!traceId) throw new Error('traceId required');
     await this.prisma.trace.update({
       where: { id: traceId },
-      data: { status: 'CLOSED', endedAt: new Date() },
+      data: { status: 'COMPLETED', endedAt: new Date() },
     });
     return { ok: true };
   }
