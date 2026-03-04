@@ -17,6 +17,7 @@ export class ApiKeyAuthGuard implements CanActivate {
 
     // SDK側で projectId を使えるよう req に注入
     req.projectId = projectId;
+    req.apiKeyId = apiKey.id;
     return true;
   }
 }

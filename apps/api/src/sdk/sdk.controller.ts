@@ -58,7 +58,7 @@ export class SdkController {
   @Post('trace/start')
   @UseGuards(ApiKeyAuthGuard)
   async startTrace(@Body() body: any, @Req() req: any) {
-    return this.sdk.startTrace(body, req.projectId);
+    return this.sdk.startTrace(body, req.projectId, req.apiKeyId);
   }
 
   @Post('trace/stop')

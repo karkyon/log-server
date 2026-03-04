@@ -85,15 +85,15 @@ export class SdkService {
     }
   }
 
-  async startTrace(body: any, projectId: string) {
+  async startTrace(body: any, projectId: string, apiKeyId: string) {
     const traceId = require('crypto').randomUUID();
     await this.prisma.trace.create({
       data: {
         id: traceId,
         projectId,
+        apiKeyId,
         operatorId: body.operatorId || 'unknown',
-        label: body.label || '',
-        metadata: body.metadata || {},
+        metadata: body.metadata ? body.metadata : {},
         status: 'ACTIVE',
         startedAt: new Date(),
       },
