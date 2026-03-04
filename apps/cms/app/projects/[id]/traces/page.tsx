@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useTheme } from "@/lib/useTheme";
 import { api } from "@/lib/api";
-import ProjectNav from "@/components/ProjectNav";
+import { ProjectNav } from "@/components/ProjectNav";
 
 type Trace = {
   id: string; status: string; operatorId: string | null;
