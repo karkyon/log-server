@@ -152,25 +152,128 @@ export default function PatternsPage() {
           )}
         </div>
 
-        {/* 右: 詳細 */}
-        <div className="w-1/2">
-          <h2 className="font-semibold mb-4">シーケンス詳細</h2>
-          {selected ? (
-            <div className={`${cardBg} border rounded-xl p-4`}>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium">{selected.name}</h3>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLOR[selected.status] || "bg-gray-100 text-gray-600"}`}>{selected.status}</span>
-              </div>
-              {selected.screenMode && <p className={`text-xs ${subtext} mb-2`}>画面: {selected.screenMode}</p>}
-              {selected.memo && <p className={`text-xs ${subtext} mb-3 p-2 rounded bg-opacity-50 ${dark ? "bg-gray-800" : "bg-gray-50"}`}>{selected.memo}</p>}
-              <pre className={`text-xs ${subtext} overflow-auto max-h-96 whitespace-pre-wrap`}>
-                {JSON.stringify(selected.seqData, null, 2)}
-              </pre>
-            </div>
+        {/* 右: パターン詳細 */}
+        <div className="flex-1 overflow-hidden flex flex-col">
+          {!selected ? (
+            <div className={`${cardBg} border rounded-xl p-8 text-center ${subtext} flex-1`}>パターンを選択してください</div>
           ) : (
-            <div className={`${cardBg} border rounded-xl p-8 text-center ${subtext}`}>
-              パターンを選択してください
-            </div>
+            <>
+              <div className={`flex items-center gap-3 mb-3 pb-3 border-b ${dark ? "border-gray-800" : "border-gray-200"}`}>
+                <h3 className="font-semibold">{selected.name}</h3>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLOR[selected.status] || "bg-gray-100 text-gray-600"}`}>{selected.status}</span>
+                {selected.screenMode && <span className={`text-xs ${subtext}`}>{selected.screenMode.split(",").map((s: string) => s.replace("MC_","")).join(" / ")}</span>}
+              </div>
+              <div className={`flex gap-0 border-b mb-3 ${dark ? "border-gray-800" : "border-gray-200"}`}>
+                {([{id:"list",label:"📋 リスト"},{id:"timeline",label:"📊 タイムライン"},{id:"seq",label:"📄 JSON"}] as {id:"list"|"timeline"|"seq", label:string}[]).map(tab => (
+                  <button key={tab.id} onClick={() => setPatternViewMode(tab.id)}
+                    className={`px-4 py-2 text-xs font-medium border-b-2 transition ${patternViewMode === tab.id ? "border-blue-500 text-blue-500" : `border-transparent ${subtext}`}`}>
+                    {tab.label}
+                  </button>
+                ))}
+                <span className={`ml-auto text-xs ${subtext} pb-2`}>{(selected.seqData?.seqs ?? []).length} seq</span>
+              </div>
+
+              {patternLoading ? (
+                <div className={`text-center py-8 text-sm ${subtext}`}>読み込み中...</div>
+              ) : patternViewMode === "seq" ? (
+                <div className="flex-1 overflow-auto">
+                  <pre className={`text-xs ${subtext} whitespace-pre-wrap p-4 border rounded-xl ${cardBg}`}>{JSON.stringify(selected.seqData, null, 2)}</pre>
+                </div>
+              ) : patternViewMode === "list" ? (
+                <div className="flex flex-1 overflow-hidden gap-3">
+                  <div className={`w-1/2 border rounded-xl overflow-y-auto ${dark ? "border-gray-800" : "border-gray-200"}`}>
+                    {patternLogs.length === 0 ? (
+                      <div className={`text-center py-8 text-sm ${subtext}`}>ログデータなし（traceId未設定）</div>
+                    ) : patternLogs.map((log: any, i: number) => {
+                      const isAct = patternSelectedLog?.id === log.id;
+                      const isNg = log.verdict?.verdict === "NG" || log.eventType === "ERROR";
+                      const evColor = log.eventType === "ERROR" ? "text-red-400" : log.eventType === "SCREEN_LOAD" ? "text-blue-400" : "text-purple-400";
+                      return (
+                        <button key={log.id} onClick={() => setPatternSelectedLog(log)}
+                          className={`w-full text-left px-3 py-2 border-b text-xs transition ${dark ? "border-gray-800 hover:bg-gray-800" : "border-gray-100 hover:bg-gray-50"}`}
+                          style={{
+                            background: isAct ? (dark ? "#1e3a5f" : "#eff6ff") : isNg ? (dark ? "rgba(153,27,27,0.15)" : "#fff5f5") : "",
+                            borderLeft: isAct ? "3px solid #3b82f6" : "3px solid transparent",
+                          }}>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[10px] font-bold ${dark ? "text-gray-500" : "text-gray-400"}`}>{i+1}</span>
+                            <span className={`text-[10px] font-bold ${evColor}`}>{log.eventType}</span>
+                            <span className={`text-[10px] ${subtext}`}>{new Date(log.timestamp).toLocaleTimeString("ja-JP")}</span>
+                          </div>
+                          {log.screenName && <div className={`text-xs mt-0.5 ${dark?"text-gray-300":"text-gray-700"}`}>{log.screenName}{log.elementId ? <span className={subtext}> #{log.elementId}</span> : null}</div>}
+                          {log.verdict?.verdict === "NG" && (
+                            <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                              {log.verdict.issueType && <span className="text-[10px] px-1 py-0.5 rounded" style={{background:"#dc2626",color:"white",fontWeight:700}}>{log.verdict.issueType}</span>}
+                              {log.verdict.content && <span className={`text-[10px] ${dark?"text-red-300":"text-red-600"}`}>{log.verdict.content.slice(0,30)}</span>}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className={`w-1/2 border rounded-xl overflow-y-auto ${dark ? "border-gray-800" : "border-gray-200"}`}>
+                    <div className={`px-3 py-2 text-xs font-semibold border-b sticky top-0 ${dark ? "bg-gray-900 border-gray-800 text-gray-400" : "bg-gray-50 border-gray-200 text-gray-500"}`}>選択イベント詳細</div>
+                    {!patternSelectedLog ? (
+                      <div className={`text-center py-12 text-sm ${subtext}`}>← イベントを選択</div>
+                    ) : (
+                      <div className="p-3 text-xs space-y-2">
+                        <div className="flex gap-2 items-baseline">
+                          <span className={`text-lg font-bold ${dark?"text-white":"text-gray-900"}`}>{patternLogs.indexOf(patternSelectedLog)+1}</span>
+                          <span className={`font-semibold ${dark?"text-gray-200":"text-gray-800"}`}>{patternSelectedLog.screenName}{patternSelectedLog.elementId ? ` — ${patternSelectedLog.elementId}` : ""}</span>
+                        </div>
+                        <div className={`text-[10px] font-mono ${subtext}`}>{new Date(patternSelectedLog.timestamp).toLocaleString("ja-JP")}</div>
+                        {patternSelectedLog.screenshotPath && (() => {
+                          const sp: string = patternSelectedLog.screenshotPath;
+                          const m = sp.match(/logs[/\\]screenshots[/\\](.+)/);
+                          const url = m ? "http://192.168.1.11:3099/logs-screenshots/" + m[1].replace(/\\/g,"/").split("/").map(encodeURIComponent).join("/") : null;
+                          return url ? <img src={url} alt="" className="w-full rounded border" style={{maxHeight:180,objectFit:"contain"}} onError={(e)=>{(e.currentTarget as HTMLImageElement).style.display="none"}} /> : null;
+                        })()}
+                        <div className={`space-y-1 pt-2 border-t ${dark?"border-gray-800":"border-gray-100"}`}>
+                          <div className="flex gap-2"><span className={`${subtext} w-20 flex-shrink-0`}>イベント</span><span className={`font-bold ${patternSelectedLog.eventType==="ERROR"?"text-red-400":"text-blue-400"}`}>{patternSelectedLog.eventType}</span></div>
+                          <div className="flex gap-2"><span className={`${subtext} w-20 flex-shrink-0`}>画面</span><span>{patternSelectedLog.screenName || "—"}</span></div>
+                          {patternSelectedLog.elementId && <div className="flex gap-2"><span className={`${subtext} w-20 flex-shrink-0`}>要素</span><span>#{patternSelectedLog.elementId}</span></div>}
+                          {patternSelectedLog.verdict?.verdict === "NG" && (
+                            <div className={`p-2 rounded mt-1 ${dark?"bg-red-900/20":"bg-red-50"}`}>
+                              <div className="font-bold text-red-400 mb-1">❌ NG判定</div>
+                              {patternSelectedLog.verdict.issueType && <div>{patternSelectedLog.verdict.issueType} / {patternSelectedLog.verdict.priority} / {patternSelectedLog.verdict.status}</div>}
+                              {patternSelectedLog.verdict.content && <div className="mt-0.5">{patternSelectedLog.verdict.content}</div>}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 overflow-auto">
+                  <div className="flex flex-wrap gap-3 p-2">
+                    {(selected.seqData?.seqs ?? []).map((seq: any, idx: number) => {
+                      const log = patternLogs[idx];
+                      const color = (seq.featureId||"").includes("MACHINING") ? "#8b5cf6" : (seq.featureId||"").includes("PRODUCTS") ? "#3b82f6" : "#64748b";
+                      const sp: string | null = log?.screenshotPath ?? null;
+                      const m = sp ? sp.match(/logs[/\\]screenshots[/\\](.+)/) : null;
+                      const imgUrl = m ? "http://192.168.1.11:3099/logs-screenshots/" + m[1].replace(/\\/g,"/").split("/").map(encodeURIComponent).join("/") : null;
+                      return (
+                        <div key={idx} onClick={() => { setPatternSelectedLog(log||null); setPatternViewMode("list"); }}
+                          className="cursor-pointer rounded-lg overflow-hidden"
+                          style={{width:150, border:`2px solid ${color}`, boxShadow:"0 1px 4px rgba(0,0,0,.1)"}}>
+                          <div style={{background:color, padding:"3px 7px", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                            <span style={{color:"white",fontWeight:700,fontSize:10}}>{(seq.featureId||"").replace("MC_","")}</span>
+                            <span style={{color:"rgba(255,255,255,0.8)",fontSize:10}}>seq {seq.seqNo||seq.seq||idx+1}</span>
+                          </div>
+                          <div style={{height:70,background:"#e2e8f0",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
+                            {imgUrl ? <img src={imgUrl} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} onError={(e)=>{(e.currentTarget.parentNode as HTMLElement).innerHTML='<span style="font-size:10px;color:#94a3b8">No img</span>';}} /> : <span style={{fontSize:10,color:"#94a3b8"}}>No img</span>}
+                          </div>
+                          <div style={{padding:"4px 7px",background:"white"}}>
+                            <div style={{fontSize:10,color:"#334155",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.summary?.slice(0,22)||"—"}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>
