@@ -410,6 +410,12 @@ export default function TracesPage() {
                           >
                             {generating === t.id ? "⏳" : "📄 生成"}
                           </button>
+                          <button
+                            onClick={e => { e.stopPropagation(); deleteTrace(t.id); }}
+                            className={`text-[10px] px-2 py-1 rounded border transition-all ${dark ? "border-red-800 text-red-400 hover:bg-red-900/30" : "border-red-300 text-red-500 hover:bg-red-50"}`}
+                          >
+                            🗑
+                          </button>
                         </div>
                       </td>
                     </tr>

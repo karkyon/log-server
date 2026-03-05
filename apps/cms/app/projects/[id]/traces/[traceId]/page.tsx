@@ -372,7 +372,7 @@ function TimelineView({ items, projectId, traceId, dark }: {
           const isLastRow = r === rows.length - 1;
           return (
             <div key={r}>
-              <div style={{ display: "flex", flexDirection: isRtl ? "row-reverse" : "row", alignItems: "center", gap: 12, padding: "0 4px" }}>
+              <div style={{ display: "flex", flexDirection: isRtl ? "row-reverse" : "row", alignItems: "center", padding: "0 4px" }}>
                 {row.map((item, c) => {
                   const isSelected = selected.includes(item.globalSeqNo);
                   const color = colorMap[item.featureId] || "#94a3b8";
@@ -407,7 +407,7 @@ function TimelineView({ items, projectId, traceId, dark }: {
                         </div>
                       </div>
                       {!isLastInRow && (
-                        <div style={{ flex: "1 1 0", display: "flex", alignItems: "center", minWidth: 20 }}>
+                        <div style={{ width: 28, flexShrink: 0, display: "flex", alignItems: "center" }}>
                           <div style={{ width: "100%", height: 2, background: "#475569", position: "relative" }}>
                             <div style={{ position: "absolute", right: isRtl ? "auto" : -1, left: isRtl ? -1 : "auto", top: "50%", transform: "translateY(-50%)", width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", ...(isRtl ? { borderRight: "8px solid #475569" } : { borderLeft: "8px solid #475569" }) }} />
                           </div>
@@ -420,9 +420,10 @@ function TimelineView({ items, projectId, traceId, dark }: {
               {!isLastRow && (() => {
                 // 最終BOX中央のX位置を計算: BOX幅160, gap12
                 const lastIdx = isRtl ? 0 : row.length - 1;
+                // BOX=160, connector=28 → 1unit=188px, +padding4, BOX中央=+80
                 const lineX = isRtl
-                  ? 4 + 80  // RTL: 左端から80px
-                  : 4 + (row.length - 1) * 172 + 80; // LTR: 右端BOX中央
+                  ? 4 + 80
+                  : 4 + (row.length - 1) * 188 + 80;
                 return (
                   <div style={{ position: "relative", height: 36 }}>
                     <div style={{
