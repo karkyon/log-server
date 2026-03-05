@@ -1,19 +1,20 @@
-# 🔍 log-server — TLog 操作ログ収集・課題可視化システム
+# 🔍 log-server — TLog NEXT 操作ログ収集・課題可視化システム
 
 > **karkyon/log-server**  
-> TALON ローコードプラットフォーム上の各画面から操作ログ・スクリーンショットを自動収集し、GitHub Actions で課題ダッシュボード・アクションレビュー HTML を自動生成するシステム。
+> TALON ローコードプラットフォーム上の各画面から操作ログ・スクリーンショットを自動収集し、  
+> CMS（Next.js）上でアクションレビュー HTML を生成するシステム。
 
 ---
 
 ## 📌 概要
 
-TALON（JSF/PrimeFaces ベース）で開発中のマシニング加工管理システム（22機能・約25画面）において、各画面の動作課題を体系的に把握するために構築されたログ収集・可視化基盤。
+TALON（JSF/PrimeFaces ベース）で開発中のマシニング加工管理システム（22機能・約25画面）において、  
+各画面の動作課題を体系的に把握するために構築されたログ収集・可視化基盤。
 
 **主な目的:**
 - どのボタンを・どの条件で・何が起きたか を完全記録
-- ルールベース（Claude API 不使用）でログを自動解析し課題を抽出
-- 課題にスクリーンショットを紐づけてプレビュー可能なダッシュボードを自動生成
-- GitHub Actions・GitHub Pages で CI/CD を完結
+- CMS 上でTraceID別に「アクションレビュー HTML」を生成
+- パターン登録・課題管理をCMSで一元管理
 
 ---
 
@@ -21,145 +22,178 @@ TALON（JSF/PrimeFaces ベース）で開発中のマシニング加工管理シ
 
 ```
 karkyon/log-server/
-├── server.js                          # Node.js ログ受信サーバ v2.2（ポート: 3099）
-├── talon_testcase_logger.js           # クライアントサイドロガー v2.3
+├── apps/
+│   ├── api/                          # NestJS APIサーバー (port: 3099)
+│   │   └── src/
+│   │       ├── sdk/                  # SDK受信エンドポイント群
+│   │       ├── traces/               # TraceID管理・ログ取得
+│   │       ├── patterns/             # パターン登録・管理
+│   │       ├── review/               # アクションレビューHTML生成
+│   │       └── apikeys/              # APIキー発行・認証
+│   └── cms/                          # Next.js CMS (port: 3002)
+│       └── app/projects/[id]/
+│           ├── traces/               # TraceID一覧・詳細
+│           ├── patterns/             # パターン一覧・蛇行タイムライン
+│           ├── issues/               # 課題チケット一覧
+│           └── apikeys/              # APIキー管理
+├── public/
+│   └── tlog-sdk.min.js               # クライアントSDK (配信: /assets/tlog-sdk.min.js)
 ├── scripts/
-│   ├── analyze-logs.js                # ルールベース課題抽出（R01〜R11）
-│   ├── generate-dashboard.js          # 課題ダッシュボード HTML 生成
-│   └── generate-review.js            # アクションレビュー HTML 生成
-├── .github/workflows/
-│   ├── analyze-issues.yml             # logs Push 時に自動実行
-│   └── generate-review.yml           # レビュー HTML 自動生成
-├── logs/
-│   ├── features/<featureId>.jsonl            # 操作ログ（UI_CLICK, SCREEN_LOAD 等）
-│   ├── features/<featureId>.console.jsonl   # コンソールログ（v2.2 追加）
-│   └── screenshots/<featureId>/            # スクリーンショット（JPG）
+│   └── generate-review.js            # アクションレビューHTML生成スクリプト
+├── prisma/
+│   └── schema.prisma                 # DBスキーマ（LogVerdict含む）
 └── docs/
-    ├── issues/index.html              # 課題ダッシュボード（GitHub Pages 公開）
-    └── review/index.html             # アクションレビュー（GitHub Pages 公開）
+    └── review/index.html             # 生成済みレビューHTML
 ```
 
 ### インフラ構成
 
 | 役割 | ホスト | 詳細 |
 |------|--------|------|
-| ログ受信サーバ | Ubuntu: `192.168.1.11:3099` | `server.js` を常時起動 |
-| TALON クライアント | `192.168.1.207` | 各画面 JS の先頭にロガーを組み込み |
-| CI/CD | GitHub Actions | logs Push → 自動解析・HTML 生成 |
-| 公開 URL | GitHub Pages | `https://karkyon.github.io/log-server/docs/review/` |
+| API / SDKサーバー | `192.168.1.11:3099` | NestJS (pm2 id:0) |
+| CMS | `192.168.1.11:3002` | Next.js (pm2 id:1) |
+| DB | `192.168.1.11:5434` | PostgreSQL |
+| TALON クライアント | `192.168.1.207` | SDK組み込み済み |
 
 ---
 
-## ⚡ 自動化フロー
+## ⚡ システムフロー
 
 ```
 TALON 画面操作
-    ↓ (操作ログ・スクショ POST)
-server.js (192.168.1.11:3099)
-    ↓ (logs/ に保存)
-git push origin main
+    ↓ (SDK 自動送信)
+POST /sdk/log  →  NestJS API (192.168.1.11:3099)
     ↓
-analyze-issues.yml 起動（Claude API 不使用・完全ルールベース）
+PostgreSQL に蓄積 (traces / logs / screenshots)
     ↓
-docs/issues/index.html 更新
+CMS: http://192.168.1.11:3002/projects/[id]/traces
+    ↓ [📄 アクションレビュー生成] ボタンをKICK
+POST /api/projects/:id/traces/:traceId/generate-review
     ↓
-generate-review.yml 自動連鎖
+review.service.ts → generate-review.js 実行
     ↓
-docs/review/index.html 更新（スクショ 105枚統合）
-    ↓
-GitHub Pages で閲覧可能
+HTML レビュー資料をブラウザで表示  ← システムの最大目的
 ```
 
 ---
 
-## 📡 server.js API エンドポイント
+## 🎯 SDK 組み込み方法
 
-| メソッド | パス | 用途 |
-|---------|------|------|
-| POST | `/log` | 操作ログ受信 → `.jsonl` 保存 |
-| POST | `/screenshot` | スクリーンショット受信・保存 |
-| POST | `/consolelog` | コンソールログ受信 → `.console.jsonl` 保存 |
-| GET | `/consolelogs/:featureId` | コンソールログ取得 |
-| GET | `/features` | 記録済み機能 ID 一覧 |
-| GET | `/logs/:featureId` | 機能ログ取得 |
-| GET | `/clean` | 全ログ削除（開発用のみ） |
-| GET | `/ping` | 死活確認 |
+### ① 共通ライブラリへの追加（1回だけ）
 
----
+全ページ共通のヘッダー・CSS共通ファイルの末尾に追加するだけ。
 
-## 🎯 talon_testcase_logger.js — 各画面への組み込み方法
+```html
+<script src="http://192.168.1.11:3099/assets/tlog-sdk.min.js"></script>
+<script>
+TLog.init({
+  apiKey: 'ak_xxxxxxxxxxxxxxxxxxxxxxxx',  // CMSのAPIキー管理画面で発行
+  serverUrl: 'http://192.168.1.11:3099',
+  projectId: 'your-project-id',           // CMS上のプロジェクトslug
+  autoStart: true,                        // ページロード時に自動でTrace開始
+});
+</script>
+```
 
-各 TALON 画面の JavaScript 先頭に `talon_testcase_logger.js` を貼り付け、  
-`resizeContents_end()` の末尾に以下を追加するだけで自動計装が有効になります。
+**`autoStart: true` を指定するだけで以下が自動的に動作します:**
+- ページロード時に `startTrace()` を自動呼び出し
+- `startTrace()` 完了前に呼ばれたログを内部キューに蓄積し、完了後に自動送信
+
+### ② 各ページ側（変更不要 or 最小追加）
+
+**既存コードはそのままで動作します。**  
+`TLog.log()` / `TLog.screenLoad()` / `TLog.action()` は `autoStart` 完了前に呼ばれても  
+内部キューに保持され、TraceID取得後に自動送信されます。
+
+```javascript
+// レンダリング後の初期化処理（既存コードのまま）
+TLog.log('SCREEN_LOAD', 'MC_PRODUCTS_LIST', '', {label: 'マシニング部品一覧'});
+TLog.screenLoad('MC_PRODUCTS_LIST', 'マシニング部品一覧');
+// TLog.bootstrap({}) は no-op なので削除可
+```
+
+**ボタン操作ログ（任意）:**
+
+```javascript
+// クリックイベントに追加
+TLog.action('MC_PRODUCTS_LIST', 'btn_search', { label: '検索' });
+TLog.action('MC_PRODUCTS_LIST', 'btn_register', { label: '登録' });
+```
+
+### ③ テスト終了ボタン
+
+```javascript
+// 「テスト終了」ボタンの onclick に追加
+TLog.stopTrace().then(function() {
+  console.log('[TLog] Trace終了 traceId=' + TLog.getTraceId());
+  // 既存の終了処理...
+});
+```
+
+### TALON 特有の注意事項
+
+TALONは JSF の `resizeContents_end()` レンダリング完了後にJSが実行される。  
+`autoStart: true` のキュー機能により、実行順序の問題は自動解決されます。
 
 ```javascript
 function resizeContents_end() {
-  // --- 既存の処理 ---
+  // 既存処理...
 
-  // ✅ ログ収集の起点（スクリーンショットもここで取得）
+  // ↓ これだけ追加（autoStart のキューで確実に送信される）
   TLog.screenLoad('MC_XXXX', '画面名');
-
-  // ✅ 全 UI 要素への自動 addEventListener 付与
-  TLogAutoInstrument.init('MC_XXXX', { screenMode: 'search' });
+  TLogAutoInstrument.init('MC_XXXX', { screenMode: 'list' });
 }
 ```
 
-**screenMode の選択肢:** `search` / `edit` / `create` / `auth` / `list` / `report`
+---
 
-### 記録されるログ種別
+## 📡 API エンドポイント一覧
 
-| type | 内容 |
-|------|------|
-| `SCREEN_LOAD` | 画面表示（URL パラメータ・前画面 URL を含む） |
-| `UI_CLICK` | ボタン操作（要素 ID・ラベル・フォーム入力値・行データ） |
-| `BACKEND` | REST API 呼び出し結果 |
-| `ERROR` | JS 例外・リソース読み込みエラー（window.onerror / capture） |
-| `SCREENSHOT` | Before/After スクリーンショット（traceId で紐づけ） |
+### SDK用（APIキー認証: `x-api-key` ヘッダー）
+
+| メソッド | パス | 用途 |
+|---------|------|------|
+| POST | `/sdk/trace/start` | Trace開始・traceId発行 |
+| POST | `/sdk/trace/stop` | Trace終了 |
+| POST | `/sdk/log` | 操作ログ送信 |
+| POST | `/sdk/screenshot` | スクリーンショット送信 |
+| POST | `/sdk/consolelog` | コンソールログ送信 |
+| GET  | `/sdk/ping` | 疎通確認 |
+
+### CMS用（JWT認証）
+
+| メソッド | パス | 用途 |
+|---------|------|------|
+| GET | `/api/projects/:id/traces` | TraceID一覧 |
+| GET | `/api/projects/:id/traces/:tid/logs` | ログ一覧（verdict JOIN済み） |
+| POST | `/api/projects/:id/traces/:traceId/generate-review` | レビューHTML生成 |
+| PUT | `/api/projects/:id/traces/:traceId/logs/:logId/verdict` | 判定（OK/NG）保存 |
+| GET/POST | `/api/projects/:id/patterns` | パターン一覧・登録 |
+| DELETE | `/api/projects/:id/patterns/:patternId` | パターン削除 |
+| GET/POST | `/api/projects/:id/apikeys` | APIキー一覧・発行 |
+| DELETE | `/api/projects/:id/apikeys/:keyId` | APIキー無効化 |
 
 ---
 
-## 🔎 課題検出ルール（R01〜R11）
+## 🔎 SDK メソッド一覧
 
-`analyze-logs.js` が以下のルールでログを自動解析します。Claude API は一切使用しません。
+```javascript
+// 初期化（共通ライブラリで1回）
+TLog.init({ apiKey, serverUrl, projectId, autoStart })
 
-| ルール | 検出内容 | 重大度 |
-|--------|----------|--------|
-| R01 | ERROR ログ直接検出 | Critical |
-| R02 | `featureId=UNKNOWN`（ロガー初期化ミス） | High |
-| R03 | 1ms 以内のボタン重複記録（addEventListener 重複バインド） | High |
-| R04 | 検索実行後に BACKEND ログなし（API 呼び出し失敗） | High |
-| R05 | SCREEN_LOAD から次操作まで極端な無応答時間 | Medium |
-| R06 | 同一 elementId への連続クリック（デバウンス不備） | Medium |
-| R07 | モード遷移後の予期しない SCREEN_LOAD（意図しないリロード） | Medium |
-| R08 | フォーム入力値がすべて空での送信 | Low |
-| R09 | セッション内の ERROR 比率が高い | Medium |
-| R10 | UI_CLICK 件数が極端に少ない（ロガー未動作） | Low |
-| R11 | screenMode 未設定（`init()` 引数不足） | Low |
+// Trace制御
+TLog.startTrace({ userId, label, meta })  // autoStart:true なら不要
+TLog.stopTrace()                           // テスト終了時に呼ぶ
+TLog.getTraceId()                          // 現在のtraceIdを取得
 
-**優先度スコア算出式:**  
-`PriorityScore = (重大度 × 40) + (再現性 × 20) + (頻度 × 20) + (信頼度 × 20)`
+// ログ送信（autoStartのキューで順序保証）
+TLog.log(eventType, screenName, elementId, payload)
+TLog.screenLoad(screenId, screenName)      // SCREEN_LOAD ショートカット
+TLog.action(screenId, elementId, payload)  // ACTION ショートカット
+TLog.screenCapture(screenId, label)        // SCREENSHOT ショートカット
 
----
-
-## 📊 生成ドキュメント
-
-### 課題ダッシュボード
-
-`https://karkyon.github.io/log-server/docs/issues/`
-
-- 機能別・重大度別フィルター
-- 課題ごとのスクリーンショットプレビュー
-- 修正提案の自動生成
-- 優先度スコアによるランキング
-
-### アクションレビュー
-
-`https://karkyon.github.io/log-server/docs/review/`
-
-- traceId 単位のシーケンス（操作フロー）可視化
-- コンソールログと操作ログの統合表示
-- 作業パターン登録・管理機能
-- 画面フィルター・スクリーンショット105枚統合
+// 未定義メソッド → Proxyで自動吸収（既存コードのエラーなし）
+```
 
 ---
 
@@ -190,128 +224,83 @@ function resizeContents_end() {
 
 ---
 
-## ⌘TLog NEXT Alias
-### === プロジェクト: TLog NEXT === ###
-TLOG="$HOME/projects/log-server"
-alias tlog='cd $TLOG'
-alias tlog-api='cd $TLOG/apps/api'
-alias tlog-cms='cd $TLOG/apps/cms'
+## ⌘ よく使うコマンド
 
-# pm2 操作
+```bash
+# サービス状態確認
+pm2 status
+
+# ログ確認（リアルタイム）
+pm2 logs tlog-api
+pm2 logs tlog-cms
+
+# ビルド＆デプロイ
+cd ~/projects/log-server/apps/cms && npm run build && pm2 restart tlog-cms
+cd ~/projects/log-server/apps/api && npm run build && pm2 restart tlog-api
+
+# DB直接確認
+psql -U tlog -d tlogdb -h 127.0.0.1 -p 5434 \
+  -c "SELECT id, project_id, status, started_at FROM traces ORDER BY started_at DESC LIMIT 5;"
+
+# SDK疎通テスト
+curl -s -X POST http://localhost:3099/sdk/trace/start \
+  -H "x-api-key: ak_xxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"projectId":"your-project","operatorId":"test"}' | python3 -m json.tool
+```
+
+### エイリアス（~/.bashrc に追加済み）
+
+```bash
 alias tlog-status='pm2 status'
-alias tlog-up='pm2 start all'
-alias tlog-down='pm2 stop all'
 alias tlog-restart='pm2 restart all'
-alias tlog-restart-api='pm2 restart tlog-api'
-alias tlog-restart-cms='pm2 restart tlog-cms'
-alias tlog-logs='pm2 logs'
-alias tlog-logs-api='pm2 logs tlog-api'
-alias tlog-logs-cms='pm2 logs tlog-cms'
-
-# ビルド
-alias tlog-build-api='cd $TLOG/apps/api && npm run build'
-alias tlog-build-cms='cd $TLOG/apps/cms && npm run build'
-alias tlog-build='cd $TLOG/apps/api && npm run build && cd $TLOG/apps/cms && npm run build'
-alias tlog-deploy-api='cd $TLOG/apps/api && npm run build && pm2 restart tlog-api'
-alias tlog-deploy-cms='cd $TLOG/apps/cms && npm run build && pm2 restart tlog-cms'
-alias tlog-deploy='cd $TLOG/apps/api && npm run build && pm2 restart tlog-api && cd $TLOG/apps/cms && npm run build && pm2 restart tlog-cms'
-
-# DB（Prisma）
-alias tlog-studio='cd $TLOG && npx prisma studio --schema apps/api/prisma/schema.prisma --hostname 0.0.0.0 --port 5555'
-alias tlog-migrate='cd $TLOG && npx prisma migrate dev --schema apps/api/prisma/schema.prisma'
-alias tlog-prisma-gen='cd $TLOG && npx prisma generate --schema apps/api/prisma/schema.prisma'
-
-# DB 直接操作
+alias tlog-deploy-cms='cd ~/projects/log-server/apps/cms && npm run build && pm2 restart tlog-cms'
+alias tlog-deploy-api='cd ~/projects/log-server/apps/api && npm run build && pm2 restart tlog-api'
 alias tlog-db='psql -U tlog -d tlogdb -h 127.0.0.1 -p 5434'
+```
+
 ---
 
 ## 🔧 バージョン履歴
 
-### talon_testcase_logger.js
+### tlog-sdk.min.js
+
+| バージョン | 変更内容 |
+|-----------|----------|
+| v1.0 | 初版 |
+| v1.1 | TLogAutoInstrument Proxy対応・旧API互換 |
+| **v1.2** | `autoStart` オプション追加・ログキュー実装（startTrace完了前のログを自動保留→フラッシュ） |
+
+### talon_testcase_logger.js（旧SDK・参照用）
 
 | バージョン | 変更内容 |
 |-----------|----------|
 | v2.0 | URLパラメータ・前画面 URL・JS 例外・Before/After スクショ追加 |
-| v2.1 | `_capture()` で featureId を POST body に含める / SHOT エントリ二重記録排除 |
-| v2.2 | console キャプチャ機能追加 / `_lastTraceId` による操作相関 |
-| **v2.3** | `window.onerror` → `/consolelog` 送信・リソースエラーキャプチャ・シリアライザ強化 |
-
-### server.js
-
-| バージョン | 変更内容 |
-|-----------|----------|
-| v2.0 | featureId 別保存・スクリーンショット API |
-| v2.1 | スクリーンショット保存パス修正 |
-| **v2.2** | `/consolelog` エンドポイント追加・`/consolelogs/:featureId` 追加 |
+| v2.3 | console キャプチャ機能・リソースエラーキャプチャ |
 
 ---
 
-## 🚀 セットアップ
+## ⚠️ 既知の注意事項
 
-### サーバー起動（Ubuntu: 192.168.1.11）
-
-```bash
-cd ~/projects/log-server
-node server.js -d
-
-# 動作確認
-curl http://192.168.1.11:3099/ping
-```
-
-### GitHub Actions 手動実行
-
-```
-Actions タブ → 「問題課題 自動解析」→ Run workflow
-Actions タブ → 「アクションレビュー HTML 生成」→ Run workflow
-```
-
-### よく使う確認コマンド
-
-```bash
-# console.jsonl の最新5件
-tail -5 ~/projects/log-server/logs/features/MC_PRODUCTS_LIST.console.jsonl
-
-# リアルタイム監視
-tail -f ~/projects/log-server/logs/features/MC_PRODUCTS_LIST.console.jsonl
-
-# エラーログ抽出
-grep '"level":"error"' logs/features/MC_PRODUCTS_LIST.console.jsonl | tail -10
-
-# 全ログリセット（テスト前）
-curl http://192.168.1.11:3099/clean
-```
+| 項目 | 詳細 |
+|------|------|
+| `NEXT_PUBLIC_*` 変数 | 変更後は必ず `npm run build` + `pm2 restart` が必要 |
+| Python置換スクリプト | `grep -n` で実際の文字列を確認してから実行すること |
+| `overflow: hidden` + `visible` 共存不可 | `overflowX`/`overflowY` を個別指定で回避 |
+| TraceStatus値 | `ACTIVE` / `COMPLETED` / `TIMEOUT` / `ERROR`（`CLOSED`は存在しない） |
 
 ---
 
-## ⚠️ 既知の問題・注意事項
+## 🚀 CMS アクセス
 
-| 問題 | 詳細 | 対応状況 |
-|------|------|----------|
-| `/consolelog` 500 エラー | `192.168.1.11:3099/consolelog` が 500 を返す場合がある | 調査中 |
-| 無限ループリスク | fetch 失敗 → console.error → キャプチャ → 再送信 の循環 | 未適用（対策コードあり） |
-| `IGNORE_ID_PATTERNS` 不一致 | `1_閲覧_0` 〜 `1_編集_6` が TLN_ プレフィックスなしで存在 | 未適用（修正コードあり） |
+| URL | 用途 |
+|-----|------|
+| `http://192.168.1.11:3002` | CMS ログイン |
+| `http://192.168.1.11:3002/projects/talon-mc/traces` | TraceID一覧 |
+| `http://192.168.1.11:3002/projects/talon-mc/patterns` | パターン一覧 |
 
-**無限ループ防止コード（talon_testcase_logger.js に追加予定）:**
-
-```javascript
-console[level] = function (...args) {
-  native(...args);
-  // サーバー URL を含む出力はスキップ（無限ループ防止）
-  if (args.some(a => typeof a === 'string' && a.includes('192.168.1.11:3099'))) return;
-  // ...
-};
-```
+**認証情報**: username: `admin` / password: `admin1234`
 
 ---
 
-## 🗺️ 今後の予定
-
-- [ ] 機能仕様書の自動生成（Claude API 経由・各画面の HTML ドキュメント）
-- [ ] エンドユーザー向け操作マニュアルの自動生成
-- [ ] Next.js + NestJS への移行対応（MC-REBUILD-001）
-- [ ] IGNORE_ID_PATTERNS 修正の適用
-- [ ] 無限ループ防止コードの適用
-
----
-
-*karkyon / log-server — TALON テストログ自動収集・課題可視化システム*
+*karkyon / log-server — TLog NEXT 操作ログ収集・課題可視化システム*
