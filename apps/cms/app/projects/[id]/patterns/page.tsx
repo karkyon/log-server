@@ -252,7 +252,7 @@ export default function PatternsPage() {
       {/* メインコンテンツ */}
       <main className="px-6 py-6 flex gap-4" style={{height: "calc(100vh - 90px)", overflow: "hidden"}}>
         {/* 左: パターン一覧（折りたたみ対応） */}
-        <div style={{width: patternListOpen ? 320 : 44, flexShrink: 0, transition: "width 0.2s", overflow: "hidden"}}>
+        <div style={{width: patternListOpen ? 320 : 44, flexShrink: 0, transition: "width 0.2s", overflowX: "visible", overflowY: "auto"}}>
           <div className="flex items-center justify-between mb-3">
             {patternListOpen && <h2 className="font-semibold text-sm">パターン一覧 ({patterns.length})</h2>}
             <button onClick={() => setPatternListOpen(v => !v)}

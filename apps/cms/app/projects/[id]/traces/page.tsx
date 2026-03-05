@@ -412,7 +412,7 @@ export default function TracesPage() {
                           </button>
                           <button
                             onClick={e => { e.stopPropagation(); deleteTrace(t.id); }}
-                            className={`text-xs px-2.5 py-1.5 rounded border-2 font-bold transition-all ${dark ? "border-red-700 text-red-400 hover:bg-red-900/40" : "border-red-400 text-red-500 hover:bg-red-50"}`}
+                            className="text-[10px] px-2 py-1 rounded bg-red-700 hover:bg-red-600 text-white transition-all"
                           >
                             🗑
                           </button>

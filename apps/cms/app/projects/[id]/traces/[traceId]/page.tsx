@@ -729,12 +729,12 @@ export default function TraceDetailPage() {
                       </div>
                       {log.screenName && <div className={`text-xs mt-0.5 truncate font-medium ${dark ? "text-slate-300" : "text-slate-700"}`}>{log.screenName}{log.elementId ? <span className={`font-normal ${sub}`}> #{log.elementId}</span> : null}</div>}
                       {/* NG内容インライン表示 */}
-                      {log.verdict?.verdict === "NG" && log.verdict.content && (
+                      {log.verdict?.verdict === "NG" && (
                         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                           {log.verdict.issueType && <span className="text-[10px] px-1.5 py-0.5 rounded" style={{background:"#dc2626",color:"white",fontWeight:700}}>{log.verdict.issueType}</span>}
                           {log.verdict.priority && <span className="text-[10px] px-1.5 py-0.5 rounded border border-red-400 text-red-400">{log.verdict.priority}</span>}
                           {log.verdict.status && <span className="text-[10px] px-1.5 py-0.5 rounded border" style={{borderColor:"#64748b",color:dark?"#94a3b8":"#64748b"}}>{log.verdict.status}</span>}
-                          <span className={`text-[10px] ${dark ? "text-red-300" : "text-red-600"}`}>{log.verdict.content.slice(0, 30)}{log.verdict.content.length > 30 ? "…" : ""}</span>
+                          <span className={`text-[10px] ${dark ? "text-red-300" : "text-red-600"}`}>{(log.verdict.content || "").slice(0, 30)}{(log.verdict.content || "").length > 30 ? "…" : ""}</span>
                         </div>
                       )}
                     </div>
