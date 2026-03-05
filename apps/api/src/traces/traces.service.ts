@@ -95,7 +95,7 @@ export class TracesService {
   }
 
   async getLogs(projectId: string, traceId: string) {
-    const [logs, screenshots] = await Promise.all([
+    const [logs, screenshots, consoleLogs] = await Promise.all([
       this.prisma.log.findMany({
         where: { traceId },
         orderBy: { timestamp: 'asc' },
@@ -103,6 +103,10 @@ export class TracesService {
       this.prisma.screenshot.findMany({
         where: { traceId },
         orderBy: { ts: 'asc' },
+      }),
+      this.prisma.consoleLog.findMany({
+        where: { traceId },
+        orderBy: { timestamp: 'asc' },
       }),
     ]);
 
@@ -126,10 +130,13 @@ export class TracesService {
         return diff < bestDiff ? ss : best;
       }, null as typeof screenshots[0] | null);
 
+      // 同じseqNoのconsoleLogs群を付与
+      const logConsoleLogs = consoleLogs.filter(cl => cl.seqNo === log.seqNo);
       return {
         ...log,
         screenshotPath: log.screenshotPath || (nearest ? nearest.filePath : null),
         verdict: verdictMap.get(log.id) ?? null,
+        consoleLogs: logConsoleLogs,
       };
     });
 
