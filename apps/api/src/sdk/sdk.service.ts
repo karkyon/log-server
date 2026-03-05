@@ -30,6 +30,7 @@ export class SdkService {
           eventType:  body.type      || body.eventType || 'UNKNOWN',
           screenName: body.featureId || body.screenName || null,
           elementId:  body.elementId || null,
+          seqNo:      body.seqNo     ?? null,
           payload:    body.payload   ?? body,
           timestamp:  body.ts ? new Date(body.ts) : new Date(),
         },
