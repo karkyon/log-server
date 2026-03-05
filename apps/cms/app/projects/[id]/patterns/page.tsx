@@ -27,6 +27,12 @@ export default function PatternsPage() {
   const [patterns, setPatterns] = useState<Pattern[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Pattern | null>(null);
+  const [patternLogs, setPatternLogs] = useState<any[]>([]);
+  const [patternTrace, setPatternTrace] = useState<any>(null);
+  const [patternSelectedLog, setPatternSelectedLog] = useState<any>(null);
+  const [patternViewMode, setPatternViewMode] = useState<"list" | "timeline" | "seq">("list");
+  const [patternListOpen, setPatternListOpen] = useState(true);
+  const [patternLoading, setPatternLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
@@ -91,10 +97,17 @@ export default function PatternsPage() {
       <ProjectNav projectId={id} />
 
       {/* メインコンテンツ */}
-      <main className="max-w-5xl mx-auto px-6 py-8 flex gap-6">
-        {/* 左: パターン一覧 */}
-        <div className="w-1/2">
-          <h2 className="font-semibold mb-4">パターン一覧 ({patterns.length})</h2>
+      <main className="px-6 py-6 flex gap-4" style={{height: "calc(100vh - 90px)", overflow: "hidden"}}>
+        {/* 左: パターン一覧（折りたたみ対応） */}
+        <div style={{width: patternListOpen ? 280 : 44, flexShrink: 0, transition: "width 0.2s", overflow: "hidden"}}>
+          <div className="flex items-center justify-between mb-3">
+            {patternListOpen && <h2 className="font-semibold text-sm">パターン一覧 ({patterns.length})</h2>}
+            <button onClick={() => setPatternListOpen(v => !v)}
+              className={`ml-auto text-xs px-2 py-1 rounded border ${dark ? "border-gray-700 text-gray-400 hover:bg-gray-800" : "border-gray-300 text-gray-500 hover:bg-gray-100"}`}
+              title={patternListOpen ? "折りたたむ" : "開く"}>
+              {patternListOpen ? "◀" : "▶"}
+            </button>
+          </div>
           {loading ? <p className={subtext}>読み込み中...</p> : patterns.length === 0 ? (
             <div className={`${cardBg} border rounded-xl p-8 text-center ${subtext}`}>
               <p>パターンがありません</p>
@@ -104,7 +117,7 @@ export default function PatternsPage() {
           ) : (
             <div className="grid gap-3">
               {patterns.map(p => (
-                <div key={p.id} onClick={() => setSelected(p)}
+                <div key={p.id} onClick={() => { setSelected(p); loadPatternLogs(p); }}
                   className={`${cardBg} ${hoverBg} border rounded-xl p-4 cursor-pointer transition ${selected?.id === p.id ? "border-blue-500" : ""}`}>
                   <div className="flex items-start justify-between">
                     <div>
