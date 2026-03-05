@@ -190,6 +190,41 @@ function resizeContents_end() {
 
 ---
 
+## ⌘TLog NEXT Alias
+### === プロジェクト: TLog NEXT === ###
+TLOG="$HOME/projects/log-server"
+alias tlog='cd $TLOG'
+alias tlog-api='cd $TLOG/apps/api'
+alias tlog-cms='cd $TLOG/apps/cms'
+
+# pm2 操作
+alias tlog-status='pm2 status'
+alias tlog-up='pm2 start all'
+alias tlog-down='pm2 stop all'
+alias tlog-restart='pm2 restart all'
+alias tlog-restart-api='pm2 restart tlog-api'
+alias tlog-restart-cms='pm2 restart tlog-cms'
+alias tlog-logs='pm2 logs'
+alias tlog-logs-api='pm2 logs tlog-api'
+alias tlog-logs-cms='pm2 logs tlog-cms'
+
+# ビルド
+alias tlog-build-api='cd $TLOG/apps/api && npm run build'
+alias tlog-build-cms='cd $TLOG/apps/cms && npm run build'
+alias tlog-build='cd $TLOG/apps/api && npm run build && cd $TLOG/apps/cms && npm run build'
+alias tlog-deploy-api='cd $TLOG/apps/api && npm run build && pm2 restart tlog-api'
+alias tlog-deploy-cms='cd $TLOG/apps/cms && npm run build && pm2 restart tlog-cms'
+alias tlog-deploy='cd $TLOG/apps/api && npm run build && pm2 restart tlog-api && cd $TLOG/apps/cms && npm run build && pm2 restart tlog-cms'
+
+# DB（Prisma）
+alias tlog-studio='cd $TLOG && npx prisma studio --schema apps/api/prisma/schema.prisma --hostname 0.0.0.0 --port 5555'
+alias tlog-migrate='cd $TLOG && npx prisma migrate dev --schema apps/api/prisma/schema.prisma'
+alias tlog-prisma-gen='cd $TLOG && npx prisma generate --schema apps/api/prisma/schema.prisma'
+
+# DB 直接操作
+alias tlog-db='psql -U tlog -d tlogdb -h 127.0.0.1 -p 5434'
+---
+
 ## 🔧 バージョン履歴
 
 ### talon_testcase_logger.js

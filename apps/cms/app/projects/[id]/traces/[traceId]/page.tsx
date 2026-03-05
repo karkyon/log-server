@@ -700,17 +700,34 @@ export default function TraceDetailPage() {
                 const isActive = selectedLog?.id === log.id;
                 return (
                   <button key={log.id} onClick={() => setSelectedLog(log)}
-                    className={`w-full text-left px-4 py-2.5 border-b flex items-start gap-3 transition-colors ${isActive ? tlA : tl} ${!isActive && (log.verdict?.verdict === "NG" || log.payload?.result === "NG" || log.eventType === "ERROR") ? (dark ? "bg-red-900/20" : "bg-red-50") : ""}`}>
+                    className={`w-full text-left px-4 py-2.5 border-b flex items-start gap-3 transition-colors ${tl}`}
+                    style={{
+                      background: isActive ? (dark ? "#1e3a5f" : "#eff6ff") : (log.verdict?.verdict === "NG" || log.eventType === "ERROR") ? (dark ? "rgba(153,27,27,0.15)" : "#fff5f5") : "",
+                      boxShadow: isActive ? `inset 0 0 0 2px #3b82f6` : "",
+                      borderLeft: isActive ? "3px solid #3b82f6" : "3px solid transparent",
+                    }}>
+                    {/* seqNo */}
+                    <div className="flex-shrink-0 w-6 text-center">
+                      <div className={`text-[10px] font-bold rounded ${dark ? "text-slate-500" : "text-slate-400"}`}>{logs.indexOf(log) + 1}</div>
+                    </div>
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] flex-shrink-0 mt-0.5 ${style.bg}`}>{style.icon}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className={`text-[10px] font-bold ${style.color}`}>{log.eventType}</span>
                         <span className={`text-[10px] ${sub}`}>{fmtTJ(log.timestamp)}</span>
+                        {log.screenshotPath && <span className="text-[10px] text-slate-500">📷</span>}
                       </div>
-                      {log.screenName && <div className={`text-xs mt-0.5 truncate ${sub}`}>{log.screenName}</div>}
-                      {log.elementId && <div className="text-[10px] text-slate-500 truncate">#{log.elementId}</div>}
+                      {log.screenName && <div className={`text-xs mt-0.5 truncate font-medium ${dark ? "text-slate-300" : "text-slate-700"}`}>{log.screenName}{log.elementId ? <span className={`font-normal ${sub}`}> #{log.elementId}</span> : null}</div>}
+                      {/* NG内容インライン表示 */}
+                      {log.verdict?.verdict === "NG" && log.verdict.content && (
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          {log.verdict.issueType && <span className="text-[10px] px-1.5 py-0.5 rounded" style={{background:"#dc2626",color:"white",fontWeight:700}}>{log.verdict.issueType}</span>}
+                          {log.verdict.priority && <span className="text-[10px] px-1.5 py-0.5 rounded border border-red-400 text-red-400">{log.verdict.priority}</span>}
+                          {log.verdict.status && <span className="text-[10px] px-1.5 py-0.5 rounded border" style={{borderColor:"#64748b",color:dark?"#94a3b8":"#64748b"}}>{log.verdict.status}</span>}
+                          <span className={`text-[10px] ${dark ? "text-red-300" : "text-red-600"}`}>{log.verdict.content.slice(0, 30)}{log.verdict.content.length > 30 ? "…" : ""}</span>
+                        </div>
+                      )}
                     </div>
-                    {log.screenshotPath && <span className="text-[10px] text-slate-600">📷</span>}
                   </button>
                 );
               })

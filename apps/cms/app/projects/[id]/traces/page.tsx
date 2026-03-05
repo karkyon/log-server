@@ -315,12 +315,19 @@ export default function TracesPage() {
                           onClick={() => router.push(`/projects/${projectId}/traces/${t.id}`)}
                           className="font-mono text-xs text-blue-400 hover:text-blue-300 hover:underline"
                         >
-                          <span className="text-blue-400 font-mono">{t.id.slice(0, 8)}…</span>
-                          {t.metadata?.label && (
-                            <div className="text-[10px] font-semibold mt-0.5" style={{color: dark ? "#cbd5e1" : "#334155", maxWidth: 200}}>{t.metadata.label}</div>
-                          )}
+                          {/* 1段目: ID + ラベルバッジ横並び */}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-blue-400 font-mono">{t.id.slice(0, 8)}…</span>
+                            {t.metadata?.label && (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                                style={{background: "#3b82f6", color: "white", whiteSpace: "nowrap"}}>
+                                {t.metadata.label}
+                              </span>
+                            )}
+                          </div>
+                          {/* 2段目: 画面遷移1行（省略表示） */}
                           {t.screens && t.screens.length > 0 && (
-                            <div className="text-[10px] mt-0.5" style={{color: dark ? "#64748b" : "#94a3b8", maxWidth: 200, whiteSpace: "normal", lineHeight: 1.4}}>
+                            <div className="text-[10px] mt-0.5 truncate" style={{color: dark ? "#64748b" : "#94a3b8", maxWidth: 280}}>
                               {t.screens.map((s: string) => s.replace("MC_","")).join(" → ")}
                             </div>
                           )}
