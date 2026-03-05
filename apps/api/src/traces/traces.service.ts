@@ -106,7 +106,7 @@ export class TracesService {
       }),
       this.prisma.consoleLog.findMany({
         where: { traceId },
-        orderBy: { timestamp: 'asc' },
+        orderBy: { ts: 'asc' },
       }),
     ]);
 
