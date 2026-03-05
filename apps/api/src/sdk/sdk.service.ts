@@ -74,7 +74,7 @@ export class SdkService {
         data: {
           projectId: body.projectId || 'legacy',
           traceId:   traceId,
-          featureId: body.featureId || 'unknown',
+          featureId: body.featureId || body.screenId || 'unknown',
           filePath:  filePath       || '',
           ts:        body.ts ? new Date(body.ts) : new Date(),
         },
