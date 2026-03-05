@@ -407,9 +407,9 @@ function TimelineView({ items, projectId, traceId, dark }: {
                         </div>
                       </div>
                       {!isLastInRow && (
-                        <div style={{ width: 28, flexShrink: 0, display: "flex", alignItems: "center" }}>
-                          <div style={{ width: "100%", height: 2, background: "#475569", position: "relative" }}>
-                            <div style={{ position: "absolute", right: isRtl ? "auto" : -1, left: isRtl ? -1 : "auto", top: "50%", transform: "translateY(-50%)", width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", ...(isRtl ? { borderRight: "8px solid #475569" } : { borderLeft: "8px solid #475569" }) }} />
+                        <div style={{ width: 28, flexShrink: 0, display: "flex", alignItems: "center", overflow: "visible" }}>
+                          <div style={{ width: "100%", height: 2, background: "#475569", position: "relative", overflow: "visible" }}>
+                            <div style={{ position: "absolute", right: isRtl ? "auto" : -7, left: isRtl ? -7 : "auto", top: "50%", transform: "translateY(-50%)", width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", ...(isRtl ? { borderRight: "8px solid #475569" } : { borderLeft: "8px solid #475569" }) }} />
                           </div>
                         </div>
                       )}
@@ -418,14 +418,12 @@ function TimelineView({ items, projectId, traceId, dark }: {
                 })}
               </div>
               {!isLastRow && (() => {
-                // 最終BOX中央のX位置を計算: BOX幅160, gap12
-                const lastIdx = isRtl ? 0 : row.length - 1;
-                // BOX=160, connector=28 → 1unit=188px, +padding4, BOX中央=+80
+                // BOX=160, connector=28 → 1unit=188px, padding=4, BOX中央=+80
                 const lineX = isRtl
                   ? 4 + 80
                   : 4 + (row.length - 1) * 188 + 80;
                 return (
-                  <div style={{ position: "relative", height: 36 }}>
+                  <div style={{ position: "relative", height: 36, overflow: "visible" }}>
                     <div style={{
                       position: "absolute",
                       left: lineX - 1.5,
@@ -435,7 +433,7 @@ function TimelineView({ items, projectId, traceId, dark }: {
                     <div style={{
                       position: "absolute",
                       left: lineX - 6,
-                      bottom: -6,
+                      top: 30,
                       width: 0, height: 0,
                       borderLeft: "6px solid transparent",
                       borderRight: "6px solid transparent",

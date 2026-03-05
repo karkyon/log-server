@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { api } from "@/lib/api";
@@ -261,32 +262,70 @@ export default function PatternsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="flex-1 overflow-auto">
-                  <div className="flex flex-wrap gap-3 p-2">
-                    {(selected.seqData?.seqs ?? []).map((seq: any, idx: number) => {
-                      const log = patternLogs[idx];
-                      const color = (seq.featureId||"").includes("MACHINING") ? "#8b5cf6" : (seq.featureId||"").includes("PRODUCTS") ? "#3b82f6" : "#64748b";
-                      const sp: string | null = log?.screenshotPath ?? null;
-                      const m = sp ? sp.match(/logs[/\\]screenshots[/\\](.+)/) : null;
-                      const imgUrl = m ? "http://192.168.1.11:3099/logs-screenshots/" + m[1].replace(/\\/g,"/").split("/").map(encodeURIComponent).join("/") : null;
-                      return (
-                        <div key={idx} onClick={() => { setPatternSelectedLog(log||null); setPatternViewMode("list"); }}
-                          className="cursor-pointer rounded-lg overflow-hidden"
-                          style={{width:150, border:`2px solid ${color}`, boxShadow:"0 1px 4px rgba(0,0,0,.1)"}}>
-                          <div style={{background:color, padding:"3px 7px", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                            <span style={{color:"white",fontWeight:700,fontSize:10}}>{(seq.featureId||"").replace("MC_","")}</span>
-                            <span style={{color:"rgba(255,255,255,0.8)",fontSize:10}}>seq {seq.seqNo||seq.seq||idx+1}</span>
-                          </div>
-                          <div style={{height:70,background:"#e2e8f0",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
-                            {imgUrl ? <img src={imgUrl} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} onError={(e)=>{(e.currentTarget.parentNode as HTMLElement).innerHTML='<span style="font-size:10px;color:#94a3b8">No img</span>';}} /> : <span style={{fontSize:10,color:"#94a3b8"}}>No img</span>}
-                          </div>
-                          <div style={{padding:"4px 7px",background:"white"}}>
-                            <div style={{fontSize:10,color:"#334155",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{seq.summary?.slice(0,22)||"—"}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                <div className="flex-1 overflow-auto p-2">
+                  {(() => {
+                    const ptSeqs: any[] = selected.seqData?.seqs ?? [];
+                    if (ptSeqs.length === 0) return <div className={`text-center py-8 text-sm ${subtext}`}>seqデータなし</div>;
+                    const PT_COLS = 5, BOX_W = 150, CON_W = 24, UNIT = BOX_W + CON_W;
+                    const ptRows: any[][] = [];
+                    for (let r = 0; r * PT_COLS < ptSeqs.length; r++) ptRows.push(ptSeqs.slice(r * PT_COLS, (r + 1) * PT_COLS));
+                    return (
+                      <div>
+                        {ptRows.map((ptRow, pr) => {
+                          const ptRtl = pr % 2 === 1;
+                          const ptLast = pr === ptRows.length - 1;
+                          const ptLineX = ptRtl ? 4 + BOX_W / 2 : 4 + (ptRow.length - 1) * UNIT + BOX_W / 2;
+                          return (
+                            <div key={pr}>
+                              <div style={{ display: "flex", flexDirection: ptRtl ? "row-reverse" : "row", alignItems: "center", padding: "0 4px" }}>
+                                {ptRow.map((seq: any, pc: number) => {
+                                  const pidx = pr * PT_COLS + pc;
+                                  const plog = patternLogs[pidx];
+                                  const ptLIR = pc === ptRow.length - 1;
+                                  const pcol = (seq.featureId||"").includes("MACHINING") ? "#8b5cf6" : (seq.featureId||"").includes("PRODUCTS") ? "#3b82f6" : "#64748b";
+                                  const psp: string | null = plog?.screenshotPath ?? null;
+                                  const pm = psp ? psp.match(/logs[/\\]screenshots[/\\](.+)/) : null;
+                                  const pimg = pm ? "http://192.168.1.11:3099/logs-screenshots/" + pm[1].replace(/\\\\/g,"/").split("/").map(encodeURIComponent).join("/") : null;
+                                  const pAct = patternSelectedLog?.id === plog?.id;
+                                  return (
+                                    <React.Fragment key={pidx}>
+                                      <div onClick={() => { setPatternSelectedLog(plog||null); setPatternViewMode("list"); }}
+                                        className="cursor-pointer rounded-lg overflow-hidden"
+                                        style={{ width: BOX_W, flexShrink: 0, border: `2px solid ${pAct ? "#3b82f6" : pcol}`, boxShadow: pAct ? "0 0 0 3px #3b82f680" : "0 1px 4px rgba(0,0,0,.1)" }}>
+                                        <div style={{ background: pcol, padding: "3px 7px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                          <span style={{ color: "white", fontWeight: 700, fontSize: 10 }}>{(seq.featureId||"").replace("MC_","")}</span>
+                                          <span style={{ color: "rgba(255,255,255,0.8)", fontSize: 10 }}>seq {seq.seqNo||seq.seq||pidx+1}</span>
+                                        </div>
+                                        <div style={{ height: 70, background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                                          {pimg ? <img src={pimg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { (e.currentTarget.parentNode as HTMLElement).innerHTML = '<span style="font-size:10px;color:#94a3b8">No img</span>'; }} /> : <span style={{ fontSize: 10, color: "#94a3b8" }}>No img</span>}
+                                        </div>
+                                        <div style={{ padding: "4px 7px", background: "white" }}>
+                                          <div style={{ fontSize: 10, color: "#334155", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{seq.summary?.slice(0,20)||"—"}</div>
+                                        </div>
+                                      </div>
+                                      {!ptLIR && (
+                                        <div style={{ width: CON_W, flexShrink: 0, display: "flex", alignItems: "center", overflow: "visible" }}>
+                                          <div style={{ width: "100%", height: 2, background: "#475569", position: "relative", overflow: "visible" }}>
+                                            <div style={{ position: "absolute", right: ptRtl ? "auto" : -7, left: ptRtl ? -7 : "auto", top: "50%", transform: "translateY(-50%)", width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", ...(ptRtl ? { borderRight: "8px solid #475569" } : { borderLeft: "8px solid #475569" }) }} />
+                                          </div>
+                                        </div>
+                                      )}
+                                    </React.Fragment>
+                                  );
+                                })}
+                              </div>
+                              {!ptLast && (
+                                <div style={{ position: "relative", height: 36, overflow: "visible" }}>
+                                  <div style={{ position: "absolute", left: ptLineX - 1.5, top: 0, width: 3, height: 36, background: "#475569" }} />
+                                  <div style={{ position: "absolute", left: ptLineX - 6, top: 30, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "9px solid #475569" }} />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </>
