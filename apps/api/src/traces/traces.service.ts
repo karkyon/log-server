@@ -131,7 +131,7 @@ export class TracesService {
       }, null as typeof screenshots[0] | null);
 
       // 同じseqNoのconsoleLogs群を付与
-      const logConsoleLogs = consoleLogs.filter(cl => cl.seqNo === log.seqNo);
+      const logConsoleLogs = consoleLogs.filter(cl => cl.seqNo != null ? cl.seqNo === log.seqNo : false);
       return {
         ...log,
         screenshotPath: log.screenshotPath || (nearest ? nearest.filePath : null),

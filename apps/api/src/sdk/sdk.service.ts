@@ -50,11 +50,12 @@ export class SdkService {
         data: {
           projectId: body.projectId || 'legacy',
           traceId:   traceId,
-          featureId: body.featureId || 'unknown',
+          featureId: body.featureId || body.screenName || 'unknown',
           level:     body.level     || 'log',
-          args:      body.args      ?? [],
+          args:      body.message ? [body.message] : (body.args ?? []),
           stack:     body.stack     || null,
           ts:        body.ts ? new Date(body.ts) : new Date(),
+          seqNo:     body.seqNo     ?? null,
         },
       });
       return { ok: true, id: log.id };

@@ -159,6 +159,7 @@ model ConsoleLog {
   args      Json
   stack     String?
   ts        DateTime @default(now())
+  seqNo     Int?     @map("seq_no")
   project   Project  @relation(fields: [projectId], references: [id])
   trace     Trace    @relation(fields: [traceId], references: [id])
 
