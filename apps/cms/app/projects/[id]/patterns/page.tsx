@@ -63,7 +63,17 @@ export default function PatternsPage() {
     finally { setPatternLoading(false); }
   };
 
-    const fetchPatterns = () => {
+    const deletePattern = async (patternId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("このパターンを削除しますか？")) return;
+    try {
+      await api.delete(`/api/projects/${id}/patterns/${patternId}`);
+      if (selected?.id === patternId) { setSelected(null); setPatternLogs([]); }
+      fetchPatterns();
+    } catch (e: any) { alert(`削除失敗: ${(e as any).response?.data?.message || (e as any).message}`); }
+  };
+
+  const fetchPatterns = () => {
     setLoading(true);
     api.get(`/api/projects/${id}/patterns`)
       .then(r => setPatterns(r.data))
@@ -139,12 +149,18 @@ export default function PatternsPage() {
                 <div key={p.id} onClick={() => { setSelected(p); loadPatternLogs(p); }}
                   className={`${cardBg} ${hoverBg} border rounded-xl p-4 cursor-pointer transition ${selected?.id === p.id ? "border-blue-500" : ""}`}>
                   <div className="flex items-start justify-between">
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <h3 className={`font-medium ${text}`}>{p.name}</h3>
-                      {p.screenMode && <p className={`text-xs ${subtext} mt-1`}>{p.screenMode}</p>}
+                      {p.screenMode && <p className={`text-xs ${subtext} mt-1 truncate`}>{p.screenMode}</p>}
                       {p.memo && <p className={`text-xs ${subtext} mt-1 line-clamp-2`}>{p.memo}</p>}
                     </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ml-2 ${STATUS_COLOR[p.status] || "bg-gray-100 text-gray-600"}`}>{p.status}</span>
+                    <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLOR[p.status] || "bg-gray-100 text-gray-600"}`}>{p.status}</span>
+                      <button onClick={e => deletePattern(p.id, e)}
+                        className={`text-[11px] px-1.5 py-0.5 rounded border ${dark?"border-red-800 text-red-400 hover:bg-red-900/30":"border-red-200 text-red-400 hover:bg-red-50"}`}>
+                        🗑
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

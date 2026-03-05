@@ -62,6 +62,9 @@ export default function TracesPage() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [periodFilter, setPeriodFilter] = useState("TODAY");
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteTraceId, setDeleteTraceId] = useState<string|null>(null);
+  const [editLabelId, setEditLabelId] = useState<string|null>(null);
+  const [editLabelVal, setEditLabelVal] = useState("");
   const [deleting, setDeleting] = useState(false);
 
   const fetchData = useCallback(async (showSpinner = true) => {
@@ -172,6 +175,22 @@ export default function TracesPage() {
     } finally {
       setForceStoping(null);
     }
+  };
+
+  const deleteTrace = async (traceId: string) => {
+    if (!confirm("このTraceIDと紐づくすべてのログ・判定・スクショを削除します。よろしいですか？")) return;
+    try {
+      await api.delete(`/api/projects/${projectId}/traces/${traceId}`);
+      await fetchData(false);
+    } catch (e: any) { alert(`削除失敗: ${e.response?.data?.message || e.message}`); }
+  };
+
+  const saveLabel = async (traceId: string) => {
+    try {
+      await api.patch(`/api/projects/${projectId}/traces/${traceId}/metadata`, { label: editLabelVal });
+      setEditLabelId(null);
+      await fetchData(false);
+    } catch (e: any) { alert(`更新失敗: ${e.response?.data?.message || e.message}`); }
   };
 
   const deleteProject = async () => {
@@ -315,17 +334,32 @@ export default function TracesPage() {
                           onClick={() => router.push(`/projects/${projectId}/traces/${t.id}`)}
                           className="font-mono text-xs text-blue-400 hover:text-blue-300 hover:underline"
                         >
-                          {/* 1段目: ID + ラベルバッジ横並び */}
+                          {/* 1段目: ID + ラベル編集 */}
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-blue-400 font-mono">{t.id.slice(0, 8)}…</span>
-                            {t.metadata?.label && (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                                style={{background: "#3b82f6", color: "white", whiteSpace: "nowrap"}}>
-                                {t.metadata.label}
+                            {editLabelId === t.id ? (
+                              <span className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                                <input autoFocus value={editLabelVal}
+                                  onChange={e => setEditLabelVal(e.target.value)}
+                                  onKeyDown={e => { if(e.key==="Enter") saveLabel(t.id); if(e.key==="Escape") setEditLabelId(null); }}
+                                  className={`text-[11px] px-1.5 py-0.5 rounded border w-28 ${dark?"bg-gray-800 border-gray-600 text-white":"bg-white border-gray-300"}`} />
+                                <button onClick={() => saveLabel(t.id)} className="text-[10px] text-blue-400 hover:text-blue-300">✓</button>
+                                <button onClick={() => setEditLabelId(null)} className="text-[10px] text-gray-400">✕</button>
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1 group">
+                                {t.metadata?.label && (
+                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                                    style={{background:"#3b82f6",color:"white",whiteSpace:"nowrap"}}>
+                                    {t.metadata.label}
+                                  </span>
+                                )}
+                                <button onClick={e => { e.stopPropagation(); setEditLabelId(t.id); setEditLabelVal(t.metadata?.label||""); }}
+                                  className={`text-[10px] opacity-0 group-hover:opacity-100 transition ${dark?"text-gray-500 hover:text-gray-300":"text-gray-400 hover:text-gray-600"}`}>✏️</button>
                               </span>
                             )}
                           </div>
-                          {/* 2段目: 画面遷移1行（省略表示） */}
+                          {/* 2段目: 画面遷移1行 */}
                           {t.screens && t.screens.length > 0 && (
                             <div className="text-[10px] mt-0.5 truncate" style={{color: dark ? "#64748b" : "#94a3b8", maxWidth: 280}}>
                               {t.screens.map((s: string) => s.replace("MC_","")).join(" → ")}

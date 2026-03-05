@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Patch, Body, Param, Request, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TracesService } from './traces.service';
 import { CreateIssueDto } from './create-issue.dto';
@@ -74,4 +74,24 @@ export class TracesController {
   ) {
     return this.traces.upsertVerdict(logId, body);
   }
+
+  @Delete('traces/:traceId')
+  deleteTrace(@Param('id') id: string, @Param('traceId') traceId: string) {
+    return this.traces.deleteTrace(id, traceId);
+  }
+
+  @Patch('traces/:traceId/metadata')
+  updateMetadata(
+    @Param('id') id: string,
+    @Param('traceId') traceId: string,
+    @Body('label') label: string,
+  ) {
+    return this.traces.updateMetadata(id, traceId, label);
+  }
+
+  @Delete('patterns/:patternId')
+  deletePattern(@Param('id') id: string, @Param('patternId') patternId: string) {
+    return this.traces.deletePattern(id, patternId);
+  }
+
 }

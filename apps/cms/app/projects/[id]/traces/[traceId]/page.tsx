@@ -372,7 +372,7 @@ function TimelineView({ items, projectId, traceId, dark }: {
           const isLastRow = r === rows.length - 1;
           return (
             <div key={r}>
-              <div style={{ display: "flex", flexDirection: isRtl ? "row-reverse" : "row", alignItems: "center", justifyContent: "space-between", padding: "0 4px" }}>
+              <div style={{ display: "flex", flexDirection: isRtl ? "row-reverse" : "row", alignItems: "center", gap: 12, padding: "0 4px" }}>
                 {row.map((item, c) => {
                   const isSelected = selected.includes(item.globalSeqNo);
                   const color = colorMap[item.featureId] || "#94a3b8";
@@ -417,27 +417,32 @@ function TimelineView({ items, projectId, traceId, dark }: {
                   );
                 })}
               </div>
-              {!isLastRow && (
-                <div style={{ position: "relative", height: 36 }}>
-                  {/* 縦線: LTRなら右端BOX中央、RTLなら左端BOX中央 */}
-                  <div style={{
-                    position: "absolute",
-                    [isRtl ? "left" : "right"]: 80,
-                    top: 0, width: 3, height: 36,
-                    background: "#475569"
-                  }} />
-                  {/* 矢印 */}
-                  <div style={{
-                    position: "absolute",
-                    [isRtl ? "left" : "right"]: 74,
-                    bottom: -6,
-                    width: 0, height: 0,
-                    borderLeft: "6px solid transparent",
-                    borderRight: "6px solid transparent",
-                    borderTop: "9px solid #475569"
-                  }} />
-                </div>
-              )}
+              {!isLastRow && (() => {
+                // 最終BOX中央のX位置を計算: BOX幅160, gap12
+                const lastIdx = isRtl ? 0 : row.length - 1;
+                const lineX = isRtl
+                  ? 4 + 80  // RTL: 左端から80px
+                  : 4 + (row.length - 1) * 172 + 80; // LTR: 右端BOX中央
+                return (
+                  <div style={{ position: "relative", height: 36 }}>
+                    <div style={{
+                      position: "absolute",
+                      left: lineX - 1.5,
+                      top: 0, width: 3, height: 36,
+                      background: "#475569"
+                    }} />
+                    <div style={{
+                      position: "absolute",
+                      left: lineX - 6,
+                      bottom: -6,
+                      width: 0, height: 0,
+                      borderLeft: "6px solid transparent",
+                      borderRight: "6px solid transparent",
+                      borderTop: "9px solid #475569"
+                    }} />
+                  </div>
+                );
+              })()}
             </div>
           );
         })}

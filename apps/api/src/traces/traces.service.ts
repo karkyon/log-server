@@ -136,6 +136,38 @@ export class TracesService {
     return logsWithScreenshot;
   }
 
+  async deleteTrace(projectId: string, traceId: string) {
+    const trace = await this.prisma.trace.findFirst({ where: { id: traceId, projectId } });
+    if (!trace) throw new (require('@nestjs/common').NotFoundException)('Trace not found');
+    // 手動cascade: LogVerdict → Log → Screenshot, ConsoleLog, Issue → Trace
+    const logs = await this.prisma.log.findMany({ where: { traceId }, select: { id: true } });
+    const logIds = logs.map((l: any) => l.id);
+    if (logIds.length > 0) {
+      await this.prisma.logVerdict.deleteMany({ where: { logId: { in: logIds } } });
+      await this.prisma.log.deleteMany({ where: { id: { in: logIds } } });
+    }
+    await this.prisma.screenshot.deleteMany({ where: { traceId } });
+    await this.prisma.consoleLog.deleteMany({ where: { traceId } });
+    await this.prisma.issue.deleteMany({ where: { traceId } });
+    return this.prisma.trace.delete({ where: { id: traceId } });
+  }
+
+  async updateMetadata(projectId: string, traceId: string, label: string) {
+    const trace = await this.prisma.trace.findFirst({ where: { id: traceId, projectId } });
+    if (!trace) throw new (require('@nestjs/common').NotFoundException)('Trace not found');
+    const meta = (trace.metadata as any) || {};
+    return this.prisma.trace.update({
+      where: { id: traceId },
+      data: { metadata: { ...meta, label } },
+    });
+  }
+
+  async deletePattern(projectId: string, patternId: string) {
+    const p = await this.prisma.pattern.findFirst({ where: { id: patternId, projectId } });
+    if (!p) throw new (require('@nestjs/common').NotFoundException)('Pattern not found');
+    return this.prisma.pattern.delete({ where: { id: patternId } });
+  }
+
   async upsertVerdict(logId: string, data: {
     verdict: string;
     issueType?: string;
