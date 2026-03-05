@@ -115,6 +115,7 @@ model Log {
   elementId   String?  @map("element_id")
   payload     Json?
   screenshotPath String? @map("screenshot_path")
+  seqNo       Int?     @map("seq_no")
   timestamp   DateTime @default(now())
   trace       Trace?   @relation(fields: [traceId], references: [id])
   verdict     LogVerdict?
