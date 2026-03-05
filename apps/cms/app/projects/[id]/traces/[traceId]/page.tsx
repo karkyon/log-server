@@ -270,7 +270,8 @@ function TimelineView({ items, projectId, traceId, dark }: {
   items: TLItem[]; projectId: string; traceId: string; dark: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [cols, setCols] = useState(8);
+  const [cols, setCols] = useState(5);
+  const [containerW, setContainerW] = useState(800);
   const [visible, setVisible] = useState<string | null>(null);
   const [selected, setSelected] = useState<number[]>([]);
   const [lastIdx, setLastIdx] = useState(-1);
@@ -288,8 +289,10 @@ function TimelineView({ items, projectId, traceId, dark }: {
   useEffect(() => {
     const calc = () => {
       if (containerRef.current) {
-        const w = containerRef.current.offsetWidth - 40;
-        setCols(Math.max(2, Math.floor(w / 180)));
+        const w = containerRef.current.offsetWidth;
+        setContainerW(w);
+        const g = 16;
+        setCols(Math.max(2, Math.floor((w + g) / (120 + g))));
       }
     };
     calc();
@@ -337,6 +340,9 @@ function TimelineView({ items, projectId, traceId, dark }: {
     } finally { setSaving(false); }
   };
 
+  const GAP = 16;
+  const boxW = Math.max(80, Math.floor((containerW - GAP * (cols - 1)) / cols));
+
   const rows: TLItem[][] = [];
   for (let r = 0; r * cols < visItems.length; r++) {
     rows.push(visItems.slice(r * cols, (r + 1) * cols));
@@ -382,7 +388,7 @@ function TimelineView({ items, projectId, traceId, dark }: {
                       <div key={item.globalSeqNo}
                         onClick={e => handleClick(e as any, item.globalSeqNo, r * cols + c)}
                         style={{
-                          width: 160, borderRadius: 8,
+                          width: boxW, flexShrink: 0, borderRadius: 8,
                           border: `2px solid ${isSelected ? "#3b82f6" : color}`,
                           background: "white",
                           cursor: "pointer", fontSize: 11, userSelect: "none", overflow: "hidden",
@@ -407,9 +413,9 @@ function TimelineView({ items, projectId, traceId, dark }: {
                         </div>
                       </div>
                       {!isLastInRow && (
-                        <div style={{ width: 28, flexShrink: 0, display: "flex", alignItems: "center", overflow: "visible" }}>
-                          <div style={{ width: "100%", height: 2, background: "#475569", position: "relative", overflow: "visible" }}>
-                            <div style={{ position: "absolute", right: isRtl ? "auto" : -7, left: isRtl ? -7 : "auto", top: "50%", transform: "translateY(-50%)", width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", ...(isRtl ? { borderRight: "8px solid #475569" } : { borderLeft: "8px solid #475569" }) }} />
+                        <div style={{ width: GAP, flexShrink: 0, alignSelf: "center", position: "relative" }}>
+                          <div style={{ height: 2, background: "#475569", position: "relative" }}>
+                            <div style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", ...(isRtl ? { left: -1, borderRight: "7px solid #475569" } : { right: -1, borderLeft: "7px solid #475569" }) }} />
                           </div>
                         </div>
                       )}
@@ -418,10 +424,10 @@ function TimelineView({ items, projectId, traceId, dark }: {
                 })}
               </div>
               {!isLastRow && (() => {
-                // BOX=160, connector=28 → 1unit=188px, padding=4, BOX中央=+80
+                // BOX均等幅: LTR末端=右端BOX中央, RTL末端=左端BOX中央
                 const lineX = isRtl
-                  ? 4 + 80
-                  : 4 + (row.length - 1) * 188 + 80;
+                  ? Math.floor(boxW / 2)
+                  : (cols - 1) * (boxW + GAP) + Math.floor(boxW / 2);
                 return (
                   <div style={{ position: "relative", height: 36, overflow: "visible" }}>
                     <div style={{

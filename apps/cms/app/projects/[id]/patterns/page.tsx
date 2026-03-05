@@ -21,6 +21,129 @@ const STATUS_COLOR: Record<string, string> = {
 
 const EMPTY_FORM = { name: "", screenMode: "", seqData: "{}", memo: "" };
 
+
+// ─────────────── PatternSerpentine ───────────────
+// 蛇行レイアウトを独立コンポーネント化（ResizeObserver/hooks使用のため）
+function PatternSerpentine({ ptSeqs, patternLogs, patternSelectedLog, setPatternSelectedLog, setPatternViewMode, dark, subtext }: {
+  ptSeqs: any[];
+  patternLogs: any[];
+  patternSelectedLog: any;
+  setPatternSelectedLog: (v: any) => void;
+  setPatternViewMode: (v: string) => void;
+  dark: boolean;
+  subtext: string;
+}) {
+  const contRef = React.useRef<HTMLDivElement>(null);
+  const [cols, setCols] = React.useState(4);
+  const [containerW, setContainerW] = React.useState(800);
+
+  React.useEffect(() => {
+    const calc = () => {
+      if (contRef.current) {
+        const w = contRef.current.offsetWidth;
+        setContainerW(w);
+        const g = 12;
+        setCols(Math.max(2, Math.floor((w + g) / (130 + g))));
+      }
+    };
+    calc();
+    const ro = new ResizeObserver(calc);
+    if (contRef.current) ro.observe(contRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  if (ptSeqs.length === 0) {
+    return <div className={`text-center py-8 text-sm ${subtext}`}>seqデータなし</div>;
+  }
+
+  const GAP = 12;
+  const boxW = Math.max(80, Math.floor((containerW - GAP * (cols - 1)) / cols));
+
+  const ptRows: any[][] = [];
+  for (let r = 0; r * cols < ptSeqs.length; r++) {
+    ptRows.push(ptSeqs.slice(r * cols, (r + 1) * cols));
+  }
+
+  return (
+    <div ref={contRef} style={{ width: "100%" }}>
+      {ptRows.map((ptRow, pr) => {
+        const ptRtl = pr % 2 === 1;
+        const ptLast = pr === ptRows.length - 1;
+        // LTR末端: 右端BOX中央, RTL末端: 左端BOX中央
+        const lineX = ptRtl
+          ? Math.floor(boxW / 2)
+          : (cols - 1) * (boxW + GAP) + Math.floor(boxW / 2);
+        return (
+          <div key={pr}>
+            <div style={{ display: "flex", flexDirection: ptRtl ? "row-reverse" : "row", alignItems: "stretch" }}>
+              {ptRow.map((seq: any, pc: number) => {
+                const pidx = pr * cols + pc;
+                const plog = patternLogs[pidx];
+                const ptLIR = pc === ptRow.length - 1;
+                const pcol = (seq.featureId||"").includes("MACHINING") ? "#8b5cf6"
+                  : (seq.featureId||"").includes("PRODUCTS") ? "#3b82f6" : "#64748b";
+                const psp: string | null = plog?.screenshotPath ?? null;
+                const pm = psp ? psp.match(/logs[/\\]screenshots[/\\](.+)/) : null;
+                const pimg = pm
+                  ? "http://192.168.1.11:3099/logs-screenshots/" + pm[1].replace(/\\\\/g, "/").split("/").map(encodeURIComponent).join("/")
+                  : null;
+                const pAct = patternSelectedLog?.id === plog?.id;
+                return (
+                  <React.Fragment key={pidx}>
+                    <div
+                      onClick={() => { setPatternSelectedLog(plog||null); setPatternViewMode("list"); }}
+                      className="cursor-pointer rounded-lg overflow-hidden"
+                      style={{
+                        width: boxW, flexShrink: 0,
+                        border: `2px solid ${pAct ? "#3b82f6" : pcol}`,
+                        boxShadow: pAct ? "0 0 0 3px #3b82f680" : "0 1px 4px rgba(0,0,0,.1)"
+                      }}>
+                      <div style={{ background: pcol, padding: "3px 7px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ color: "white", fontWeight: 700, fontSize: 10 }}>{(seq.featureId||"").replace("MC_","")}</span>
+                        <span style={{ color: "rgba(255,255,255,0.8)", fontSize: 10 }}>seq {seq.seqNo||seq.seq||pidx+1}</span>
+                      </div>
+                      <div style={{ height: 70, background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                        {pimg
+                          ? <img src={pimg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              onError={e => { (e.currentTarget.parentNode as HTMLElement).innerHTML = '<span style="font-size:10px;color:#94a3b8">No img</span>'; }} />
+                          : <span style={{ fontSize: 10, color: "#94a3b8" }}>No img</span>}
+                      </div>
+                      <div style={{ padding: "4px 7px", background: "white" }}>
+                        <div style={{ fontSize: 10, color: "#334155", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {seq.summary?.slice(0, 20) || "—"}
+                        </div>
+                      </div>
+                    </div>
+                    {!ptLIR && (
+                      <div style={{ width: GAP, flexShrink: 0, alignSelf: "center", position: "relative" }}>
+                        <div style={{ height: 2, background: "#475569", position: "relative" }}>
+                          <div style={{
+                            position: "absolute", top: "50%", transform: "translateY(-50%)",
+                            width: 0, height: 0,
+                            borderTop: "4px solid transparent",
+                            borderBottom: "4px solid transparent",
+                            ...(ptRtl ? { left: -1, borderRight: "6px solid #475569" } : { right: -1, borderLeft: "6px solid #475569" })
+                          }} />
+                        </div>
+                      </div>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+            {!ptLast && (
+              <div style={{ position: "relative", height: 36, overflow: "visible" }}>
+                <div style={{ position: "absolute", left: lineX - 1.5, top: 0, width: 3, height: 36, background: "#475569" }} />
+                <div style={{ position: "absolute", left: lineX - 6, top: 28, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "9px solid #475569" }} />
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function PatternsPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
@@ -263,69 +386,15 @@ export default function PatternsPage() {
                 </div>
               ) : (
                 <div className="flex-1 overflow-auto p-2">
-                  {(() => {
-                    const ptSeqs: any[] = selected.seqData?.seqs ?? [];
-                    if (ptSeqs.length === 0) return <div className={`text-center py-8 text-sm ${subtext}`}>seqデータなし</div>;
-                    const PT_COLS = 5, BOX_W = 150, CON_W = 24, UNIT = BOX_W + CON_W;
-                    const ptRows: any[][] = [];
-                    for (let r = 0; r * PT_COLS < ptSeqs.length; r++) ptRows.push(ptSeqs.slice(r * PT_COLS, (r + 1) * PT_COLS));
-                    return (
-                      <div>
-                        {ptRows.map((ptRow, pr) => {
-                          const ptRtl = pr % 2 === 1;
-                          const ptLast = pr === ptRows.length - 1;
-                          const ptLineX = ptRtl ? 4 + BOX_W / 2 : 4 + (ptRow.length - 1) * UNIT + BOX_W / 2;
-                          return (
-                            <div key={pr}>
-                              <div style={{ display: "flex", flexDirection: ptRtl ? "row-reverse" : "row", alignItems: "center", padding: "0 4px" }}>
-                                {ptRow.map((seq: any, pc: number) => {
-                                  const pidx = pr * PT_COLS + pc;
-                                  const plog = patternLogs[pidx];
-                                  const ptLIR = pc === ptRow.length - 1;
-                                  const pcol = (seq.featureId||"").includes("MACHINING") ? "#8b5cf6" : (seq.featureId||"").includes("PRODUCTS") ? "#3b82f6" : "#64748b";
-                                  const psp: string | null = plog?.screenshotPath ?? null;
-                                  const pm = psp ? psp.match(/logs[/\\]screenshots[/\\](.+)/) : null;
-                                  const pimg = pm ? "http://192.168.1.11:3099/logs-screenshots/" + pm[1].replace(/\\\\/g,"/").split("/").map(encodeURIComponent).join("/") : null;
-                                  const pAct = patternSelectedLog?.id === plog?.id;
-                                  return (
-                                    <React.Fragment key={pidx}>
-                                      <div onClick={() => { setPatternSelectedLog(plog||null); setPatternViewMode("list"); }}
-                                        className="cursor-pointer rounded-lg overflow-hidden"
-                                        style={{ width: BOX_W, flexShrink: 0, border: `2px solid ${pAct ? "#3b82f6" : pcol}`, boxShadow: pAct ? "0 0 0 3px #3b82f680" : "0 1px 4px rgba(0,0,0,.1)" }}>
-                                        <div style={{ background: pcol, padding: "3px 7px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                          <span style={{ color: "white", fontWeight: 700, fontSize: 10 }}>{(seq.featureId||"").replace("MC_","")}</span>
-                                          <span style={{ color: "rgba(255,255,255,0.8)", fontSize: 10 }}>seq {seq.seqNo||seq.seq||pidx+1}</span>
-                                        </div>
-                                        <div style={{ height: 70, background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-                                          {pimg ? <img src={pimg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { (e.currentTarget.parentNode as HTMLElement).innerHTML = '<span style="font-size:10px;color:#94a3b8">No img</span>'; }} /> : <span style={{ fontSize: 10, color: "#94a3b8" }}>No img</span>}
-                                        </div>
-                                        <div style={{ padding: "4px 7px", background: "white" }}>
-                                          <div style={{ fontSize: 10, color: "#334155", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{seq.summary?.slice(0,20)||"—"}</div>
-                                        </div>
-                                      </div>
-                                      {!ptLIR && (
-                                        <div style={{ width: CON_W, flexShrink: 0, display: "flex", alignItems: "center", overflow: "visible" }}>
-                                          <div style={{ width: "100%", height: 2, background: "#475569", position: "relative", overflow: "visible" }}>
-                                            <div style={{ position: "absolute", right: ptRtl ? "auto" : -7, left: ptRtl ? -7 : "auto", top: "50%", transform: "translateY(-50%)", width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", ...(ptRtl ? { borderRight: "8px solid #475569" } : { borderLeft: "8px solid #475569" }) }} />
-                                          </div>
-                                        </div>
-                                      )}
-                                    </React.Fragment>
-                                  );
-                                })}
-                              </div>
-                              {!ptLast && (
-                                <div style={{ position: "relative", height: 36, overflow: "visible" }}>
-                                  <div style={{ position: "absolute", left: ptLineX - 1.5, top: 0, width: 3, height: 36, background: "#475569" }} />
-                                  <div style={{ position: "absolute", left: ptLineX - 6, top: 30, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "9px solid #475569" }} />
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
+                  <PatternSerpentine
+                    ptSeqs={selected.seqData?.seqs ?? []}
+                    patternLogs={patternLogs}
+                    patternSelectedLog={patternSelectedLog}
+                    setPatternSelectedLog={setPatternSelectedLog}
+                    setPatternViewMode={setPatternViewMode}
+                    dark={dark}
+                    subtext={subtext}
+                  />
                 </div>
               )}
             </>
