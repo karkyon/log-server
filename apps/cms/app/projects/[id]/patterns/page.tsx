@@ -29,7 +29,7 @@ function PatternSerpentine({ ptSeqs, patternLogs, patternSelectedLog, setPattern
   patternLogs: any[];
   patternSelectedLog: any;
   setPatternSelectedLog: (v: any) => void;
-  setPatternViewMode: (v: string) => void;
+  setPatternViewMode: (v: "list" | "timeline" | "seq") => void;
   dark: boolean;
   subtext: string;
 }) {
