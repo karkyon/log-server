@@ -342,9 +342,9 @@ export default function TracesPage() {
                                 <input autoFocus value={editLabelVal}
                                   onChange={e => setEditLabelVal(e.target.value)}
                                   onKeyDown={e => { if(e.key==="Enter") saveLabel(t.id); if(e.key==="Escape") setEditLabelId(null); }}
-                                  className={`text-[11px] px-1.5 py-0.5 rounded border w-28 ${dark?"bg-gray-800 border-gray-600 text-white":"bg-white border-gray-300"}`} />
-                                <button onClick={() => saveLabel(t.id)} className="text-[10px] text-blue-400 hover:text-blue-300">✓</button>
-                                <button onClick={() => setEditLabelId(null)} className="text-[10px] text-gray-400">✕</button>
+                                  className={`text-xs px-2 py-1 rounded border w-32 ${dark?"bg-gray-800 border-gray-500 text-white":"bg-white border-gray-400 text-gray-800"}`} />
+                                <button onClick={() => saveLabel(t.id)} className="text-sm px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-bold leading-none">✓</button>
+                                <button onClick={() => setEditLabelId(null)} className="text-sm px-2 py-0.5 rounded bg-gray-500 hover:bg-gray-600 text-white font-bold leading-none">✕</button>
                               </span>
                             ) : (
                               <span className="flex items-center gap-1 group">
@@ -412,7 +412,7 @@ export default function TracesPage() {
                           </button>
                           <button
                             onClick={e => { e.stopPropagation(); deleteTrace(t.id); }}
-                            className={`text-[10px] px-2 py-1 rounded border transition-all ${dark ? "border-red-800 text-red-400 hover:bg-red-900/30" : "border-red-300 text-red-500 hover:bg-red-50"}`}
+                            className={`text-xs px-2.5 py-1.5 rounded border-2 font-bold transition-all ${dark ? "border-red-700 text-red-400 hover:bg-red-900/40" : "border-red-400 text-red-500 hover:bg-red-50"}`}
                           >
                             🗑
                           </button>

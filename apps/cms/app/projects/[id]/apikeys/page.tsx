@@ -62,9 +62,24 @@ export default function ApiKeysPage() {
 
   const handleCopy = () => {
     if (!newKey) return;
-    navigator.clipboard.writeText(newKey);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const copyText = (text: string): Promise<void> => {
+      if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+      }
+      // HTTP環境フォールバック（execCommand）
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;pointer-events:none';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      return Promise.resolve();
+    };
+    copyText(newKey).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => alert('コピーに失敗しました。手動でコピーしてください。'));
   };
 
   const bg = dark ? "bg-gray-950" : "bg-gray-50";
