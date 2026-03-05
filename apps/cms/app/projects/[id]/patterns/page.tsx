@@ -44,7 +44,26 @@ export default function PatternsPage() {
     fetchPatterns();
   }, [id]);
 
-  const fetchPatterns = () => {
+  const loadPatternLogs = async (pattern: Pattern) => {
+    const seqs: any[] = pattern.seqData?.seqs ?? [];
+    const traceId = seqs[0]?.traceId ?? pattern.seqData?.traceId ?? null;
+    if (!traceId) { setPatternLogs([]); setPatternTrace(null); return; }
+    setPatternLoading(true);
+    try {
+      const [logsRes, traceRes] = await Promise.all([
+        api.get(`/api/projects/${id}/traces/${traceId}/logs`),
+        api.get(`/api/projects/${id}/traces/${traceId}`),
+      ]);
+      const seqNos = new Set(seqs.map((s: any) => s.seqNo ?? s.seq));
+      const allLogs: any[] = logsRes.data;
+      setPatternLogs(seqNos.size > 0 ? allLogs.filter((_: any, i: number) => seqNos.has(i + 1)) : allLogs);
+      setPatternTrace(traceRes.data);
+      setPatternSelectedLog(null);
+    } catch { setPatternLogs([]); }
+    finally { setPatternLoading(false); }
+  };
+
+    const fetchPatterns = () => {
     setLoading(true);
     api.get(`/api/projects/${id}/patterns`)
       .then(r => setPatterns(r.data))
