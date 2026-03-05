@@ -607,7 +607,7 @@ export default function TraceDetailPage() {
     featureId: log.screenName || "UNKNOWN",
     summary: log.elementId ? `${log.screenName} — ${log.elementId}` : (log.screenName || log.eventType),
     ts: log.timestamp,
-    hasNg: log.verdict?.verdict === "NG" || log.eventType === "ERROR" || log.payload?.result === "NG",
+    hasNg: log.verdict?.verdict === "NG" || (log.verdict?.verdict !== "OK" && (log.eventType === "ERROR" || log.payload?.result === "NG")),
     imgPath: (() => {
       const sp = log.screenshotPath;
       if (!sp) return null;
@@ -712,7 +712,7 @@ export default function TraceDetailPage() {
                   <button key={log.id} onClick={() => setSelectedLog(log)}
                     className={`w-full text-left px-4 py-2.5 border-b flex items-start gap-3 transition-colors ${tl}`}
                     style={{
-                      background: isActive ? (dark ? "#1e3a5f" : "#eff6ff") : (log.verdict?.verdict === "NG" || log.eventType === "ERROR") ? (dark ? "rgba(153,27,27,0.15)" : "#fff5f5") : "",
+                      background: isActive ? (dark ? "#1e3a5f" : "#eff6ff") : (log.verdict?.verdict === "NG" || (log.verdict?.verdict !== "OK" && log.eventType === "ERROR")) ? (dark ? "rgba(153,27,27,0.15)" : "#fff5f5") : "",
                       boxShadow: isActive ? `inset 0 0 0 2px #3b82f6` : "",
                       borderLeft: isActive ? "3px solid #3b82f6" : "3px solid transparent",
                     }}>

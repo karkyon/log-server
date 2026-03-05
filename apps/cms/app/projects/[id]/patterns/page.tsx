@@ -252,7 +252,7 @@ export default function PatternsPage() {
       {/* メインコンテンツ */}
       <main className="px-6 py-6 flex gap-4" style={{height: "calc(100vh - 90px)", overflow: "hidden"}}>
         {/* 左: パターン一覧（折りたたみ対応） */}
-        <div style={{width: patternListOpen ? 280 : 44, flexShrink: 0, transition: "width 0.2s", overflow: "hidden"}}>
+        <div style={{width: patternListOpen ? 320 : 44, flexShrink: 0, transition: "width 0.2s", overflow: "hidden"}}>
           <div className="flex items-center justify-between mb-3">
             {patternListOpen && <h2 className="font-semibold text-sm">パターン一覧 ({patterns.length})</h2>}
             <button onClick={() => setPatternListOpen(v => !v)}
@@ -281,7 +281,7 @@ export default function PatternsPage() {
                     <div className="flex items-center gap-1 ml-2 flex-shrink-0">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLOR[p.status] || "bg-gray-100 text-gray-600"}`}>{p.status}</span>
                       <button onClick={e => deletePattern(p.id, e)}
-                        className={`text-[11px] px-1.5 py-0.5 rounded border ${dark?"border-red-800 text-red-400 hover:bg-red-900/30":"border-red-200 text-red-400 hover:bg-red-50"}`}>
+                        className={`text-xs px-2 py-1 rounded border-2 font-bold flex-shrink-0 ${dark?"border-red-700 text-red-400 hover:bg-red-900/30":"border-red-400 text-red-500 hover:bg-red-50"}`}>
                         🗑
                       </button>
                     </div>
