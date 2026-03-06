@@ -309,6 +309,76 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
   );
 }
 
+// ─────────────── ScreenNav (フローティング画面遷移ナビ) ───────────────
+function ScreenNav({ logs, onJump, dark }: {
+  logs: LogEntry[]; onJump: (idx: number) => void; dark: boolean;
+}) {
+  const [open, setOpen] = React.useState(true);
+  // SCREEN_LOADイベントを時系列で抽出（同じ画面でも時系列別）
+  const screens = React.useMemo(() => {
+    return logs
+      .map((l, i) => ({ ...l, idx: i }))
+      .filter(l => l.eventType === "SCREEN_LOAD")
+      .map((l, i, arr) => ({
+        name: l.screenName || "UNKNOWN",
+        logIdx: l.idx,
+        isNew: i === 0 || l.screenName !== arr[i-1].screenName
+      }));
+  }, [logs]);
+
+  if (screens.length === 0) return null;
+
+  return (
+    <div style={{
+      position: "fixed", right: 16, top: "50%", transform: "translateY(-50%)",
+      zIndex: 50, maxHeight: "70vh", display: "flex", flexDirection: "column",
+      background: dark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.92)",
+      backdropFilter: "blur(8px)", borderRadius: 10,
+      border: dark ? "1px solid #334155" : "1px solid #cbd5e1",
+      boxShadow: "0 4px 24px rgba(0,0,0,0.18)", minWidth: 180, maxWidth: 220,
+    }}>
+      {/* ヘッダー */}
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{ padding: "7px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer",
+          borderBottom: open ? (dark ? "1px solid #334155" : "1px solid #e2e8f0") : "none",
+          color: dark ? "#94a3b8" : "#64748b", display: "flex", alignItems: "center", gap: 6,
+          borderRadius: open ? "10px 10px 0 0" : 10,
+        }}>
+        <span>🖥</span>
+        <span>画面遷移</span>
+        <span style={{ marginLeft:"auto" }}>{open ? "▾" : "▸"}</span>
+      </div>
+      {open && (
+        <div style={{ overflowY: "auto", padding: "6px 0" }}>
+          {screens.map((s, i) => (
+            <React.Fragment key={i}>
+              <button
+                onClick={() => onJump(s.logIdx)}
+                style={{
+                  display: "block", width: "100%", textAlign: "left",
+                  padding: "4px 12px", fontSize: 10, fontWeight: 600,
+                  background: "none", border: "none", cursor: "pointer",
+                  color: dark ? "#93c5fd" : "#1d4ed8",
+                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                }}
+                title={s.name}
+                onMouseEnter={e => (e.currentTarget.style.background = dark ? "#1e3a5f" : "#eff6ff")}
+                onMouseLeave={e => (e.currentTarget.style.background = "none")}
+              >
+                {s.name.replace("MC_", "")}
+              </button>
+              {i < screens.length - 1 && (
+                <div style={{ textAlign: "center", fontSize: 10, color: dark ? "#475569" : "#94a3b8", lineHeight: 1.2 }}>↓</div>
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─────────────── TimelineView ───────────────
 function TimelineView({ items, projectId, traceId, dark }: {
   items: TLItem[]; projectId: string; traceId: string; dark: boolean;
@@ -587,6 +657,12 @@ export default function TraceDetailPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const jumpToLog = useCallback((idx: number) => {
+    setSelectedLog(logs[idx]);
+    const el = listRef.current?.querySelectorAll('[data-logidx]')[idx] as HTMLElement;
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [logs]);
   const [viewMode, setViewMode] = useState<"list" | "timeline">("list");
   const [forceStoping, setForceStoping] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
@@ -767,7 +843,7 @@ export default function TraceDetailPage() {
       {/* コンテンツ */}
       {viewMode === "list" ? (
         <div className="flex flex-1 overflow-hidden">
-          <div className={`w-1/2 border-r overflow-y-auto ${dark ? "border-slate-800" : "border-slate-200"}`}>
+          <div ref={listRef} className={`w-1/2 border-r overflow-y-auto ${dark ? "border-slate-800" : "border-slate-200"}`}>
             {logs.length === 0 ? (
               <div className={`text-center py-12 text-sm ${sub}`}>ログがありません</div>
             ) : (
@@ -775,7 +851,7 @@ export default function TraceDetailPage() {
                 const style = EVENT_STYLE[log.eventType] || { icon: "•", color: "text-slate-400", bg: "bg-slate-700/60" };
                 const isActive = selectedLog?.id === log.id;
                 return (
-                  <button key={log.id} onClick={() => setSelectedLog(log)}
+                  <button key={log.id} data-logidx={logs.indexOf(log)} onClick={() => setSelectedLog(log)}
                     className={`w-full text-left px-4 py-2.5 border-b flex items-start gap-3 transition-colors ${tl}`}
                     style={{
                       background: isActive ? (dark ? "#1e3a5f" : "#eff6ff") : (log.verdict?.verdict === "NG" || (log.verdict?.verdict !== "OK" && log.eventType === "ERROR")) ? (dark ? "rgba(153,27,27,0.15)" : "#fff5f5") : "",
@@ -788,18 +864,19 @@ export default function TraceDetailPage() {
                     </div>
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] flex-shrink-0 mt-0.5 ${style.bg}`}>{style.icon}</div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold whitespace-nowrap ${
-                          log.eventType === "ERROR"       ? "bg-red-100 text-red-700" :
-                          log.eventType === "CLICK"       ? "bg-rose-100 text-rose-600" :
-                          log.eventType === "UI_CLICK"    ? "bg-rose-100 text-rose-600" :
-                          log.eventType === "INPUT"       ? "bg-amber-100 text-amber-700" :
-                          log.eventType === "UI_CHANGE"   ? "bg-amber-100 text-amber-700" :
-                          log.eventType === "SCREEN_LOAD" ? "bg-blue-100 text-blue-700" :
-                          log.eventType === "SCREENSHOT"  ? "bg-cyan-100 text-cyan-700" :
-                          log.eventType === "BACKEND"     ? "bg-yellow-100 text-yellow-700" :
-                          "bg-gray-100 text-gray-600"
-                        }`}>{log.eventType}</span>
+                      <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+                        <span style={{
+                          display:"inline-block", padding:"1px 6px", borderRadius:3, fontSize:9, fontWeight:700, whiteSpace:"nowrap",
+                          ...(log.eventType==="ERROR"       ? {background:"#fee2e2",color:"#b91c1c"} :
+                              log.eventType==="CLICK"       ? {background:"#ffe4e6",color:"#e11d48"} :
+                              log.eventType==="UI_CLICK"    ? {background:"#ffe4e6",color:"#e11d48"} :
+                              log.eventType==="INPUT"       ? {background:"#fef3c7",color:"#b45309"} :
+                              log.eventType==="UI_CHANGE"   ? {background:"#fef3c7",color:"#b45309"} :
+                              log.eventType==="SCREEN_LOAD" ? {background:"#dbeafe",color:"#1d4ed8"} :
+                              log.eventType==="SCREENSHOT"  ? {background:"#cffafe",color:"#0e7490"} :
+                              log.eventType==="BACKEND"     ? {background:"#fef9c3",color:"#854d0e"} :
+                                                              {background:"#f1f5f9",color:"#475569"})
+                        }}>{log.eventType}</span>
                         <span className={`text-[10px] ${sub}`}>{fmtTJ(log.timestamp)}</span>
                         {log.screenshotPath && <span className="text-[10px] text-slate-500">📷</span>}
                       </div>
@@ -842,6 +919,7 @@ export default function TraceDetailPage() {
           <TimelineView items={tlItems} projectId={projectId} traceId={traceId} dark={dark} />
         </div>
       )}
+      {viewMode === "list" && <ScreenNav logs={logs} onJump={jumpToLog} dark={dark} />}
 
       {/* レビュー生成モーダル */}
       {showGenerateModal && (
