@@ -314,16 +314,20 @@ function ScreenNav({ logs, onJump, dark }: {
   logs: LogEntry[]; onJump: (idx: number) => void; dark: boolean;
 }) {
   const [open, setOpen] = React.useState(true);
-  // SCREEN_LOADイベントを時系列で抽出（同じ画面でも時系列別）
+  // SCREEN_LOADイベントを時系列で抽出（連続する同一画面は1つにまとめる）
   const screens = React.useMemo(() => {
-    return logs
+    const raw = logs
       .map((l, i) => ({ ...l, idx: i }))
-      .filter(l => l.eventType === "SCREEN_LOAD")
-      .map((l, i, arr) => ({
-        name: l.screenName || "UNKNOWN",
-        logIdx: l.idx,
-        isNew: i === 0 || l.screenName !== arr[i-1].screenName
-      }));
+      .filter(l => l.eventType === "SCREEN_LOAD");
+    // 連続する同一画面名を除去
+    const deduped: { name: string; logIdx: number }[] = [];
+    for (const l of raw) {
+      const name = l.screenName || "UNKNOWN";
+      if (deduped.length === 0 || deduped[deduped.length - 1].name !== name) {
+        deduped.push({ name, logIdx: l.idx });
+      }
+    }
+    return deduped;
   }, [logs]);
 
   if (screens.length === 0) return null;
@@ -332,7 +336,7 @@ function ScreenNav({ logs, onJump, dark }: {
     <div style={{
       position: "fixed", right: 16, top: "50%", transform: "translateY(-50%)",
       zIndex: 50, maxHeight: "70vh", display: "flex", flexDirection: "column",
-      background: dark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.92)",
+      background: dark ? "rgba(15,23,42,0.82)" : "rgba(255,255,255,0.80)",
       backdropFilter: "blur(8px)", borderRadius: 10,
       border: dark ? "1px solid #334155" : "1px solid #cbd5e1",
       boxShadow: "0 4px 24px rgba(0,0,0,0.18)", minWidth: 180, maxWidth: 220,
