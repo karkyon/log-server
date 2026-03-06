@@ -101,7 +101,14 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
 
   const p = log.payload || {};
   const inputValue = p.value ?? p.inputValue ?? p.text ?? null;
-  const consoleOutput = p.console ?? p.consoleLog ?? p.log ?? null;
+  const consoleOutput = (() => {
+    const cls = (log as any).consoleLogs;
+    if (Array.isArray(cls) && cls.length > 0) {
+      return cls.map((c: any) => `[${(c.level||'log').toUpperCase()}] ${Array.isArray(c.args) ? c.args.join(' ') : String(c.args||'')}`).join('
+');
+    }
+    return p.console ?? p.consoleLog ?? p.log ?? null;
+  })();
   const issues = p.issues ?? p.problems ?? p.remarks ?? null;
 
   const summary = (() => {
@@ -168,10 +175,16 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
         <div className={rowCls}>
           <div className={labelCls}>イベント種別</div>
           <div className={valCls}>
-            <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
-              log.eventType === "ERROR" ? "bg-red-100 text-red-700" :
-              log.eventType === "UI_CLICK" ? "bg-purple-100 text-purple-700" :
-              log.eventType === "SCREEN_LOAD" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"
+            <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap ${
+              log.eventType === "ERROR"       ? "bg-red-100 text-red-700" :
+              log.eventType === "CLICK"       ? "bg-purple-100 text-purple-700" :
+              log.eventType === "UI_CLICK"    ? "bg-purple-100 text-purple-700" :
+              log.eventType === "INPUT"       ? "bg-amber-100 text-amber-700" :
+              log.eventType === "UI_CHANGE"   ? "bg-amber-100 text-amber-700" :
+              log.eventType === "SCREEN_LOAD" ? "bg-blue-100 text-blue-700" :
+              log.eventType === "SCREENSHOT"  ? "bg-cyan-100 text-cyan-700" :
+              log.eventType === "BACKEND"     ? "bg-yellow-100 text-yellow-700" :
+              "bg-gray-100 text-gray-600"
             }`}>{log.eventType}</span>
           </div>
         </div>
@@ -399,6 +412,28 @@ function TimelineView({ items, projectId, traceId, dark }: {
                         <div style={{ background: color, padding: "3px 7px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                           <span style={{ color: "white", fontWeight: 700, fontSize: 10, letterSpacing: "0.3px" }}>{item.featureId.replace("MC_", "")}</span>
                           <span style={{ color: "rgba(255,255,255,0.85)", fontSize: 10, fontWeight: 600 }}>seq {item.globalSeqNo}</span>
+                        </div>
+                        {/* イベント種別バッジ */}
+                        <div style={{ padding: "2px 6px", background: "rgba(0,0,0,0.04)" }}>
+                          <span style={{
+                            display: "inline-block", fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 3,
+                            background:
+                              item.eventType === "ERROR"       ? "#fee2e2" :
+                              item.eventType === "CLICK"       ? "#f3e8ff" :
+                              item.eventType === "UI_CLICK"    ? "#f3e8ff" :
+                              item.eventType === "INPUT"       ? "#fef3c7" :
+                              item.eventType === "UI_CHANGE"   ? "#fef3c7" :
+                              item.eventType === "SCREEN_LOAD" ? "#dbeafe" :
+                              item.eventType === "SCREENSHOT"  ? "#cffafe" : "#f1f5f9",
+                            color:
+                              item.eventType === "ERROR"       ? "#b91c1c" :
+                              item.eventType === "CLICK"       ? "#7e22ce" :
+                              item.eventType === "UI_CLICK"    ? "#7e22ce" :
+                              item.eventType === "INPUT"       ? "#b45309" :
+                              item.eventType === "UI_CHANGE"   ? "#b45309" :
+                              item.eventType === "SCREEN_LOAD" ? "#1d4ed8" :
+                              item.eventType === "SCREENSHOT"  ? "#0e7490" : "#475569",
+                          }}>{item.eventType}</span>
                         </div>
                         {/* スクショ */}
                         <div style={{ height: 90, background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
