@@ -34,12 +34,13 @@ const EVENT_STYLE: Record<string, { icon: string; color: string; bg: string }> =
 const PALETTE = ["#3b82f6","#8b5cf6","#10b981","#f59e0b","#ef4444","#06b6d4","#ec4899","#84cc16","#f97316","#6366f1"];
 
 function fmtTJ(ts: string) {
-  try { return new Date(ts).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit", second: "2-digit" }); }
+  try { return new Date(ts).toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit", second: "2-digit" }); }
   catch { return ts || ""; }
 }
 function formatDt(ts: string) {
   const d = new Date(ts);
-  return isNaN(d.getTime()) ? "—" : d.toLocaleString("ja-JP");
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
 }
 function formatDuration(start: string, end: string | null) {
   if (!end) return "継続中";
@@ -147,7 +148,7 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
           </div>
           {screenshotUrl ? (
             <div className="relative">
-              <img src={screenshotUrl} alt="スクリーンショット" className="w-full object-contain" style={{ maxHeight: 280, minHeight: 60 }}
+              <img src={screenshotUrl} alt="スクリーンショット" className="w-full object-contain" style={{ maxHeight: 280, minHeight: 60, border: "2px solid #64748b", borderRadius: 4, display: "block" }}
                 onError={e => {
                   e.currentTarget.style.display = "none";
                   const fb = e.currentTarget.nextSibling as HTMLElement;
@@ -402,7 +403,7 @@ function TimelineView({ items, projectId, traceId, dark }: {
                         {/* スクショ */}
                         <div style={{ height: 90, background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                           {item.imgPath
-                            ? <img src={item.imgPath} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { (e.currentTarget.parentNode as HTMLElement).innerHTML='<span style="font-size:11px;color:#94a3b8;">No img</span>'; }} />
+                            ? <img src={item.imgPath} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", background: "#e2e8f0", border: "1px solid #94a3b8", borderRadius: 2 }} onError={e => { (e.currentTarget.parentNode as HTMLElement).innerHTML='<span style="font-size:11px;color:#94a3b8;">No img</span>'; }} />
                             : <span style={{ fontSize: 11, color: "#94a3b8" }}>No img</span>}
                         </div>
                         {/* テキスト部 */}
