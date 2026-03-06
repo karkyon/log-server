@@ -121,8 +121,8 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
   };
 
   const sub = dark ? "text-slate-400" : "text-slate-500";
-  const rowCls = `flex border-b last:border-0 ${dark ? "border-slate-700" : "border-slate-200"}`;
-  const labelCls = `px-4 py-2.5 text-xs font-medium w-24 flex-shrink-0 ${dark ? "bg-slate-900 text-slate-400" : "bg-slate-50 text-slate-500"}`;
+  const rowCls = `flex items-center border-b last:border-0 ${dark ? "border-slate-700" : "border-slate-200"}`;
+  const labelCls = `px-4 py-2.5 text-xs font-medium w-28 flex-shrink-0 ${dark ? "bg-slate-900 text-slate-400" : "bg-slate-50 text-slate-500"}`;
   const valCls = `px-4 py-2.5 text-xs flex-1`;
   const borderCls = dark ? "border-slate-700" : "border-slate-200";
 
@@ -788,8 +788,18 @@ export default function TraceDetailPage() {
                     </div>
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] flex-shrink-0 mt-0.5 ${style.bg}`}>{style.icon}</div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-bold ${style.color}`}>{log.eventType}</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold whitespace-nowrap ${
+                          log.eventType === "ERROR"       ? "bg-red-100 text-red-700" :
+                          log.eventType === "CLICK"       ? "bg-rose-100 text-rose-600" :
+                          log.eventType === "UI_CLICK"    ? "bg-rose-100 text-rose-600" :
+                          log.eventType === "INPUT"       ? "bg-amber-100 text-amber-700" :
+                          log.eventType === "UI_CHANGE"   ? "bg-amber-100 text-amber-700" :
+                          log.eventType === "SCREEN_LOAD" ? "bg-blue-100 text-blue-700" :
+                          log.eventType === "SCREENSHOT"  ? "bg-cyan-100 text-cyan-700" :
+                          log.eventType === "BACKEND"     ? "bg-yellow-100 text-yellow-700" :
+                          "bg-gray-100 text-gray-600"
+                        }`}>{log.eventType}</span>
                         <span className={`text-[10px] ${sub}`}>{fmtTJ(log.timestamp)}</span>
                         {log.screenshotPath && <span className="text-[10px] text-slate-500">📷</span>}
                       </div>
