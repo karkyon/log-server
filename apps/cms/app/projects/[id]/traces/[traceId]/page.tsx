@@ -390,7 +390,7 @@ function TimelineView({ items, projectId, traceId, dark }: {
   const containerRef = useRef<HTMLDivElement>(null);
   const [cols, setCols] = useState(5);
   const [containerW, setContainerW] = useState(800);
-  const [visible, setVisible] = useState<string | null>(null);
+  const [visible, setVisible] = useState<string[]>([]);  // 空=全表示
   const [selected, setSelected] = useState<number[]>([]);
   const [lastIdx, setLastIdx] = useState(-1);
   const [saving, setSaving] = useState(false);
@@ -402,7 +402,7 @@ function TimelineView({ items, projectId, traceId, dark }: {
   const colorMap: Record<string, string> = {};
   fids.forEach((f, i) => { colorMap[f] = PALETTE[i % PALETTE.length]; });
 
-  const visItems = visible ? items.filter(i => i.featureId === visible) : items;
+  const visItems = visible.length > 0 ? items.filter(i => visible.includes(i.featureId)) : items;
 
   useEffect(() => {
     const calc = () => {
@@ -475,16 +475,29 @@ function TimelineView({ items, projectId, traceId, dark }: {
       <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 16px", marginBottom: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b" }}>画面フィルター:</span>
-          <button onClick={() => setVisible(null)}
-            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 6, border: `1px solid ${visible === null ? "#3b82f6" : "#cbd5e1"}`, background: visible === null ? "#eff6ff" : "white", color: visible === null ? "#1d4ed8" : "#64748b", cursor: "pointer" }}>
+          <button onClick={() => setVisible([])}
+            style={{ fontSize: 11, padding: "3px 10px", borderRadius: 6,
+              border: `1px solid ${visible.length === 0 ? "#3b82f6" : "#cbd5e1"}`,
+              background: visible.length === 0 ? "#eff6ff" : "white",
+              color: visible.length === 0 ? "#1d4ed8" : "#64748b", cursor: "pointer" }}>
             すべて表示
           </button>
-          {fids.map(fid => (
-            <button key={fid} onClick={() => setVisible(v => v === fid ? null : fid)}
-              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 6, border: `1px solid ${colorMap[fid]}`, background: visible === fid ? colorMap[fid] + "22" : "white", color: colorMap[fid], cursor: "pointer" }}>
-              {fid.replace("MC_", "")}
-            </button>
-          ))}
+          {fids.map(fid => {
+            const isOn = visible.includes(fid);
+            return (
+              <button key={fid}
+                onClick={() => setVisible(v => isOn ? v.filter(x => x !== fid) : [...v, fid])}
+                style={{ fontSize: 11, padding: "3px 10px", borderRadius: 6,
+                  border: `2px solid ${colorMap[fid]}`,
+                  background: isOn ? colorMap[fid] + "22" : "white",
+                  color: colorMap[fid], cursor: "pointer",
+                  fontWeight: isOn ? 700 : 400,
+                  boxShadow: isOn ? `0 0 0 1px ${colorMap[fid]}` : "none",
+                }}>
+                {isOn ? "✓ " : ""}{fid.replace("MC_", "")}
+              </button>
+            );
+          })}
           <span style={{ marginLeft: "auto", fontSize: 11, color: "#94a3b8" }}>{visItems.length} seq</span>
         </div>
       </div>
