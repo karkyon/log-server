@@ -104,8 +104,11 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
   const consoleOutput = (() => {
     const cls = (log as any).consoleLogs;
     if (Array.isArray(cls) && cls.length > 0) {
-      return cls.map((c: any) => `[${(c.level||'log').toUpperCase()}] ${Array.isArray(c.args) ? c.args.join(' ') : String(c.args||'')}`).join('
-');
+      return cls.map((c: any) => {
+        const lvl = "[" + (c.level||"log").toUpperCase() + "] ";
+        const msg = Array.isArray(c.args) ? c.args.join(" ") : String(c.args||"");
+        return lvl + msg;
+      }).join("\n");
     }
     return p.console ?? p.consoleLog ?? p.log ?? null;
   })();
