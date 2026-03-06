@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useTheme } from "@/lib/useTheme";
 import { api } from "@/lib/api";
@@ -48,6 +48,33 @@ function formatDuration(start: string, end: string | null) {
   if (isNaN(ms) || ms < 0) return "—";
   const m = Math.floor(ms / 60000); const h = Math.floor(m / 60);
   return h > 0 ? `${h}h${m % 60}m` : `${m}m`;
+}
+
+// ─────────────── ConsoleAccordion ───────────────
+function ConsoleAccordion({ content, dark }: { content: string; dark: boolean }) {
+  const [open, setOpen] = React.useState(false);
+  const lines = content.split("\n");
+  const preview = lines.slice(0, 3).join("\n");
+  const sub = dark ? "text-slate-400" : "text-slate-500";
+  return (
+    <div>
+      <button onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-2 text-[10px] font-semibold px-2 py-1 rounded border w-full text-left transition-colors ${
+          dark ? "border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300" : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600"
+        }`}>
+        <span>{open ? "▾" : "▸"}</span>
+        <span>{open ? "コンソール閉じる" : `コンソール表示 (${lines.length}行)`}</span>
+      </button>
+      {open && (
+        <pre className={`mt-1 text-[10px] whitespace-pre-wrap p-2 rounded border max-h-60 overflow-y-auto ${
+          dark ? "bg-slate-950 border-slate-700 text-slate-300" : "bg-slate-50 border-slate-200 text-slate-700"
+        }`}>{content}</pre>
+      )}
+      {!open && (
+        <pre className={`mt-1 text-[10px] whitespace-pre-wrap p-2 rounded opacity-60 ${sub}`}>{preview}{lines.length > 3 ? `\n... (他${lines.length - 3}行)` : ""}</pre>
+      )}
+    </div>
+  );
 }
 
 // ─────────────── ActionReviewDetail ───────────────
@@ -180,8 +207,8 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
           <div className={valCls}>
             <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap ${
               log.eventType === "ERROR"       ? "bg-red-100 text-red-700" :
-              log.eventType === "CLICK"       ? "bg-purple-100 text-purple-700" :
-              log.eventType === "UI_CLICK"    ? "bg-purple-100 text-purple-700" :
+              log.eventType === "CLICK"       ? "bg-rose-100 text-rose-600" :
+              log.eventType === "UI_CLICK"    ? "bg-rose-100 text-rose-600" :
               log.eventType === "INPUT"       ? "bg-amber-100 text-amber-700" :
               log.eventType === "UI_CHANGE"   ? "bg-amber-100 text-amber-700" :
               log.eventType === "SCREEN_LOAD" ? "bg-blue-100 text-blue-700" :
@@ -197,7 +224,7 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
           <div className={labelCls}>Console</div>
           <div className={`${valCls} ${sub}`}>
             {consoleOutput
-              ? <pre className="text-[10px] whitespace-pre-wrap">{typeof consoleOutput === "string" ? consoleOutput : JSON.stringify(consoleOutput, null, 2)}</pre>
+              ? <ConsoleAccordion content={typeof consoleOutput === "string" ? consoleOutput : JSON.stringify(consoleOutput, null, 2)} dark={dark} />
               : <span className="italic">このseqでのコンソール出力なし</span>}
           </div>
         </div>
@@ -422,16 +449,16 @@ function TimelineView({ items, projectId, traceId, dark }: {
                             display: "inline-block", fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 3,
                             background:
                               item.eventType === "ERROR"       ? "#fee2e2" :
-                              item.eventType === "CLICK"       ? "#f3e8ff" :
-                              item.eventType === "UI_CLICK"    ? "#f3e8ff" :
+                              item.eventType === "CLICK"       ? "#ffe4e6" :
+                              item.eventType === "UI_CLICK"    ? "#ffe4e6" :
                               item.eventType === "INPUT"       ? "#fef3c7" :
                               item.eventType === "UI_CHANGE"   ? "#fef3c7" :
                               item.eventType === "SCREEN_LOAD" ? "#dbeafe" :
                               item.eventType === "SCREENSHOT"  ? "#cffafe" : "#f1f5f9",
                             color:
                               item.eventType === "ERROR"       ? "#b91c1c" :
-                              item.eventType === "CLICK"       ? "#7e22ce" :
-                              item.eventType === "UI_CLICK"    ? "#7e22ce" :
+                              item.eventType === "CLICK"       ? "#e11d48" :
+                              item.eventType === "UI_CLICK"    ? "#e11d48" :
                               item.eventType === "INPUT"       ? "#b45309" :
                               item.eventType === "UI_CHANGE"   ? "#b45309" :
                               item.eventType === "SCREEN_LOAD" ? "#1d4ed8" :
