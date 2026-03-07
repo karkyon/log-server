@@ -78,9 +78,10 @@ function ConsoleAccordion({ content, dark }: { content: string; dark: boolean })
 }
 
 // ─────────────── ActionReviewDetail ───────────────
-function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSaved }: {
+function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSaved, onDeleteSeqNo }: {
   log: LogEntry; seqNo: number; dark: boolean; traceId: string; projectId: string;
-  onVerdictSaved?: (logId: string, verdict: LogEntry["verdict"]) => void
+  onVerdictSaved?: (logId: string, verdict: LogEntry["verdict"]) => void;
+  onDeleteSeqNo?: () => void;
 }) {
   const calcInitVerdict = (l: typeof log) =>
     l.verdict?.verdict === "NG" || l.payload?.result === "NG" || l.eventType === "ERROR" ? "NG" : "OK";
@@ -165,13 +166,22 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
 
   return (
     <div className="p-0">
-      <div className={`flex items-baseline gap-6 px-5 py-3 border-b ${dark ? "bg-slate-900 border-slate-700" : "bg-slate-50 border-slate-200"}`}>
+      <div className={`flex items-center gap-6 px-5 py-3 border-b ${dark ? "bg-slate-900 border-slate-700" : "bg-slate-50 border-slate-200"}`}>
         <div>
           <span className={`text-[10px] font-bold ${sub} mr-2`}>SEQNO</span>
           <span className="text-lg font-bold">{seqNo}</span>
         </div>
         <div className="text-sm font-semibold flex-1">{summary}</div>
         <div className={`text-[10px] font-mono ${sub}`}>{new Date(log.timestamp).toLocaleString("ja-JP")}</div>
+        {onDeleteSeqNo && (
+          <button onClick={onDeleteSeqNo}
+            title={`seqNo ${(log as any).seqNo ?? seqNo} を削除`}
+            style={{flexShrink:0,background:"#7f1d1d",color:"white",border:"none",borderRadius:6,padding:"4px 10px",fontSize:12,cursor:"pointer",lineHeight:1.4,opacity:0.85}}
+            onMouseEnter={e=>(e.currentTarget.style.opacity="1")}
+            onMouseLeave={e=>(e.currentTarget.style.opacity="0.85")}>
+            🗑 削除
+          </button>
+        )}
       </div>
       <div className={`flex items-center gap-4 px-5 py-2 text-[10px] font-mono border-b ${dark ? "border-slate-800 bg-slate-950 text-slate-500" : "border-slate-100 bg-white text-slate-400"}`}>
         <span>TRACEID <span className="text-blue-400">{traceId.slice(0, 24)}...</span></span>
@@ -926,6 +936,19 @@ export default function TraceDetailPage() {
                 projectId={projectId}
                 onVerdictSaved={(logId, verdictData) => {
                   setLogs(prev => prev.map(l => l.id === logId ? { ...l, verdict: verdictData } : l));
+                }}
+                onDeleteSeqNo={async () => {
+                  const sno = (selectedLog as any).seqNo;
+                  if (sno == null) { alert("seqNoが不明です"); return; }
+                  if (!confirm(`seqNo ${sno} を削除しますか？\n以降のseqNoは自動でRenumberingされます。`)) return;
+                  try {
+                    await api.delete(`/api/projects/${projectId}/traces/${traceId}/logs/seq/${sno}`);
+                    setSelectedLog(null);
+                    const res = await api.get(`/api/projects/${projectId}/traces/${traceId}/logs`);
+                    setLogs(res.data);
+                  } catch (e: any) {
+                    alert("削除失敗: " + (e?.response?.data?.message || e.message));
+                  }
                 }}
               />
             )}

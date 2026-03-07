@@ -75,6 +75,17 @@ export class TracesController {
     return this.traces.upsertVerdict(logId, body);
   }
 
+
+  @Delete('traces/:traceId/logs/seq/:seqNo')
+  @UseGuards(JwtAuthGuard)
+  async deleteSeqNo(
+    @Param('id') id: string,
+    @Param('traceId') traceId: string,
+    @Param('seqNo') seqNo: string,
+  ) {
+    return this.traces.deleteSeqNo(id, traceId, parseInt(seqNo, 10));
+  }
+
   @Delete('traces/:traceId')
   deleteTrace(@Param('id') id: string, @Param('traceId') traceId: string) {
     return this.traces.deleteTrace(id, traceId);

@@ -83,10 +83,19 @@ function PatternSerpentine({ ptSeqs, patternLogs, patternSelectedLog, setPattern
                 const pcol = (seq.featureId||"").includes("MACHINING") ? "#8b5cf6"
                   : (seq.featureId||"").includes("PRODUCTS") ? "#3b82f6" : "#64748b";
                 const psp: string | null = plog?.screenshotPath ?? null;
-                const pm = psp ? psp.match(/logs[/\\]screenshots[/\\](.+)/) : null;
-                const pimg = pm
-                  ? "http://192.168.1.11:3099/logs-screenshots/" + pm[1].replace(/\\\\/g, "/").split("/").map(encodeURIComponent).join("/")
-                  : null;
+                const pimg = (() => {
+                  if (!psp) return null;
+                  // 旧パス: logs/screenshots/FEATURE/FILE.png
+                  const pmOld = psp.match(/logs[/\\]screenshots[/\\](.+)/);
+                  if (pmOld) return "http://192.168.1.11:3099/logs-screenshots/" + pmOld[1].replace(/\\/g, "/").split("/").map(encodeURIComponent).join("/");
+                  // 新SDK パス: screenshots/TIMESTAMP.png
+                  const pmNew = psp.match(/screenshots[/\\]([^/\\]+\.(?:png|jpg|jpeg))/i);
+                  if (pmNew) return "http://192.168.1.11:3099/screenshots/" + encodeURIComponent(pmNew[1]);
+                  // フルパスの場合はファイル名だけ取り出す
+                  const pmFile = psp.match(/([^/\\]+\.(?:png|jpg|jpeg))$/i);
+                  if (pmFile) return "http://192.168.1.11:3099/screenshots/" + encodeURIComponent(pmFile[1]);
+                  return null;
+                })();
                 const pAct = patternSelectedLog?.id === plog?.id;
                 return (
                   <React.Fragment key={pidx}>
@@ -252,7 +261,7 @@ export default function PatternsPage() {
       {/* メインコンテンツ */}
       <main className="px-6 py-6 flex gap-4" style={{height: "calc(100vh - 90px)", overflow: "hidden"}}>
         {/* 左: パターン一覧（折りたたみ対応） */}
-        <div style={{width: patternListOpen ? 360 : 44, flexShrink: 0, transition: "width 0.2s", overflowX: "hidden", overflowY: "auto"}}>
+        <div style={{width: patternListOpen ? 360 : 44, minWidth: patternListOpen ? 360 : 44, maxWidth: patternListOpen ? 360 : 44, flexShrink: 0, transition: "width 0.2s", overflowX: "hidden", overflowY: "auto"}}>
           <div className="flex items-center justify-between mb-3">
             {patternListOpen && <h2 className="font-semibold text-sm">パターン一覧 ({patterns.length})</h2>}
             <button onClick={() => setPatternListOpen(v => !v)}
@@ -268,18 +277,17 @@ export default function PatternsPage() {
                 className="mt-3 text-blue-500 text-sm hover:underline">+ 最初のパターンを登録</button>
             </div>
           ) : (
-            <div className="grid gap-3">
+            <div className="grid gap-3" style={{width:"100%", minWidth:0}}>
               {patterns.map(p => (
                 <div key={p.id} onClick={() => { setSelected(p); loadPatternLogs(p); }}
-                  className={`${cardBg} ${hoverBg} border rounded-xl p-4 cursor-pointer transition ${selected?.id === p.id ? "border-blue-500" : ""}`}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h3 className={`font-medium truncate ${text}`}>{p.name}</h3>
-                      {p.screenMode && <p className={`text-xs ${subtext} mt-1 truncate`}>{p.screenMode}</p>}
-                      {p.memo && <p className={`text-xs ${subtext} mt-1 line-clamp-2`}>{p.memo}</p>}
-                    </div>
+                  className={`${cardBg} ${hoverBg} border rounded-xl p-4 cursor-pointer transition ${selected?.id === p.id ? "border-blue-500" : ""}`} style={{width:"100%", maxWidth:"100%", boxSizing:"border-box", minWidth:0}}>
+                  <div style={{position:"relative", paddingRight:44}}>
+                    <h3 style={{fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}} className={text}>{p.name}</h3>
+                    {p.screenMode && <p className={`text-xs ${subtext} mt-1`} style={{overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{p.screenMode}</p>}
+                    {p.memo && <p className={`text-xs ${subtext} mt-1`} style={{display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden"}}>{p.memo}</p>}
+                    {console.log("PHASE10_DELETE_BTN_RENDERED:", p.id, p.name) as any}
                     <button onClick={e => deletePattern(p.id, e)}
-                      className="ml-2 flex-shrink-0 text-xs px-2 py-1 rounded bg-red-700 hover:bg-red-600 text-white font-bold"
+                      style={{position:"absolute", top:0, right:0, background:"#b91c1c", color:"white", border:"none", borderRadius:6, padding:"4px 8px", fontSize:13, cursor:"pointer", lineHeight:1}}
                       title="削除">
                       🗑
                     </button>

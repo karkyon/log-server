@@ -195,6 +195,24 @@ TLog.screenCapture(screenId, label)        // SCREENSHOT ショートカット
 // 未定義メソッド → Proxyで自動吸収（既存コードのエラーなし）
 ```
 
+    // ロガー
+    TLogAutoInstrument.init(screenId, { screenName: screenName });
+
+		// ロガー
+		TLogAutoInstrument.init('SC_ID', { screenName: 'SC_NAME'});
+
+		## TALONでの呼出位置・方法
+    var isValid = true;
+    function resizeContents_end(){
+
+      if (isValid){
+
+          // ロガー
+          TLogAutoInstrument.init('MC_MACHINING', { screenName: 'マシニング情報管理画面'});
+
+      }
+      isValid = false;
+    }
 ---
 
 ## 🗂️ 対応画面（20画面）
