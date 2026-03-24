@@ -1,4 +1,14 @@
-"use client";
+#!/usr/bin/env python3
+"""
+patterns/page.tsx を正しい内容で直接書き込む
+"""
+from pathlib import Path
+import shutil
+
+TARGET = Path.home() / "projects/log-server/apps/cms/app/projects/[id]/patterns/page.tsx"
+shutil.copy(TARGET, TARGET.with_suffix(".tsx.bak_write"))
+
+content = r'''"use client";
 import React from "react";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -585,3 +595,7 @@ export default function PatternsPage() {
     </div>
   );
 }
+'''
+
+TARGET.write_text(content)
+print(f"✅ {TARGET} に書き込み完了 ({len(content.splitlines())} 行)")

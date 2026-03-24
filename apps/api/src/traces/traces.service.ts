@@ -49,6 +49,20 @@ export class TracesService {
     return { trace, logs, screenshots };
   }
 
+  async updateIssue(projectId: string, issueId: string, body: {
+    status?: string; priority?: string; title?: string; description?: string;
+  }) {
+    return this.prisma.issue.update({
+      where: { id: issueId },
+      data: { ...body, updatedAt: new Date() },
+    });
+  }
+
+  async deleteIssue(projectId: string, issueId: string) {
+    await this.prisma.issue.delete({ where: { id: issueId } });
+    return { ok: true };
+  }
+
   async findIssues(projectId: string) {
     return this.prisma.issue.findMany({
       where: { projectId },

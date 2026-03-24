@@ -21,7 +21,9 @@ const STATUS_COLOR: Record<string, string> = {
 
 const EMPTY_FORM = { name: "", screenMode: "", seqData: "{}", memo: "" };
 
+
 // ─────────────── PatternSerpentine ───────────────
+// 蛇行レイアウトを独立コンポーネント化（ResizeObserver/hooks使用のため）
 function PatternSerpentine({ ptSeqs, patternLogs, patternSelectedLog, setPatternSelectedLog, setPatternViewMode, dark, subtext }: {
   ptSeqs: any[];
   patternLogs: any[];
@@ -56,6 +58,7 @@ function PatternSerpentine({ ptSeqs, patternLogs, patternSelectedLog, setPattern
 
   const GAP = 12;
   const boxW = Math.max(80, Math.floor((containerW - GAP * (cols - 1)) / cols));
+
   const ptRows: any[][] = [];
   for (let r = 0; r * cols < ptSeqs.length; r++) {
     ptRows.push(ptSeqs.slice(r * cols, (r + 1) * cols));
@@ -66,6 +69,7 @@ function PatternSerpentine({ ptSeqs, patternLogs, patternSelectedLog, setPattern
       {ptRows.map((ptRow, pr) => {
         const ptRtl = pr % 2 === 1;
         const ptLast = pr === ptRows.length - 1;
+        // LTR末端: 右端BOX中央, RTL末端: 左端BOX中央
         const lineX = ptRtl
           ? Math.floor(boxW / 2)
           : (cols - 1) * (boxW + GAP) + Math.floor(boxW / 2);
@@ -81,10 +85,13 @@ function PatternSerpentine({ ptSeqs, patternLogs, patternSelectedLog, setPattern
                 const psp: string | null = plog?.screenshotPath ?? null;
                 const pimg = (() => {
                   if (!psp) return null;
+                  // 旧パス: logs/screenshots/FEATURE/FILE.png
                   const pmOld = psp.match(/logs[/\\]screenshots[/\\](.+)/);
                   if (pmOld) return "http://192.168.1.11:3099/logs-screenshots/" + pmOld[1].replace(/\\/g, "/").split("/").map(encodeURIComponent).join("/");
+                  // 新SDK パス: screenshots/TIMESTAMP.png
                   const pmNew = psp.match(/screenshots[/\\]([^/\\]+\.(?:png|jpg|jpeg))/i);
                   if (pmNew) return "http://192.168.1.11:3099/screenshots/" + encodeURIComponent(pmNew[1]);
+                  // フルパスの場合はファイル名だけ取り出す
                   const pmFile = psp.match(/([^/\\]+\.(?:png|jpg|jpeg))$/i);
                   if (pmFile) return "http://192.168.1.11:3099/screenshots/" + encodeURIComponent(pmFile[1]);
                   return null;
@@ -93,7 +100,7 @@ function PatternSerpentine({ ptSeqs, patternLogs, patternSelectedLog, setPattern
                 return (
                   <React.Fragment key={pidx}>
                     <div
-                      onClick={() => { setPatternSelectedLog(plog || null); setPatternViewMode("list"); }}
+                      onClick={() => { setPatternSelectedLog(plog||null); setPatternViewMode("list"); }}
                       className="cursor-pointer rounded-lg overflow-hidden"
                       style={{
                         width: boxW, flexShrink: 0,
@@ -146,112 +153,6 @@ function PatternSerpentine({ ptSeqs, patternLogs, patternSelectedLog, setPattern
   );
 }
 
-// ─────────────── PatternIssueModal ───────────────
-function PatternIssueModal({ pattern, projectId, dark, onClose }: {
-  pattern: Pattern; projectId: string; dark: boolean; onClose: () => void;
-}) {
-  const [issueForm, setIssueForm] = useState({
-    title: `パターン「${pattern.name}」に関する課題`,
-    type: "バグ", priority: "MEDIUM", description: ""
-  });
-  const [submitting, setSubmitting] = useState(false);
-
-  const bdr = dark ? "1px solid #334155" : "1px solid #e2e8f0";
-  const bg  = dark ? "#0f172a" : "#fff";
-  const sub = dark ? "#64748b" : "#94a3b8";
-
-  const submit = async () => {
-    if (!issueForm.title.trim()) { alert("タイトルを入力してください"); return; }
-    setSubmitting(true);
-    try {
-      await api.post(`/api/projects/${projectId}/issues`, {
-        featureId:   pattern.screenMode || pattern.name,
-        title:       issueForm.title.trim(),
-        type:        issueForm.type,
-        priority:    issueForm.priority,
-        status:      "未対応",
-        description: issueForm.description.trim(),
-      });
-      onClose();
-      alert("✅ チケットを発行しました");
-    } catch (e: any) {
-      alert("発行失敗: " + (e?.response?.data?.message || e.message));
-    } finally { setSubmitting(false); }
-  };
-
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }}
-      onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ background: bg, border: bdr, borderRadius: 14, width: "100%", maxWidth: 480, boxShadow: "0 8px 40px rgba(0,0,0,0.28)", overflow: "hidden" }}>
-        <div style={{ padding: "12px 16px", borderBottom: bdr, display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 700 }}>🎫 チケット発行</span>
-          <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: "#d1fae5", color: "#065f46", fontWeight: 600 }}>
-            パターン: {pattern.name}
-          </span>
-          <div style={{ flex: 1 }} />
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: sub }}>✕</button>
-        </div>
-        <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
-          <div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: sub, marginBottom: 6 }}>種別</div>
-            <div style={{ display: "flex", gap: 6 }}>
-              {([["バグ","#dc2626"],["改善","#2563eb"],["確認","#7c3aed"]] as [string,string][]).map(([t,c]) => (
-                <button key={t} onClick={() => setIssueForm(f => ({...f, type: t}))}
-                  style={{ padding: "3px 10px", borderRadius: 99, border: "none", fontSize: 11, cursor: "pointer",
-                    background: issueForm.type === t ? c : (dark ? "#1e293b" : "#f1f5f9"),
-                    color: issueForm.type === t ? "#fff" : sub, fontWeight: issueForm.type === t ? 700 : 400 }}>
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: sub, marginBottom: 4 }}>タイトル</div>
-            <input value={issueForm.title} onChange={e => setIssueForm(f => ({...f, title: e.target.value}))}
-              style={{ width: "100%", fontSize: 12, padding: "7px 10px", borderRadius: 6, border: bdr,
-                background: dark ? "#1e293b" : "#f8fafc", color: dark ? "#e2e8f0" : "#1e293b", fontFamily: "inherit" }} />
-          </div>
-          <div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: sub, marginBottom: 4 }}>優先度</div>
-            <div style={{ display: "flex", gap: 6 }}>
-              {([["HIGH","#dc2626"],["MEDIUM","#d97706"],["LOW","#64748b"]] as [string,string][]).map(([p,c]) => (
-                <button key={p} onClick={() => setIssueForm(f => ({...f, priority: p}))}
-                  style={{ padding: "3px 10px", borderRadius: 99, border: "none", fontSize: 11, cursor: "pointer",
-                    background: issueForm.priority === p ? c : (dark ? "#1e293b" : "#f1f5f9"),
-                    color: issueForm.priority === p ? "#fff" : sub, fontWeight: issueForm.priority === p ? 700 : 400 }}>
-                  {p}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: sub, marginBottom: 4 }}>内容</div>
-            <textarea value={issueForm.description} onChange={e => setIssueForm(f => ({...f, description: e.target.value}))}
-              rows={3} placeholder="課題の詳細..."
-              style={{ width: "100%", fontSize: 12, padding: "7px 10px", borderRadius: 6, border: bdr,
-                background: dark ? "#1e293b" : "#f8fafc", color: dark ? "#e2e8f0" : "#1e293b",
-                fontFamily: "inherit", resize: "vertical" }} />
-          </div>
-        </div>
-        <div style={{ padding: "10px 16px", borderTop: bdr, display: "flex", justifyContent: "flex-end", gap: 8 }}>
-          <button onClick={onClose}
-            style={{ fontSize: 12, padding: "5px 14px", borderRadius: 6, border: bdr,
-              background: "transparent", color: sub, cursor: "pointer" }}>
-            キャンセル
-          </button>
-          <button onClick={submit} disabled={submitting}
-            style={{ fontSize: 12, padding: "5px 16px", borderRadius: 6, border: "none",
-              background: submitting ? "#94a3b8" : "#2563eb", color: "#fff",
-              fontWeight: 600, cursor: submitting ? "wait" : "pointer" }}>
-            {submitting ? "発行中..." : "発行する"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────── PatternsPage ───────────────
 export default function PatternsPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
@@ -265,7 +166,6 @@ export default function PatternsPage() {
   const [patternViewMode, setPatternViewMode] = useState<"list" | "timeline" | "seq">("list");
   const [patternListOpen, setPatternListOpen] = useState(true);
   const [patternLoading, setPatternLoading] = useState(false);
-  const [patternIssueModal, setPatternIssueModal] = useState<Pattern | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
@@ -296,7 +196,7 @@ export default function PatternsPage() {
     finally { setPatternLoading(false); }
   };
 
-  const deletePattern = async (patternId: string, e: React.MouseEvent) => {
+    const deletePattern = async (patternId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm("このパターンを削除しますか？")) return;
     try {
@@ -326,6 +226,7 @@ export default function PatternsPage() {
     let parsedSeq: any;
     try { parsedSeq = JSON.parse(form.seqData); }
     catch { setJsonError("JSON形式が正しくありません"); return; }
+
     setSubmitting(true);
     try {
       await api.post(`/api/projects/${id}/patterns`, {
@@ -344,21 +245,23 @@ export default function PatternsPage() {
     }
   };
 
-  const bg       = dark ? "bg-gray-950" : "bg-gray-50";
-  const text     = dark ? "text-white" : "text-gray-900";
-  const subtext  = dark ? "text-gray-400" : "text-gray-500";
-  const cardBg   = dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200";
-  const hoverBg  = dark ? "hover:border-blue-600" : "hover:border-blue-400";
+  const bg = dark ? "bg-gray-950" : "bg-gray-50";
+  const text = dark ? "text-white" : "text-gray-900";
+  const subtext = dark ? "text-gray-400" : "text-gray-500";
+  const cardBg = dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200";
+  const hoverBg = dark ? "hover:border-blue-600" : "hover:border-blue-400";
   const inputCls = `w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 ${dark ? "bg-gray-800 border-gray-700 text-white placeholder-gray-500" : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"}`;
-  const modalBg  = dark ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200";
+  const modalBg = dark ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200";
 
   return (
     <div className={`min-h-screen ${bg} ${text} transition-colors`}>
+      {/* ヘッダー */}
       <ProjectNav projectId={id} />
 
-      <main className="px-6 py-6 flex gap-4" style={{ height: "calc(100vh - 90px)", overflow: "hidden" }}>
-        {/* 左: パターン一覧 */}
-        <div style={{ width: patternListOpen ? 360 : 44, minWidth: patternListOpen ? 360 : 44, maxWidth: patternListOpen ? 360 : 44, flexShrink: 0, transition: "width 0.2s", overflowX: "hidden", overflowY: "auto" }}>
+      {/* メインコンテンツ */}
+      <main className="px-6 py-6 flex gap-4" style={{height: "calc(100vh - 90px)", overflow: "hidden"}}>
+        {/* 左: パターン一覧（折りたたみ対応） */}
+        <div style={{width: patternListOpen ? 360 : 44, minWidth: patternListOpen ? 360 : 44, maxWidth: patternListOpen ? 360 : 44, flexShrink: 0, transition: "width 0.2s", overflowX: "hidden", overflowY: "auto"}}>
           <div className="flex items-center justify-between mb-3">
             {patternListOpen && <h2 className="font-semibold text-sm">パターン一覧 ({patterns.length})</h2>}
             <button onClick={() => setPatternListOpen(v => !v)}
@@ -367,7 +270,6 @@ export default function PatternsPage() {
               {patternListOpen ? "◀" : "▶"}
             </button>
           </div>
-
           {loading ? <p className={subtext}>読み込み中...</p> : patterns.length === 0 ? (
             <div className={`${cardBg} border rounded-xl p-8 text-center ${subtext}`}>
               <p>パターンがありません</p>
@@ -375,25 +277,18 @@ export default function PatternsPage() {
                 className="mt-3 text-blue-500 text-sm hover:underline">+ 最初のパターンを登録</button>
             </div>
           ) : (
-            <div className="grid gap-3" style={{ width: "100%", minWidth: 0 }}>
+            <div className="grid gap-3" style={{width:"100%", minWidth:0}}>
               {patterns.map(p => (
                 <div key={p.id} onClick={() => { setSelected(p); loadPatternLogs(p); }}
-                  className={`${cardBg} ${hoverBg} border rounded-xl p-4 cursor-pointer transition ${selected?.id === p.id ? "border-blue-500" : ""}`}
-                  style={{ width: "100%", maxWidth: "100%", boxSizing: "border-box", minWidth: 0 }}>
-                  <div style={{ position: "relative", paddingRight: 60 }}>
-                    <h3 style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} className={text}>{p.name}</h3>
-                    {p.screenMode && <p className={`text-xs ${subtext} mt-1`} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.screenMode}</p>}
-                    {p.memo && <p className={`text-xs ${subtext} mt-1`} style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{p.memo}</p>}
-                    <button
-                      onClick={e => { e.stopPropagation(); setPatternIssueModal(p); }}
-                      title="チケット発行"
-                      style={{ position: "absolute", top: 0, right: 28, background: "#1d4ed8", color: "white", border: "none", borderRadius: 6, padding: "4px 8px", fontSize: 13, cursor: "pointer", lineHeight: 1 }}>
-                      🎫
-                    </button>
-                    <button
-                      onClick={e => deletePattern(p.id, e)}
-                      title="削除"
-                      style={{ position: "absolute", top: 0, right: 0, background: "#b91c1c", color: "white", border: "none", borderRadius: 6, padding: "4px 8px", fontSize: 13, cursor: "pointer", lineHeight: 1 }}>
+                  className={`${cardBg} ${hoverBg} border rounded-xl p-4 cursor-pointer transition ${selected?.id === p.id ? "border-blue-500" : ""}`} style={{width:"100%", maxWidth:"100%", boxSizing:"border-box", minWidth:0}}>
+                  <div style={{position:"relative", paddingRight:44}}>
+                    <h3 style={{fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}} className={text}>{p.name}</h3>
+                    {p.screenMode && <p className={`text-xs ${subtext} mt-1`} style={{overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>{p.screenMode}</p>}
+                    {p.memo && <p className={`text-xs ${subtext} mt-1`} style={{display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden"}}>{p.memo}</p>}
+                    
+                    <button onClick={e => deletePattern(p.id, e)}
+                      style={{position:"absolute", top:0, right:0, background:"#b91c1c", color:"white", border:"none", borderRadius:6, padding:"4px 8px", fontSize:13, cursor:"pointer", lineHeight:1}}
+                      title="削除">
                       🗑
                     </button>
                   </div>
@@ -414,7 +309,6 @@ export default function PatternsPage() {
                 <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLOR[selected.status] || "bg-gray-100 text-gray-600"}`}>{selected.status}</span>
                 {selected.screenMode && <span className={`text-xs ${subtext}`}>{selected.screenMode.split(",").map((s: string) => s.replace("MC_","")).join(" / ")}</span>}
               </div>
-
               <div className={`flex gap-0 border-b mb-3 ${dark ? "border-gray-800" : "border-gray-200"}`}>
                 {([{id:"list",label:"📋 リスト"},{id:"timeline",label:"📊 タイムライン"},{id:"seq",label:"📄 JSON"}] as {id:"list"|"timeline"|"seq", label:string}[]).map(tab => (
                   <button key={tab.id} onClick={() => setPatternViewMode(tab.id)}
@@ -438,7 +332,7 @@ export default function PatternsPage() {
                       <div className={`text-center py-8 text-sm ${subtext}`}>ログデータなし（traceId未設定）</div>
                     ) : patternLogs.map((log: any, i: number) => {
                       const isAct = patternSelectedLog?.id === log.id;
-                      const isNg  = log.verdict?.verdict === "NG" || log.eventType === "ERROR";
+                      const isNg = log.verdict?.verdict === "NG" || log.eventType === "ERROR";
                       const evColor = log.eventType === "ERROR" ? "text-red-400" : log.eventType === "SCREEN_LOAD" ? "text-blue-400" : "text-purple-400";
                       return (
                         <button key={log.id} onClick={() => setPatternSelectedLog(log)}
@@ -452,15 +346,11 @@ export default function PatternsPage() {
                             <span className={`text-[10px] font-bold ${evColor}`}>{log.eventType}</span>
                             <span className={`text-[10px] ${subtext}`}>{new Date(log.timestamp).toLocaleTimeString("ja-JP")}</span>
                           </div>
-                          {log.screenName && (
-                            <div className={`text-xs mt-0.5 ${dark ? "text-gray-300" : "text-gray-700"}`}>
-                              {log.screenName}{log.elementId ? <span className={subtext}> #{log.elementId}</span> : null}
-                            </div>
-                          )}
+                          {log.screenName && <div className={`text-xs mt-0.5 ${dark?"text-gray-300":"text-gray-700"}`}>{log.screenName}{log.elementId ? <span className={subtext}> #{log.elementId}</span> : null}</div>}
                           {log.verdict?.verdict === "NG" && (
                             <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-                              {log.verdict.issueType && <span className="text-[10px] px-1 py-0.5 rounded" style={{ background: "#dc2626", color: "white", fontWeight: 700 }}>{log.verdict.issueType}</span>}
-                              {log.verdict.content && <span className={`text-[10px] ${dark ? "text-red-300" : "text-red-600"}`}>{log.verdict.content.slice(0,30)}</span>}
+                              {log.verdict.issueType && <span className="text-[10px] px-1 py-0.5 rounded" style={{background:"#dc2626",color:"white",fontWeight:700}}>{log.verdict.issueType}</span>}
+                              {log.verdict.content && <span className={`text-[10px] ${dark?"text-red-300":"text-red-600"}`}>{log.verdict.content.slice(0,30)}</span>}
                             </div>
                           )}
                         </button>
@@ -474,24 +364,22 @@ export default function PatternsPage() {
                     ) : (
                       <div className="p-3 text-xs space-y-2">
                         <div className="flex gap-2 items-baseline">
-                          <span className={`text-lg font-bold ${dark ? "text-white" : "text-gray-900"}`}>{patternLogs.indexOf(patternSelectedLog)+1}</span>
-                          <span className={`font-semibold ${dark ? "text-gray-200" : "text-gray-800"}`}>
-                            {patternSelectedLog.screenName}{patternSelectedLog.elementId ? ` — ${patternSelectedLog.elementId}` : ""}
-                          </span>
+                          <span className={`text-lg font-bold ${dark?"text-white":"text-gray-900"}`}>{patternLogs.indexOf(patternSelectedLog)+1}</span>
+                          <span className={`font-semibold ${dark?"text-gray-200":"text-gray-800"}`}>{patternSelectedLog.screenName}{patternSelectedLog.elementId ? ` — ${patternSelectedLog.elementId}` : ""}</span>
                         </div>
                         <div className={`text-[10px] font-mono ${subtext}`}>{new Date(patternSelectedLog.timestamp).toLocaleString("ja-JP")}</div>
                         {patternSelectedLog.screenshotPath && (() => {
                           const sp: string = patternSelectedLog.screenshotPath;
                           const m = sp.match(/logs[/\\]screenshots[/\\](.+)/);
                           const url = m ? "http://192.168.1.11:3099/logs-screenshots/" + m[1].replace(/\\/g,"/").split("/").map(encodeURIComponent).join("/") : null;
-                          return url ? <img src={url} alt="" className="w-full rounded border" style={{ maxHeight: 180, objectFit: "contain" }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} /> : null;
+                          return url ? <img src={url} alt="" className="w-full rounded border" style={{maxHeight:180,objectFit:"contain"}} onError={(e)=>{(e.currentTarget as HTMLImageElement).style.display="none"}} /> : null;
                         })()}
-                        <div className={`space-y-1 pt-2 border-t ${dark ? "border-gray-800" : "border-gray-100"}`}>
-                          <div className="flex gap-2"><span className={`${subtext} w-20 flex-shrink-0`}>イベント</span><span className={`font-bold ${patternSelectedLog.eventType === "ERROR" ? "text-red-400" : "text-blue-400"}`}>{patternSelectedLog.eventType}</span></div>
+                        <div className={`space-y-1 pt-2 border-t ${dark?"border-gray-800":"border-gray-100"}`}>
+                          <div className="flex gap-2"><span className={`${subtext} w-20 flex-shrink-0`}>イベント</span><span className={`font-bold ${patternSelectedLog.eventType==="ERROR"?"text-red-400":"text-blue-400"}`}>{patternSelectedLog.eventType}</span></div>
                           <div className="flex gap-2"><span className={`${subtext} w-20 flex-shrink-0`}>画面</span><span>{patternSelectedLog.screenName || "—"}</span></div>
                           {patternSelectedLog.elementId && <div className="flex gap-2"><span className={`${subtext} w-20 flex-shrink-0`}>要素</span><span>#{patternSelectedLog.elementId}</span></div>}
                           {patternSelectedLog.verdict?.verdict === "NG" && (
-                            <div className={`p-2 rounded mt-1 ${dark ? "bg-red-900/20" : "bg-red-50"}`}>
+                            <div className={`p-2 rounded mt-1 ${dark?"bg-red-900/20":"bg-red-50"}`}>
                               <div className="font-bold text-red-400 mb-1">❌ NG判定</div>
                               {patternSelectedLog.verdict.issueType && <div>{patternSelectedLog.verdict.issueType} / {patternSelectedLog.verdict.priority} / {patternSelectedLog.verdict.status}</div>}
                               {patternSelectedLog.verdict.content && <div className="mt-0.5">{patternSelectedLog.verdict.content}</div>}
@@ -520,45 +408,56 @@ export default function PatternsPage() {
         </div>
       </main>
 
-      {/* パターン登録モーダル */}
+      {/* モーダル */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className={`${modalBg} border rounded-xl p-6 w-full max-w-lg shadow-xl`}>
             <h2 className={`text-lg font-bold mb-5 ${text}`}>パターン登録</h2>
+
             <div className="space-y-4">
+              {/* パターン名 */}
               <div>
                 <label className={`block text-sm font-medium mb-1 ${subtext}`}>パターン名 <span className="text-red-500">*</span></label>
                 <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                   className={inputCls} placeholder="例: 製品検索→詳細確認フロー" />
               </div>
+
+              {/* 画面モード */}
               <div>
                 <label className={`block text-sm font-medium mb-1 ${subtext}`}>画面モード（任意）</label>
                 <input type="text" value={form.screenMode} onChange={e => setForm(f => ({ ...f, screenMode: e.target.value }))}
                   className={inputCls} placeholder="例: MC_PRODUCTS_LIST" />
               </div>
+
+              {/* seqData */}
               <div>
                 <label className={`block text-sm font-medium mb-1 ${subtext}`}>シーケンスデータ（JSON）<span className="text-red-500">*</span></label>
                 <textarea rows={5} value={form.seqData} onChange={e => handleSeqDataChange(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === "Tab") {
-                      e.preventDefault();
-                      const ta = e.currentTarget;
-                      const s = ta.selectionStart, end = ta.selectionEnd;
-                      ta.value = ta.value.substring(0, s) + "  " + ta.value.substring(end);
-                      ta.selectionStart = ta.selectionEnd = s + 2;
-                      handleSeqDataChange(ta.value);
-                    }
-                  }}
+                    onKeyDown={e => {
+                      if (e.key === 'Tab') {
+                        e.preventDefault();
+                        const ta = e.currentTarget;
+                        const s = ta.selectionStart, end = ta.selectionEnd;
+                        const v = ta.value;
+                        ta.value = v.substring(0, s) + '  ' + v.substring(end);
+                        ta.selectionStart = ta.selectionEnd = s + 2;
+                        handleSeqDataChange(ta.value);
+                      }
+                    }}
                   className={`${inputCls} font-mono resize-none`}
                   placeholder='{"steps": [{"action": "click", "target": "btn_search"}]}' />
                 {jsonError && <p className="text-red-500 text-xs mt-1">{jsonError}</p>}
               </div>
+
+              {/* メモ */}
               <div>
                 <label className={`block text-sm font-medium mb-1 ${subtext}`}>メモ（任意）</label>
                 <textarea rows={2} value={form.memo} onChange={e => setForm(f => ({ ...f, memo: e.target.value }))}
                   className={`${inputCls} resize-none`} placeholder="このパターンについての補足説明" />
               </div>
             </div>
+
+            {/* ボタン */}
             <div className="flex justify-end gap-3 mt-6">
               <button onClick={() => setShowModal(false)}
                 className={`px-4 py-2 rounded-lg text-sm ${dark ? "bg-gray-700 hover:bg-gray-600 text-gray-200" : "bg-gray-100 hover:bg-gray-200 text-gray-700"} transition`}>
@@ -571,16 +470,6 @@ export default function PatternsPage() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* チケット発行モーダル */}
-      {patternIssueModal && (
-        <PatternIssueModal
-          pattern={patternIssueModal}
-          projectId={id}
-          dark={dark}
-          onClose={() => setPatternIssueModal(null)}
-        />
       )}
     </div>
   );

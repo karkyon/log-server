@@ -24,6 +24,20 @@ export class TracesController {
   }
 
 
+  @Patch('issues/:issueId')
+  updateIssue(
+    @Param('id') id: string,
+    @Param('issueId') issueId: string,
+    @Body() body: { status?: string; priority?: string; title?: string; description?: string },
+  ) {
+    return this.traces.updateIssue(id, issueId, body);
+  }
+
+  @Delete('issues/:issueId')
+  deleteIssue(@Param('id') id: string, @Param('issueId') issueId: string) {
+    return this.traces.deleteIssue(id, issueId);
+  }
+
   @Get('issues')
   findIssues(@Param('id') id: string) {
     return this.traces.findIssues(id);

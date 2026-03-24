@@ -78,11 +78,10 @@ function ConsoleAccordion({ content, dark }: { content: string; dark: boolean })
 }
 
 // ─────────────── ActionReviewDetail ───────────────
-function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSaved, onDeleteSeqNo, onCreateIssue }: {
+function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSaved, onDeleteSeqNo }: {
   log: LogEntry; seqNo: number; dark: boolean; traceId: string; projectId: string;
   onVerdictSaved?: (logId: string, verdict: LogEntry["verdict"]) => void;
   onDeleteSeqNo?: () => void;
-  onCreateIssue?: () => void;
 }) {
   const calcInitVerdict = (l: typeof log) =>
     l.verdict?.verdict === "NG" || l.payload?.result === "NG" || l.eventType === "ERROR" ? "NG" : "OK";
@@ -174,14 +173,6 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
         </div>
         <div className="text-sm font-semibold flex-1">{summary}</div>
         <div className={`text-[10px] font-mono ${sub}`}>{new Date(log.timestamp).toLocaleString("ja-JP")}</div>
-        {onCreateIssue && (
-          <button onClick={onCreateIssue}
-            style={{flexShrink:0,background:"#1d4ed8",color:"white",border:"none",borderRadius:6,padding:"4px 10px",fontSize:12,cursor:"pointer",lineHeight:1.4,opacity:0.85}}
-            onMouseEnter={e=>(e.currentTarget.style.opacity="1")}
-            onMouseLeave={e=>(e.currentTarget.style.opacity="0.85")}>
-            🎫 チケット
-          </button>
-        )}
         {onDeleteSeqNo && (
           <button onClick={onDeleteSeqNo}
             title={`seqNo ${(log as any).seqNo ?? seqNo} を削除`}
@@ -322,376 +313,6 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
             )}
             {verdict === "OK" && !issues && <span className={`text-xs italic ${sub}`}>なし</span>}
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────── DuplicateCleanModal (重複ログ検出・削除) ───────────────
-function DuplicateCleanModal({ logs, projectId, traceId, dark, onClose, onDeleted }: {
-  logs: LogEntry[]; projectId: string; traceId: string; dark: boolean;
-  onClose: () => void; onDeleted: () => void;
-}) {
-  const sub = dark ? "text-slate-400" : "text-slate-500";
-
-  // ── 重複グループ検出 ──────────────────────────────────────────
-  // 判定キー: screenName + eventType + elementId + payload文字列
-  type DupGroup = { key: string; items: LogEntry[] };
-  const dupGroups = React.useMemo((): DupGroup[] => {
-    // 連続するseqNoの「ラン」単位で重複グループを作成
-    // seqNo差が1でキーが一致する連続区間のみを1グループとする
-    const makeKey = (log: LogEntry) => [
-      log.screenName  || "",
-      log.eventType   || "",
-      log.elementId   || "",
-      log.payload ? JSON.stringify(log.payload) : "",
-    ].join("|||");
-
-    const sorted = [...logs].sort((a, b) => ((a as any).seqNo ?? 0) - ((b as any).seqNo ?? 0));
-    const runs: LogEntry[][] = [];
-    let currentRun: LogEntry[] = [];
-
-    for (let i = 0; i < sorted.length - 1; i++) {
-      const cur     = sorted[i];
-      const next    = sorted[i + 1];
-      const curSeq  = (cur  as any).seqNo ?? 0;
-      const nextSeq = (next as any).seqNo ?? 0;
-      const consecutive = nextSeq - curSeq === 1;
-      const sameKey     = consecutive && makeKey(cur) === makeKey(next);
-
-      if (sameKey) {
-        // 連続一致: ランを継続
-        if (currentRun.length === 0) currentRun.push(cur);
-        currentRun.push(next);
-      } else {
-        // 途切れ: ランを確定
-        if (currentRun.length >= 2) runs.push(currentRun);
-        currentRun = [];
-      }
-    }
-    if (currentRun.length >= 2) runs.push(currentRun);
-
-    return runs.map(items => ({ key: makeKey(items[0]), items }));
-  }, [logs]);
-
-  // ── 削除候補の初期選択: consoleLogs がない方を削除候補に ────
-  const initSelected = React.useMemo(() => {
-    const sel = new Set<string>();
-    for (const g of dupGroups) {
-      // consoleLogs がある log を保持、ない方を削除候補
-      const withConsole    = g.items.filter(l => (l as any).consoleLogs && (l as any).consoleLogs.length > 0);
-      const withoutConsole = g.items.filter(l => !(l as any).consoleLogs || (l as any).consoleLogs.length === 0);
-      if (withConsole.length > 0 && withoutConsole.length > 0) {
-        // console がない方を全て削除候補に
-        withoutConsole.forEach(l => sel.add(l.id));
-      } else {
-        // 全て同じなら末尾以外を削除候補（最後を残す）
-        g.items.slice(0, -1).forEach(l => sel.add(l.id));
-      }
-    }
-    return sel;
-  }, [dupGroups]);
-
-  const [selected, setSelected] = React.useState<Set<string>>(() => initSelected);
-  const [running,  setRunning]  = React.useState(false);
-  const [progress, setProgress] = React.useState<string[]>([]);
-
-  const toggle = (id: string) => {
-    setSelected(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
-
-  const hasConsole = (log: LogEntry) =>
-    !!((log as any).consoleLogs && (log as any).consoleLogs.length > 0);
-
-  // ── 削除実行 ──────────────────────────────────────────────────
-  const execute = async () => {
-    if (selected.size === 0) { alert("削除対象が選択されていません"); return; }
-    if (!confirm(`${selected.size}件のログを削除します。\nseqNoは自動でリナンバリングされます。\n\nよろしいですか？`)) return;
-    setRunning(true);
-
-    // seqNo の大きい順に削除（リナンバリングで前のseqが変わらないように）
-    const targets = logs
-      .filter(l => selected.has(l.id))
-      .map(l => ({ id: l.id, seqNo: (l as any).seqNo as number }))
-      .filter(t => t.seqNo != null)
-      .sort((a, b) => b.seqNo - a.seqNo); // 降順
-
-    const msgs: string[] = [];
-    for (const t of targets) {
-      try {
-        await api.delete(`/api/projects/${projectId}/traces/${traceId}/logs/seq/${t.seqNo}`);
-        msgs.push(`✅ seqNo ${t.seqNo} 削除完了`);
-        setProgress([...msgs]);
-      } catch (e: any) {
-        msgs.push(`❌ seqNo ${t.seqNo} 失敗: ${e?.response?.data?.message || e.message}`);
-        setProgress([...msgs]);
-      }
-    }
-    setRunning(false);
-    onDeleted();
-  };
-
-  const bg  = dark ? "#0f172a" : "#fff";
-  const bdr = dark ? "1px solid #334155" : "1px solid #cbd5e1";
-  const rowBg = (log: LogEntry, isSelected: boolean) => {
-    if (isSelected) return dark ? "rgba(220,38,38,0.15)" : "#fff5f5";
-    if (hasConsole(log)) return dark ? "rgba(22,163,74,0.12)" : "#f0fdf4";
-    return dark ? "#1e293b" : "#f8fafc";
-  };
-
-  const overlay: React.CSSProperties = {
-    position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
-    display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200,
-  };
-
-  return (
-    <div style={overlay} onClick={e => e.target === e.currentTarget && !running && onClose()}>
-      <div style={{ background: bg, border: bdr, borderRadius: 14, width: "100%", maxWidth: 600, maxHeight: "80vh", display: "flex", flexDirection: "column", boxShadow: "0 8px 40px rgba(0,0,0,0.3)" }}>
-        {/* ヘッダー */}
-        <div style={{ padding: "12px 16px", borderBottom: bdr, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-          <span style={{ fontSize: 13, fontWeight: 700 }}>🔍 重複ログ検出</span>
-          {dupGroups.length > 0 ? (
-            <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 99, background: "#fee2e2", color: "#dc2626", fontWeight: 600 }}>
-              {dupGroups.length}グループ / {dupGroups.reduce((s, g) => s + g.items.length, 0)}件に重複あり
-            </span>
-          ) : (
-            <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 99, background: "#dcfce7", color: "#16a34a", fontWeight: 600 }}>重複なし</span>
-          )}
-          <div style={{ flex: 1 }} />
-          {!running && <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: dark ? "#64748b" : "#94a3b8" }}>✕</button>}
-        </div>
-
-        {/* 凡例 */}
-        {dupGroups.length > 0 && (
-          <div style={{ padding: "8px 16px", borderBottom: bdr, display: "flex", gap: 14, fontSize: 10, flexShrink: 0 }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 2, background: dark ? "rgba(22,163,74,0.3)" : "#dcfce7", border: "1px solid #16a34a", display: "inline-block" }} />
-              Consoleログあり（保持推奨）
-            </span>
-            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 2, background: dark ? "rgba(220,38,38,0.2)" : "#fee2e2", border: "1px solid #dc2626", display: "inline-block" }} />
-              削除チェック済み
-            </span>
-            <span className={`${sub}`}>チェックを切り替えて削除対象を調整できます</span>
-          </div>
-        )}
-
-        {/* グループ一覧 */}
-        <div style={{ overflowY: "auto", flex: 1, padding: "8px 16px" }}>
-          {dupGroups.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "32px 0", fontSize: 13, color: dark ? "#64748b" : "#94a3b8" }}>
-              重複するログは見つかりませんでした
-            </div>
-          ) : (
-            dupGroups.map((g, gi) => {
-              const [scr, evt, elem] = g.key.split("|||");
-              return (
-                <div key={gi} style={{ marginBottom: 14, border: bdr, borderRadius: 8, overflow: "hidden" }}>
-                  {/* グループヘッダー */}
-                  <div style={{ padding: "6px 10px", background: dark ? "#1e293b" : "#f1f5f9", fontSize: 11, fontWeight: 700, display: "flex", gap: 8, alignItems: "center" }}>
-                    <span style={{ padding: "1px 6px", borderRadius: 3, background: "#dbeafe", color: "#1d4ed8", fontSize: 10 }}>{evt || "—"}</span>
-                    <span>{scr || "—"}</span>
-                    {elem && <span style={{ color: dark ? "#94a3b8" : "#64748b", fontWeight: 400 }}>#{elem}</span>}
-                    <span style={{ marginLeft: "auto", color: dark ? "#94a3b8" : "#64748b", fontWeight: 400 }}>{g.items.length}件一致</span>
-                  </div>
-                  {/* 各ログ行 */}
-                  {g.items.map(log => {
-                    const isSel = selected.has(log.id);
-                    const hasCon = hasConsole(log);
-                    const sno = (log as any).seqNo;
-                    return (
-                      <div key={log.id}
-                        onClick={() => !running && toggle(log.id)}
-                        style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 10px", cursor: running ? "default" : "pointer", borderTop: bdr, background: rowBg(log, isSel), transition: "background 0.1s" }}>
-                        <input type="checkbox" checked={isSel} onChange={() => toggle(log.id)} disabled={running} style={{ cursor: "pointer", accentColor: "#dc2626" }} />
-                        <span style={{ fontSize: 11, fontWeight: 700, color: dark ? "#94a3b8" : "#64748b", minWidth: 56 }}>seqNo {sno ?? "—"}</span>
-                        <span style={{ fontSize: 10, color: dark ? "#64748b" : "#94a3b8" }}>{new Date(log.timestamp).toLocaleTimeString("ja-JP")}</span>
-                        {hasCon ? (
-                          <span style={{ fontSize: 10, padding: "1px 7px", borderRadius: 99, background: "#dcfce7", color: "#16a34a", fontWeight: 600 }}>Console {(log as any).consoleLogs ? (log as any).consoleLogs.length : 0}行</span>
-                        ) : (
-                          <span style={{ fontSize: 10, padding: "1px 7px", borderRadius: 99, background: dark ? "#1e293b" : "#f1f5f9", color: dark ? "#64748b" : "#94a3b8" }}>Consoleなし</span>
-                        )}
-                        {isSel && <span style={{ fontSize: 10, color: "#dc2626", marginLeft: "auto", fontWeight: 700 }}>🗑 削除予定</span>}
-                        {!isSel && hasCon && <span style={{ fontSize: 10, color: "#16a34a", marginLeft: "auto", fontWeight: 600 }}>✓ 保持</span>}
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })
-          )}
-          {/* 実行ログ */}
-          {progress.length > 0 && (
-            <div style={{ marginTop: 8, padding: "8px 10px", borderRadius: 6, background: dark ? "#1e293b" : "#f8fafc", border: bdr, fontSize: 11, fontFamily: "monospace" }}>
-              {progress.map((p, i) => <div key={i}>{p}</div>)}
-            </div>
-          )}
-        </div>
-
-        {/* フッター */}
-        <div style={{ padding: "10px 16px", borderTop: bdr, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-          <span style={{ fontSize: 11, color: dark ? "#94a3b8" : "#64748b" }}>
-            {selected.size > 0 ? `${selected.size}件を削除予定` : "削除対象なし"}
-          </span>
-          <div style={{ flex: 1 }} />
-          <button onClick={onClose} disabled={running} style={{ fontSize: 12, padding: "5px 14px", borderRadius: 6, border: bdr, background: "transparent", color: dark ? "#94a3b8" : "#64748b", cursor: running ? "not-allowed" : "pointer" }}>
-            {progress.length > 0 ? "閉じる" : "キャンセル"}
-          </button>
-          {dupGroups.length > 0 && progress.length === 0 && (
-            <button onClick={execute} disabled={running || selected.size === 0} style={{ fontSize: 12, padding: "5px 16px", borderRadius: 6, border: "none", background: selected.size === 0 ? "#94a3b8" : "#dc2626", color: "#fff", fontWeight: 600, cursor: selected.size === 0 || running ? "not-allowed" : "pointer" }}>
-              {running ? "削除中..." : `${selected.size}件を削除する`}
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────── IssueModal (チケット発行モーダル) ───────────────
-function IssueModal({ log, projectId, traceId, dark, onClose }: {
-  log: LogEntry; projectId: string; traceId: string; dark: boolean; onClose: () => void;
-}) {
-  const sub = dark ? "text-slate-400" : "text-slate-500";
-  const inputCls = `w-full text-xs px-2 py-1.5 rounded border ${dark ? "bg-slate-800 border-slate-600 text-slate-200" : "bg-white border-slate-300 text-slate-800"}`;
-  const labelCls = `text-[10px] font-semibold mb-1 block ${sub}`;
-
-  const [issueType,    setIssueType]    = useState("不具合");
-  const [priority,     setPriority]     = useState("中");
-  const [title,        setTitle]        = useState(`${log.screenName || "UNKNOWN"} — ${log.elementId || log.eventType}`);
-  const [description,  setDescription]  = useState("");
-  const [submitting,   setSubmitting]   = useState(false);
-  const [done,         setDone]         = useState(false);
-
-  const TYPES     = ["不具合", "仕様違い", "改善提案", "確認事項"];
-  const TYPE_MAP: Record<string, string> = { "不具合": "バグ", "仕様違い": "改善", "改善提案": "改善", "確認事項": "確認" };
-  const PRIORITIES = ["高", "中", "低"];
-  const PRI_MAP: Record<string, string> = { "高": "HIGH", "中": "MEDIUM", "低": "LOW" };
-
-  const chipBase = (active: boolean, col: string) => ({
-    padding: "3px 10px", borderRadius: 99, fontSize: 11, cursor: "pointer", border: "none",
-    fontWeight: active ? 700 : 400,
-    background: active ? col : (dark ? "#1e293b" : "#f1f5f9"),
-    color:      active ? "#fff"  : (dark ? "#94a3b8" : "#64748b"),
-    transition: "all 0.12s",
-  } as React.CSSProperties);
-
-  const TYPE_COL: Record<string, string> = {
-    "不具合": "#dc2626", "仕様違い": "#ea580c", "改善提案": "#2563eb", "確認事項": "#7c3aed",
-  };
-  const PRI_COL: Record<string, string> = { "高": "#dc2626", "中": "#d97706", "低": "#64748b" };
-
-  const submit = async () => {
-    if (!title.trim()) { alert("タイトルを入力してください"); return; }
-    setSubmitting(true);
-    try {
-      await api.post(`/api/projects/${projectId}/issues`, {
-        featureId:   log.screenName || "UNKNOWN",
-        traceId,
-        title:       title.trim(),
-        type:        TYPE_MAP[issueType] || issueType,
-        priority:    PRI_MAP[priority] || priority,
-        status:      "未対応",
-        description: description.trim(),
-        logIds:      [log.id],
-      });
-      setDone(true);
-      setTimeout(onClose, 1200);
-    } catch (e: any) {
-      alert("発行失敗: " + (e?.response?.data?.message || e.message));
-      setSubmitting(false);
-    }
-  };
-
-  const overlay: React.CSSProperties = {
-    position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)",
-    display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200,
-  };
-  const modal: React.CSSProperties = {
-    background: dark ? "#0f172a" : "#fff",
-    border: dark ? "1px solid #334155" : "1px solid #cbd5e1",
-    borderRadius: 14, width: "100%", maxWidth: 480,
-    boxShadow: "0 8px 40px rgba(0,0,0,0.28)", overflow: "hidden",
-  };
-
-  return (
-    <div style={overlay} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={modal}>
-        {/* ヘッダー */}
-        <div style={{ padding: "12px 16px", borderBottom: dark ? "1px solid #1e293b" : "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 700 }}>🎫 チケット発行</span>
-          <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: "#dbeafe", color: "#1d4ed8", fontWeight: 600 }}>
-            seqNo {(log as any).seqNo ?? "—"} / {log.screenName}
-          </span>
-          <div style={{ flex: 1 }} />
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: dark ? "#64748b" : "#94a3b8" }}>✕</button>
-        </div>
-
-        {/* 自動添付コンテキスト */}
-        <div style={{ margin: "10px 16px 0", padding: "8px 10px", borderRadius: 6, background: dark ? "#1e293b" : "#f8fafc", border: dark ? "1px solid #334155" : "1px solid #e2e8f0" }}>
-          <div style={{ fontSize: 10, fontWeight: 700, marginBottom: 4, color: dark ? "#94a3b8" : "#64748b" }}>自動添付コンテキスト</div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {[
-              `Trace: ${traceId.slice(0, 8)}...`,
-              `seqNo: ${(log as any).seqNo ?? "—"}`,
-              `画面: ${log.screenName || "—"}`,
-              log.screenshotPath ? "📷 スクショあり" : null,
-            ].filter(Boolean).map(t => (
-              <span key={t!} style={{ fontSize: 10, padding: "1px 7px", borderRadius: 99, background: dark ? "#334155" : "#e2e8f0", color: dark ? "#94a3b8" : "#64748b" }}>{t}</span>
-            ))}
-          </div>
-        </div>
-
-        {/* フォーム */}
-        <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
-          {/* 種別 */}
-          <div>
-            <span className={labelCls}>種別</span>
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {TYPES.map(t => (
-                <button key={t} onClick={() => setIssueType(t)} style={chipBase(issueType === t, TYPE_COL[t])}>{t}</button>
-              ))}
-            </div>
-          </div>
-          {/* タイトル */}
-          <div>
-            <span className={labelCls}>タイトル <span style={{ color: "#dc2626" }}>*</span></span>
-            <input className={inputCls} value={title} onChange={e => setTitle(e.target.value)} placeholder="例: MC_MACHINING で SCREEN_LOAD 後に表示異常" />
-          </div>
-          {/* 優先度 */}
-          <div>
-            <span className={labelCls}>優先度</span>
-            <div style={{ display: "flex", gap: 6 }}>
-              {PRIORITIES.map(p => (
-                <button key={p} onClick={() => setPriority(p)} style={chipBase(priority === p, PRI_COL[p])}>{p}</button>
-              ))}
-            </div>
-          </div>
-          {/* 内容 */}
-          <div>
-            <span className={labelCls}>内容・再現手順</span>
-            <textarea
-              value={description} onChange={e => setDescription(e.target.value)}
-              placeholder="問題の詳細、再現手順、期待値などを記入..."
-              rows={3}
-              style={{ ...Object.fromEntries(Object.entries({ width: "100%", fontSize: 12, padding: "6px 10px", borderRadius: 6, resize: "vertical", fontFamily: "inherit" })), border: dark ? "1px solid #475569" : "1px solid #cbd5e1", background: dark ? "#1e293b" : "#fff", color: dark ? "#e2e8f0" : "#1e293b" } as any}
-            />
-          </div>
-        </div>
-
-        {/* フッター */}
-        <div style={{ padding: "10px 16px", borderTop: dark ? "1px solid #1e293b" : "1px solid #e2e8f0", display: "flex", justifyContent: "flex-end", gap: 8 }}>
-          <button onClick={onClose} style={{ fontSize: 12, padding: "5px 14px", borderRadius: 6, border: dark ? "1px solid #334155" : "1px solid #cbd5e1", background: "transparent", color: dark ? "#94a3b8" : "#64748b", cursor: "pointer" }}>
-            キャンセル
-          </button>
-          <button onClick={submit} disabled={submitting || done} style={{ fontSize: 12, padding: "5px 16px", borderRadius: 6, border: "none", background: done ? "#16a34a" : "#2563eb", color: "#fff", fontWeight: 600, cursor: submitting ? "wait" : "pointer", opacity: submitting ? 0.7 : 1, transition: "background 0.2s" }}>
-            {done ? "✅ 発行完了" : submitting ? "発行中..." : "発行する"}
-          </button>
         </div>
       </div>
     </div>
@@ -1096,8 +717,6 @@ export default function TraceDetailPage() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
   const [hoveredLogId, setHoveredLogId] = useState<string | null>(null);
-  const [issueModal, setIssueModal]     = useState<LogEntry | null>(null);
-  const [showDupModal, setShowDupModal] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const jumpToLog = useCallback((idx: number) => {
     setSelectedLog(logs[idx]);
@@ -1285,12 +904,6 @@ export default function TraceDetailPage() {
       {viewMode === "list" ? (
         <div className="flex flex-1 overflow-hidden">
           <div ref={listRef} className={`w-1/2 border-r overflow-y-auto ${dark ? "border-slate-800" : "border-slate-200"}`}>
-            <div style={{ padding: "6px 12px", borderBottom: dark ? "1px solid #1e293b" : "1px solid #e2e8f0", display: "flex", justifyContent: "flex-end" }}>
-              <button onClick={() => setShowDupModal(true)}
-                style={{ fontSize: 11, padding: "3px 10px", borderRadius: 6, border: dark ? "1px solid #334155" : "1px solid #cbd5e1", background: "transparent", color: dark ? "#94a3b8" : "#64748b", cursor: "pointer" }}>
-                🔍 重複ログ検出
-              </button>
-            </div>
             {logs.length === 0 ? (
               <div className={`text-center py-12 text-sm ${sub}`}>ログがありません</div>
             ) : (
@@ -1341,23 +954,6 @@ export default function TraceDetailPage() {
                     </div>
                   </button>
                   <button
-                    title="チケット発行"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIssueModal(log);
-                    }}
-                    style={{
-                      position: "absolute", right: 34, top: "50%", transform: "translateY(-50%)",
-                      opacity: isActive ? 1 : 0,
-                      transition: "opacity 0.15s",
-                      background: isActive ? (dark ? "rgba(37,99,235,0.25)" : "#dbeafe") : "transparent",
-                      border: "none", cursor: isActive ? "pointer" : "default",
-                      fontSize: 12, padding: "4px 7px", borderRadius: 5,
-                      color: dark ? "#93c5fd" : "#1d4ed8",
-                      fontWeight: 600, lineHeight: 1,
-                    }}
-                  >🎫</button>
-                  <button
                     title="このイベントを削除"
                     onClick={async (e) => {
                       e.stopPropagation();
@@ -1374,16 +970,14 @@ export default function TraceDetailPage() {
                       }
                     }}
                     style={{
-                      position: "absolute", right: 4, top: "50%", transform: "translateY(-50%)",
-                      opacity: isActive ? 1 : 0,
+                      position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)",
+                      opacity: hoveredLogId === log.id ? 1 : 0,
                       transition: "opacity 0.15s",
-                      background: isActive ? (dark ? "rgba(220,38,38,0.25)" : "#fee2e2") : "transparent",
-                      border: "none", cursor: isActive ? "pointer" : "default",
-                      fontSize: 13, padding: "4px 7px", borderRadius: 5,
-                      color: dark ? "#fca5a5" : "#dc2626",
-                      fontWeight: 700, lineHeight: 1,
+                      background: "transparent", border: "none", cursor: "pointer",
+                      fontSize: 14, padding: "4px 6px", borderRadius: 4,
+                      color: dark ? "#f87171" : "#dc2626",
                     }}
-                  >✕</button>
+                  >🗑</button>
                   </div>
                 );
               })
@@ -1416,7 +1010,6 @@ export default function TraceDetailPage() {
                     alert("削除失敗: " + (e?.response?.data?.message || e.message));
                   }
                 }}
-                onCreateIssue={() => setIssueModal(selectedLog)}
               />
             )}
             {viewMode === "list" && <ScreenNav logs={logs} onJump={jumpToLog} dark={dark} />}
@@ -1428,34 +1021,6 @@ export default function TraceDetailPage() {
         </div>
       )}
       {/* ScreenNav は右ペイン内に移動済み */}
-
-      {/* 重複ログ検出モーダル */}
-      {showDupModal && (
-        <DuplicateCleanModal
-          logs={logs}
-          projectId={projectId}
-          traceId={traceId}
-          dark={dark}
-          onClose={() => setShowDupModal(false)}
-          onDeleted={async () => {
-            const res = await api.get(`/api/projects/${projectId}/traces/${traceId}/logs`);
-            setLogs(res.data);
-            setSelectedLog(null);
-            setShowDupModal(false);
-          }}
-        />
-      )}
-
-      {/* チケット発行モーダル */}
-      {issueModal && (
-        <IssueModal
-          log={issueModal}
-          projectId={projectId}
-          traceId={traceId}
-          dark={dark}
-          onClose={() => setIssueModal(null)}
-        />
-      )}
 
       {/* レビュー生成モーダル */}
       {showGenerateModal && (
