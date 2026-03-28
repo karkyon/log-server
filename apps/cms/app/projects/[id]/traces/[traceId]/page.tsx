@@ -155,14 +155,14 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
     const mLogs = sp.match(/logs[/\\]screenshots[/\\](.+)/);
     if (mLogs) {
       const parts = mLogs[1].replace(/\\/g, "/").split("/");
-      return "http://192.168.1.11:3099/logs-screenshots/" + parts.map(encodeURIComponent).join("/");
+      return "https://tlog-apex.ddns.net/logs-screenshots/" + parts.map(encodeURIComponent).join("/");
     }
     const mSs = sp.match(/screenshots[/\\](.+)/);
     if (mSs) {
       const parts = mSs[1].replace(/\\/g, "/").split("/");
-      return "http://192.168.1.11:3099/screenshots/" + parts.map(encodeURIComponent).join("/");
+      return "https://tlog-apex.ddns.net/screenshots/" + parts.map(encodeURIComponent).join("/");
     }
-    return "http://192.168.1.11:3099/logs-screenshots/" + encodeURIComponent(sp.replace(/.*[/\\]/, ""));
+    return "https://tlog-apex.ddns.net/logs-screenshots/" + encodeURIComponent(sp.replace(/.*[/\\]/, ""));
   })();
 
   return (
@@ -1195,9 +1195,9 @@ export default function TraceDetailPage() {
       const sp = log.screenshotPath;
       if (!sp) return null;
       const mLogs = sp.match(/logs[\/\\]screenshots[\/\\](.+)/);
-      if (mLogs) return "http://192.168.1.11:3099/logs-screenshots/" + mLogs[1].replace(/\\/g,"/").split("/").map(encodeURIComponent).join("/");
+      if (mLogs) return "https://tlog-apex.ddns.net/logs-screenshots/" + mLogs[1].replace(/\\/g,"/").split("/").map(encodeURIComponent).join("/");
       const mSs = sp.match(/screenshots[\/\\](.+)/);
-      if (mSs) return "http://192.168.1.11:3099/screenshots/" + mSs[1].replace(/\\/g,"/").split("/").map(encodeURIComponent).join("/");
+      if (mSs) return "https://tlog-apex.ddns.net/screenshots/" + mSs[1].replace(/\\/g,"/").split("/").map(encodeURIComponent).join("/");
       return null;
     })(), eventType: log.eventType, log,
   }));
