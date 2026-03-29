@@ -1,63 +1,15 @@
 {
   "summary": {
-    "generatedAt": "2026-03-24T09:19:36.476Z",
-    "totalFeatures": 9,
-    "totalLogs": 361,
-    "totalIssues": 25,
+    "generatedAt": "2026-03-29T07:14:18.345Z",
+    "totalFeatures": 1,
+    "totalLogs": 38,
+    "totalIssues": 15,
     "critical": 9,
-    "high": 4,
-    "medium": 5,
-    "low": 7
+    "high": 1,
+    "medium": 3,
+    "low": 2
   },
   "features": {
-    "MC_LOG_OPERATION_HISTORY": {
-      "featureId": "MC_LOG_OPERATION_HISTORY",
-      "screenName": "MC_LOG_OPERATION_HISTORY",
-      "logCount": 6,
-      "issueCount": 3
-    },
-    "MC_MACHINING.console": {
-      "featureId": "MC_MACHINING.console",
-      "screenName": "MC_MACHINING.console",
-      "logCount": 272,
-      "issueCount": 0
-    },
-    "MC_MACHINING": {
-      "featureId": "MC_MACHINING",
-      "screenName": "MC_MACHINING",
-      "logCount": 3,
-      "issueCount": 1
-    },
-    "MC_MACHINING_WORK_HISTORY.console": {
-      "featureId": "MC_MACHINING_WORK_HISTORY.console",
-      "screenName": "MC_MACHINING_WORK_HISTORY.console",
-      "logCount": 15,
-      "issueCount": 0
-    },
-    "MC_MACHINING_WORK_HISTORY": {
-      "featureId": "MC_MACHINING_WORK_HISTORY",
-      "screenName": "MC_MACHINING_WORK_HISTORY",
-      "logCount": 1,
-      "issueCount": 1
-    },
-    "MC_OPERATOR_AUTHENTICATION": {
-      "featureId": "MC_OPERATOR_AUTHENTICATION",
-      "screenName": "ユーザ認証",
-      "logCount": 14,
-      "issueCount": 4
-    },
-    "MC_PRODUCTS_LIST.console": {
-      "featureId": "MC_PRODUCTS_LIST.console",
-      "screenName": "MC_PRODUCTS_LIST.console",
-      "logCount": 6,
-      "issueCount": 0
-    },
-    "MC_PRODUCTS_LIST": {
-      "featureId": "MC_PRODUCTS_LIST",
-      "screenName": "部品一覧",
-      "logCount": 6,
-      "issueCount": 1
-    },
     "UNKNOWN": {
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -67,7 +19,7 @@
   },
   "issues": [
     {
-      "issueId": "R01-UNKNOWN-1774343976475-0",
+      "issueId": "R01-UNKNOWN-1774768458343-0",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -88,10 +40,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-23-50-942Z_UNKNOWN_JS_ERROR_TR-1772328228889-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.475Z"
+      "detectedAt": "2026-03-29T07:14:18.343Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1774343976475-1",
+      "issueId": "R01-UNKNOWN-1774768458343-1",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -112,10 +64,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-23-50-911Z_UNKNOWN_JS_ERROR_TR-1772328229168-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.475Z"
+      "detectedAt": "2026-03-29T07:14:18.343Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1774343976475-2",
+      "issueId": "R01-UNKNOWN-1774768458343-2",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -136,10 +88,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-26-17-070Z_UNKNOWN_JS_ERROR_TR-1772328375591-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.475Z"
+      "detectedAt": "2026-03-29T07:14:18.343Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1774343976475-3",
+      "issueId": "R01-UNKNOWN-1774768458343-3",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -160,10 +112,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-27-07-969Z_UNKNOWN_JS_ERROR_TR-1772328426365-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.475Z"
+      "detectedAt": "2026-03-29T07:14:18.343Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1774343976475-4",
+      "issueId": "R01-UNKNOWN-1774768458343-4",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -184,10 +136,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-28-35-876Z_UNKNOWN_JS_ERROR_TR-1772328514518-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.475Z"
+      "detectedAt": "2026-03-29T07:14:18.343Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1774343976475-5",
+      "issueId": "R01-UNKNOWN-1774768458343-5",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -208,10 +160,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-30-42-412Z_UNKNOWN_JS_ERROR_TR-1772328640859-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.475Z"
+      "detectedAt": "2026-03-29T07:14:18.343Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1774343976475-6",
+      "issueId": "R01-UNKNOWN-1774768458343-6",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -232,10 +184,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-30-42-772Z_UNKNOWN_JS_ERROR_TR-1772328641144-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.475Z"
+      "detectedAt": "2026-03-29T07:14:18.343Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1774343976475-7",
+      "issueId": "R01-UNKNOWN-1774768458343-7",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -256,10 +208,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-32-11-760Z_UNKNOWN_JS_ERROR_TR-1772328729993-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.475Z"
+      "detectedAt": "2026-03-29T07:14:18.343Z"
     },
     {
-      "issueId": "R01-UNKNOWN-1774343976475-8",
+      "issueId": "R01-UNKNOWN-1774768458343-8",
       "ruleId": "R01",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -280,10 +232,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-32-11-983Z_UNKNOWN_JS_ERROR_TR-1772328730375-auto.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.475Z"
+      "detectedAt": "2026-03-29T07:14:18.343Z"
     },
     {
-      "issueId": "R02-UNKNOWN-1774343976475-0",
+      "issueId": "R02-UNKNOWN-1774768458344-0",
       "ruleId": "R02",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -307,128 +259,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-27-08-198Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328426358-c6mf.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.475Z"
+      "detectedAt": "2026-03-29T07:14:18.344Z"
     },
     {
-      "issueId": "R03-MC_OPERATOR_AUTHENTICATION-1774343976473-0",
-      "ruleId": "R03",
-      "featureId": "MC_OPERATOR_AUTHENTICATION",
-      "screenName": "ユーザ認証",
-      "category": "DUPLICATE_BIND",
-      "categoryLabel": "ボタン重複バインド",
-      "severity": "High",
-      "difficulty": "Medium",
-      "description": "ボタン \"TLN_1_password\" が 1ms 以内に 2 回記録されています。addEventListener が複数回バインドされている可能性があります。",
-      "logEvidence": "elementId=TLN_1_password | 時刻差=1ms | ts1=2026-03-01T01:45:53.731Z | ts2=2026-03-01T01:45:53.732Z",
-      "fixSuggestion": "resizeContents_end() が複数回呼ばれていないか確認してください。isValid フラグで初期化ガードを実装し、addEventListener の二重登録を防いでください。",
-      "reproducibility": "Likely",
-      "confidence": 0.9,
-      "occurrences": 1,
-      "priorityScore": 73,
-      "relatedTraceId": "TR-1772329553732-t7oq",
-      "contextSummary": "モード:auth | 遷移元:MC_PRODUCTS_LIST | URLパラメータ:{ faces-redirect=false, COLUMN_0=called_function_id_from, FORMULA_0==, VALUE_0=MC_PRODUCTS_LIST, VALUE_TO_0=, COLUMN_1=called_function_id_to, FORMULA_1==, VALUE_1=MC_MACHINING, VALUE_TO_1=, COLUMN_2=processing_id, FORMULA_2==, VALUE_2=9091, VALUE_TO_2=, COLUMN_3=mc_process_no, FORMULA_3==, VALUE_3=1, VALUE_TO_3=, COLUMN_4=parts_id, FORMULA_4==, VALUE_4=8304, VALUE_TO_4=, COLUMN_5=parts_machining_id, FORMULA_5==, VALUE_5=9091, VALUE_TO_5=, COLUMN_6=parameter_val1, FORMULA_6==, VALUE_6=1, VALUE_TO_6=, PARAM_CALL_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MC, A_HREF_ELM_NAME=1_編集_0, WIN_H=140, WIN_W=690, WIN_POS=WIN_C_MDL, IS_CHILD_FUNC=1, CALL_AUTH=1, PARAM_FUNC_ID=MC_OPERATOR_AUTHENTICATION, INIT_SEARCH=true } | 見出し:マシニングオペレーター認証画面 | 操作:TLN_1_password | 入力:{ elementType=TEXTBOX, newValue=ATOM }",
-      "screenshots": [],
-      "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.473Z"
-    },
-    {
-      "issueId": "R03-MC_OPERATOR_AUTHENTICATION-1774343976473-1",
-      "ruleId": "R03",
-      "featureId": "MC_OPERATOR_AUTHENTICATION",
-      "screenName": "ユーザ認証",
-      "category": "DUPLICATE_BIND",
-      "categoryLabel": "ボタン重複バインド",
-      "severity": "High",
-      "difficulty": "Medium",
-      "description": "ボタン \"TLN_1_password_CALL_JAVASCRIPT\" が 1ms 以内に 2 回記録されています。addEventListener が複数回バインドされている可能性があります。",
-      "logEvidence": "elementId=TLN_1_password_CALL_JAVASCRIPT | 時刻差=1ms | ts1=2026-03-01T01:45:53.852Z | ts2=2026-03-01T01:45:53.853Z",
-      "fixSuggestion": "resizeContents_end() が複数回呼ばれていないか確認してください。isValid フラグで初期化ガードを実装し、addEventListener の二重登録を防いでください。",
-      "reproducibility": "Likely",
-      "confidence": 0.9,
-      "occurrences": 1,
-      "priorityScore": 73,
-      "relatedTraceId": "TR-1772329553853-9lg8",
-      "contextSummary": "モード:auth | 遷移元:MC_PRODUCTS_LIST | URLパラメータ:{ faces-redirect=false, COLUMN_0=called_function_id_from, FORMULA_0==, VALUE_0=MC_PRODUCTS_LIST, VALUE_TO_0=, COLUMN_1=called_function_id_to, FORMULA_1==, VALUE_1=MC_MACHINING, VALUE_TO_1=, COLUMN_2=processing_id, FORMULA_2==, VALUE_2=9091, VALUE_TO_2=, COLUMN_3=mc_process_no, FORMULA_3==, VALUE_3=1, VALUE_TO_3=, COLUMN_4=parts_id, FORMULA_4==, VALUE_4=8304, VALUE_TO_4=, COLUMN_5=parts_machining_id, FORMULA_5==, VALUE_5=9091, VALUE_TO_5=, COLUMN_6=parameter_val1, FORMULA_6==, VALUE_6=1, VALUE_TO_6=, PARAM_CALL_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MC, A_HREF_ELM_NAME=1_編集_0, WIN_H=140, WIN_W=690, WIN_POS=WIN_C_MDL, IS_CHILD_FUNC=1, CALL_AUTH=1, PARAM_FUNC_ID=MC_OPERATOR_AUTHENTICATION, INIT_SEARCH=true } | 見出し:マシニングオペレーター認証画面 | 操作:TLN_1_password_CALL_JAVASCRIPT | 入力:{ elementType=BUTTON, buttonLabel=ユーザー認証, formSnapshot=[object Object] }",
-      "screenshots": [
-        "logs/screenshots/MC_OPERATOR_AUTHENTICATION/2026-03-01T01-45-57-064Z_MC_OPERATOR_AUTHENTICATION_TLN_1_password_CALL_JAVASCRIPT_AFTER_TR-1772329553853-9lg8.jpg"
-      ],
-      "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.473Z"
-    },
-    {
-      "issueId": "R03-MC_OPERATOR_AUTHENTICATION-1774343976473-2",
-      "ruleId": "R03",
-      "featureId": "MC_OPERATOR_AUTHENTICATION",
-      "screenName": "ユーザ認証",
-      "category": "DUPLICATE_BIND",
-      "categoryLabel": "ボタン重複バインド",
-      "severity": "High",
-      "difficulty": "Medium",
-      "description": "ボタン \"TLN_1_マシニング情報\" が 3ms 以内に 2 回記録されています。addEventListener が複数回バインドされている可能性があります。",
-      "logEvidence": "elementId=TLN_1_マシニング情報 | 時刻差=3ms | ts1=2026-03-01T01:45:56.933Z | ts2=2026-03-01T01:45:56.936Z",
-      "fixSuggestion": "resizeContents_end() が複数回呼ばれていないか確認してください。isValid フラグで初期化ガードを実装し、addEventListener の二重登録を防いでください。",
-      "reproducibility": "Likely",
-      "confidence": 0.9,
-      "occurrences": 1,
-      "priorityScore": 73,
-      "relatedTraceId": "TR-1772329556936-3hiz",
-      "contextSummary": "モード:auth | 遷移元:MC_PRODUCTS_LIST | URLパラメータ:{ faces-redirect=false, COLUMN_0=called_function_id_from, FORMULA_0==, VALUE_0=MC_PRODUCTS_LIST, VALUE_TO_0=, COLUMN_1=called_function_id_to, FORMULA_1==, VALUE_1=MC_MACHINING, VALUE_TO_1=, COLUMN_2=processing_id, FORMULA_2==, VALUE_2=9091, VALUE_TO_2=, COLUMN_3=mc_process_no, FORMULA_3==, VALUE_3=1, VALUE_TO_3=, COLUMN_4=parts_id, FORMULA_4==, VALUE_4=8304, VALUE_TO_4=, COLUMN_5=parts_machining_id, FORMULA_5==, VALUE_5=9091, VALUE_TO_5=, COLUMN_6=parameter_val1, FORMULA_6==, VALUE_6=1, VALUE_TO_6=, PARAM_CALL_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MC, A_HREF_ELM_NAME=1_編集_0, WIN_H=140, WIN_W=690, WIN_POS=WIN_C_MDL, IS_CHILD_FUNC=1, CALL_AUTH=1, PARAM_FUNC_ID=MC_OPERATOR_AUTHENTICATION, INIT_SEARCH=true } | 見出し:マシニングオペレーター認証画面 | 操作:TLN_1_マシニング情報 | 入力:{ elementType=BUTTON, buttonLabel=マシニング情報, formSnapshot=[object Object] }",
-      "screenshots": [],
-      "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.473Z"
-    },
-    {
-      "issueId": "R07-MC_LOG_OPERATION_HISTORY-1774343976469-0",
-      "ruleId": "R07",
-      "featureId": "MC_LOG_OPERATION_HISTORY",
-      "screenName": "MC_LOG_OPERATION_HISTORY",
-      "category": "DUPLICATE_LOAD",
-      "categoryLabel": "画面重複ロード",
-      "severity": "Medium",
-      "difficulty": "Medium",
-      "description": "SCREEN_LOAD が 93ms 以内に2回記録されています。resizeContents_end() が複数回呼ばれているか、isValid ガードが正しく機能していない可能性があります。",
-      "logEvidence": "SCREEN_LOAD 2回 | diff=93ms | ts1=2026-03-01T01:46:17.047Z | ts2=2026-03-01T01:46:17.140Z",
-      "fixSuggestion": "resizeContents_end() にisValidフラグによる実行ガードが実装されているか確認してください。TALONのライフサイクル上、resizeContents_end() が複数回呼ばれることがあります。",
-      "reproducibility": "Likely",
-      "confidence": 0.85,
-      "occurrences": 1,
-      "priorityScore": 60,
-      "relatedTraceId": "TR-1772329577139-nwos",
-      "contextSummary": "遷移元:MC_MACHINING | URLパラメータ:{ faces-redirect=false, COLUMN_0=parts_machining_id, FORMULA_0==, VALUE_0=8848, VALUE_TO_0=, PARAM_CALL_FUNC_ID=MC_MACHINING, CALL_ID=MC, A_HREF_ELM_NAME=4_更新履歴, WIN_H=560, WIN_W=1260, WIN_POS=WIN_C_MDL, IS_CHILD_FUNC=1, CALL_AUTH=0, PARAM_FUNC_ID=MC_LOG_OPERATION_HISTORY, INIT_SEARCH=true }",
-      "screenshots": [
-        "logs/screenshots/MC_LOG_OPERATION_HISTORY/2026-03-01T01-46-19-522Z_MC_LOG_OPERATION_HISTORY_SCREEN_LOAD_TR-1772329577047-3zu1.jpg",
-        "logs/screenshots/MC_LOG_OPERATION_HISTORY/2026-03-01T01-46-18-824Z_MC_LOG_OPERATION_HISTORY_SCREEN_LOAD_TR-1772329577139-nwos.jpg"
-      ],
-      "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.469Z"
-    },
-    {
-      "issueId": "R07-MC_OPERATOR_AUTHENTICATION-1774343976473-0",
-      "ruleId": "R07",
-      "featureId": "MC_OPERATOR_AUTHENTICATION",
-      "screenName": "ユーザ認証",
-      "category": "DUPLICATE_LOAD",
-      "categoryLabel": "画面重複ロード",
-      "severity": "Medium",
-      "difficulty": "Medium",
-      "description": "SCREEN_LOAD が 333ms 以内に2回記録されています。resizeContents_end() が複数回呼ばれているか、isValid ガードが正しく機能していない可能性があります。",
-      "logEvidence": "SCREEN_LOAD 2回 | diff=333ms | ts1=2026-03-01T01:45:46.227Z | ts2=2026-03-01T01:45:46.560Z",
-      "fixSuggestion": "resizeContents_end() にisValidフラグによる実行ガードが実装されているか確認してください。TALONのライフサイクル上、resizeContents_end() が複数回呼ばれることがあります。",
-      "reproducibility": "Likely",
-      "confidence": 0.85,
-      "occurrences": 1,
-      "priorityScore": 60,
-      "relatedTraceId": "TR-1772329546560-apye",
-      "contextSummary": "モード:auth | 遷移元:MC_PRODUCTS_LIST | URLパラメータ:{ faces-redirect=false, COLUMN_0=called_function_id_from, FORMULA_0==, VALUE_0=MC_PRODUCTS_LIST, VALUE_TO_0=, COLUMN_1=called_function_id_to, FORMULA_1==, VALUE_1=MC_MACHINING, VALUE_TO_1=, COLUMN_2=processing_id, FORMULA_2==, VALUE_2=9091, VALUE_TO_2=, COLUMN_3=mc_process_no, FORMULA_3==, VALUE_3=1, VALUE_TO_3=, COLUMN_4=parts_id, FORMULA_4==, VALUE_4=8304, VALUE_TO_4=, COLUMN_5=parts_machining_id, FORMULA_5==, VALUE_5=9091, VALUE_TO_5=, COLUMN_6=parameter_val1, FORMULA_6==, VALUE_6=1, VALUE_TO_6=, PARAM_CALL_FUNC_ID=MC_PRODUCTS_LIST, CALL_ID=MC, A_HREF_ELM_NAME=1_編集_0, WIN_H=140, WIN_W=690, WIN_POS=WIN_C_MDL, IS_CHILD_FUNC=1, CALL_AUTH=1, PARAM_FUNC_ID=MC_OPERATOR_AUTHENTICATION, INIT_SEARCH=true } | 見出し:マシニングオペレーター認証画面",
-      "screenshots": [
-        "logs/screenshots/MC_OPERATOR_AUTHENTICATION/2026-03-01T01-45-47-945Z_MC_OPERATOR_AUTHENTICATION_SCREEN_LOAD_TR-1772329546227-bk2l.jpg",
-        "logs/screenshots/MC_OPERATOR_AUTHENTICATION/2026-03-01T01-45-47-818Z_MC_OPERATOR_AUTHENTICATION_SCREEN_LOAD_TR-1772329546560-apye.jpg"
-      ],
-      "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.473Z"
-    },
-    {
-      "issueId": "R07-UNKNOWN-1774343976476-0",
+      "issueId": "R07-UNKNOWN-1774768458344-0",
       "ruleId": "R07",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -450,10 +284,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-23-50-899Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328228992-y8j7.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.476Z"
+      "detectedAt": "2026-03-29T07:14:18.344Z"
     },
     {
-      "issueId": "R07-UNKNOWN-1774343976476-1",
+      "issueId": "R07-UNKNOWN-1774768458344-1",
       "ruleId": "R07",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -475,10 +309,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-30-42-585Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328641094-gjw6.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.476Z"
+      "detectedAt": "2026-03-29T07:14:18.344Z"
     },
     {
-      "issueId": "R07-UNKNOWN-1774343976476-2",
+      "issueId": "R07-UNKNOWN-1774768458344-2",
       "ruleId": "R07",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -500,35 +334,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-32-11-765Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328730309-gbun.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.476Z"
+      "detectedAt": "2026-03-29T07:14:18.344Z"
     },
     {
-      "issueId": "R11-MC_LOG_OPERATION_HISTORY-1774343976470-0",
-      "ruleId": "R11",
-      "featureId": "MC_LOG_OPERATION_HISTORY",
-      "screenName": "MC_LOG_OPERATION_HISTORY",
-      "category": "NO_SCREEN_MODE",
-      "categoryLabel": "画面モード未設定（v2.0未対応）",
-      "severity": "Low",
-      "difficulty": "Low",
-      "description": "全ログで context.screenMode が \"unknown\" のままです。TLogAutoInstrument.init() の第2引数 { screenMode: \"...\" } が未設定です。",
-      "logEvidence": "context付きログ 4 件中、screenMode設定なし 100%",
-      "fixSuggestion": "init() の第2引数に { screenMode: \"search\" } など画面のモードを指定してください。例: TLogAutoInstrument.init(\"MC_PRODUCTS_LIST\", { screenMode: \"search\" })",
-      "reproducibility": "Always",
-      "confidence": 0.8,
-      "occurrences": 1,
-      "priorityScore": 52,
-      "relatedTraceId": "",
-      "contextSummary": "",
-      "screenshots": [
-        "logs/screenshots/MC_LOG_OPERATION_HISTORY/2026-03-01T01-46-19-522Z_MC_LOG_OPERATION_HISTORY_SCREEN_LOAD_TR-1772329577047-3zu1.jpg",
-        "logs/screenshots/MC_LOG_OPERATION_HISTORY/2026-03-01T01-46-18-824Z_MC_LOG_OPERATION_HISTORY_SCREEN_LOAD_TR-1772329577139-nwos.jpg"
-      ],
-      "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.470Z"
-    },
-    {
-      "issueId": "R11-UNKNOWN-1774343976476-0",
+      "issueId": "R11-UNKNOWN-1774768458345-0",
       "ruleId": "R11",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -550,101 +359,10 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-23-50-899Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328228992-y8j7.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.476Z"
+      "detectedAt": "2026-03-29T07:14:18.345Z"
     },
     {
-      "issueId": "R10-MC_LOG_OPERATION_HISTORY-1774343976470-0",
-      "ruleId": "R10",
-      "featureId": "MC_LOG_OPERATION_HISTORY",
-      "screenName": "MC_LOG_OPERATION_HISTORY",
-      "category": "LOW_LOG_COVERAGE",
-      "categoryLabel": "ログ取得量過少",
-      "severity": "Low",
-      "difficulty": "Low",
-      "description": "画面ロードは記録されていますが、操作ログ（UI_CLICK）が 0 件しか取得できていません。ロガー設定の確認または操作テストが不足している可能性があります。",
-      "logEvidence": "SCREEN_LOAD=2件 | UI_CLICK=0件（期待値: 5件以上）",
-      "fixSuggestion": "TLogAutoInstrument.init() が正しく設定されているか確認してください。また実際に画面上のボタンや入力フィールドを操作してからログを確認してください。",
-      "reproducibility": "Unknown",
-      "confidence": 0.6,
-      "occurrences": 1,
-      "priorityScore": 34,
-      "relatedTraceId": "TR-1772329577047-3zu1",
-      "contextSummary": "",
-      "screenshots": [
-        "logs/screenshots/MC_LOG_OPERATION_HISTORY/2026-03-01T01-46-19-522Z_MC_LOG_OPERATION_HISTORY_SCREEN_LOAD_TR-1772329577047-3zu1.jpg",
-        "logs/screenshots/MC_LOG_OPERATION_HISTORY/2026-03-01T01-46-18-824Z_MC_LOG_OPERATION_HISTORY_SCREEN_LOAD_TR-1772329577139-nwos.jpg"
-      ],
-      "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.470Z"
-    },
-    {
-      "issueId": "R10-MC_MACHINING-1774343976471-0",
-      "ruleId": "R10",
-      "featureId": "MC_MACHINING",
-      "screenName": "MC_MACHINING",
-      "category": "LOW_LOG_COVERAGE",
-      "categoryLabel": "ログ取得量過少",
-      "severity": "Low",
-      "difficulty": "Low",
-      "description": "画面ロードは記録されていますが、操作ログ（UI_CLICK）が 0 件しか取得できていません。ロガー設定の確認または操作テストが不足している可能性があります。",
-      "logEvidence": "SCREEN_LOAD=1件 | UI_CLICK=0件（期待値: 5件以上）",
-      "fixSuggestion": "TLogAutoInstrument.init() が正しく設定されているか確認してください。また実際に画面上のボタンや入力フィールドを操作してからログを確認してください。",
-      "reproducibility": "Unknown",
-      "confidence": 0.6,
-      "occurrences": 1,
-      "priorityScore": 34,
-      "relatedTraceId": "a89cd63b-40a3-4d6f-bdb8-9d704d538a00",
-      "contextSummary": "",
-      "screenshots": [],
-      "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.471Z"
-    },
-    {
-      "issueId": "R10-MC_MACHINING_WORK_HISTORY-1774343976472-0",
-      "ruleId": "R10",
-      "featureId": "MC_MACHINING_WORK_HISTORY",
-      "screenName": "MC_MACHINING_WORK_HISTORY",
-      "category": "LOW_LOG_COVERAGE",
-      "categoryLabel": "ログ取得量過少",
-      "severity": "Low",
-      "difficulty": "Low",
-      "description": "画面ロードは記録されていますが、操作ログ（UI_CLICK）が 0 件しか取得できていません。ロガー設定の確認または操作テストが不足している可能性があります。",
-      "logEvidence": "SCREEN_LOAD=1件 | UI_CLICK=0件（期待値: 5件以上）",
-      "fixSuggestion": "TLogAutoInstrument.init() が正しく設定されているか確認してください。また実際に画面上のボタンや入力フィールドを操作してからログを確認してください。",
-      "reproducibility": "Unknown",
-      "confidence": 0.6,
-      "occurrences": 1,
-      "priorityScore": 34,
-      "relatedTraceId": "8e98ca23-bbf7-47c9-a752-6a65fcbec240",
-      "contextSummary": "",
-      "screenshots": [],
-      "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.472Z"
-    },
-    {
-      "issueId": "R10-MC_PRODUCTS_LIST-1774343976475-0",
-      "ruleId": "R10",
-      "featureId": "MC_PRODUCTS_LIST",
-      "screenName": "部品一覧",
-      "category": "LOW_LOG_COVERAGE",
-      "categoryLabel": "ログ取得量過少",
-      "severity": "Low",
-      "difficulty": "Low",
-      "description": "画面ロードは記録されていますが、操作ログ（UI_CLICK）が 0 件しか取得できていません。ロガー設定の確認または操作テストが不足している可能性があります。",
-      "logEvidence": "SCREEN_LOAD=2件 | UI_CLICK=0件（期待値: 5件以上）",
-      "fixSuggestion": "TLogAutoInstrument.init() が正しく設定されているか確認してください。また実際に画面上のボタンや入力フィールドを操作してからログを確認してください。",
-      "reproducibility": "Unknown",
-      "confidence": 0.6,
-      "occurrences": 1,
-      "priorityScore": 34,
-      "relatedTraceId": "a89cd63b-40a3-4d6f-bdb8-9d704d538a00",
-      "contextSummary": "",
-      "screenshots": [],
-      "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.475Z"
-    },
-    {
-      "issueId": "R10-UNKNOWN-1774343976476-0",
+      "issueId": "R10-UNKNOWN-1774768458345-0",
       "ruleId": "R10",
       "featureId": "UNKNOWN",
       "screenName": "（不明）",
@@ -666,7 +384,7 @@
         "logs/screenshots/UNKNOWN/2026-03-01T01-23-50-899Z_MC_PRODUCTS_LIST_SCREEN_LOAD_TR-1772328228992-y8j7.jpg"
       ],
       "status": "Open",
-      "detectedAt": "2026-03-24T09:19:36.476Z"
+      "detectedAt": "2026-03-29T07:14:18.345Z"
     }
   ]
 }
