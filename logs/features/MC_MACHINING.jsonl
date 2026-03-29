@@ -1,3 +1,0 @@
-{"traceId":"a89cd63b-40a3-4d6f-bdb8-9d704d538a00","type":"SCREEN_LOAD","featureId":"MC_MACHINING","screenId":"MC_MACHINING","ts":"2026-03-23T00:34:41.450Z","elementId":null,"screenshot":null,"label":"マシニング情報管理画面"}
-{"traceId":"a89cd63b-40a3-4d6f-bdb8-9d704d538a00","type":"CLICK","featureId":"MC_MACHINING","screenId":"MC_MACHINING","ts":"2026-03-23T00:34:49.880Z","elementId":"TLN_2_parts_machining_id_1_CALL_JAVASCRIPT","screenshot":null,"label":"表示"}
-{"traceId":"a89cd63b-40a3-4d6f-bdb8-9d704d538a00","type":"CLICK","featureId":"MC_MACHINING","screenId":"MC_MACHINING","ts":"2026-03-23T00:34:50.925Z","elementId":"TLN_2_parts_machining_id_2_CALL_JAVASCRIPT","screenshot":null,"label":"表示"}

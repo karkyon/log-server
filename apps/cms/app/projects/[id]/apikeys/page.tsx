@@ -163,7 +163,7 @@ export default function ApiKeysPage() {
           <pre className={`text-xs ${subtext} bg-opacity-50 ${dark ? "bg-gray-800" : "bg-gray-50"} rounded-lg p-3 overflow-x-auto`}>{`// talon_testcase_logger.js の設定
 const logger = new TLogClient({
   apiKey: "ak_xxxx...（発行したキー）",
-  endpoint: "http://192.168.1.11:3099"
+  endpoint: "https://tlog-apex.ddns.net"
 });`}</pre>
         </div>
       </main>

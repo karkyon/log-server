@@ -152,17 +152,14 @@ function ActionReviewDetail({ log, seqNo, dark, traceId, projectId, onVerdictSav
   const screenshotUrl = (() => {
     if (!log.screenshotPath) return null;
     const sp = log.screenshotPath;
-    const mLogs = sp.match(/logs[/\\]screenshots[/\\](.+)/);
-    if (mLogs) {
-      const parts = mLogs[1].replace(/\\/g, "/").split("/");
-      return "https://tlog-apex.ddns.net/logs-screenshots/" + parts.map(encodeURIComponent).join("/");
-    }
+    const base = process.env.NEXT_PUBLIC_API_URL || "http://192.168.168.111:3099";
     const mSs = sp.match(/screenshots[/\\](.+)/);
     if (mSs) {
       const parts = mSs[1].replace(/\\/g, "/").split("/");
-      return "https://tlog-apex.ddns.net/screenshots/" + parts.map(encodeURIComponent).join("/");
+      return base + "/screenshots/" + parts.map(encodeURIComponent).join("/");
     }
-    return "https://tlog-apex.ddns.net/logs-screenshots/" + encodeURIComponent(sp.replace(/.*[/\\]/, ""));
+    const fname = sp.replace(/.*[/\\]/, "");
+    return base + "/screenshots/" + encodeURIComponent(fname);
   })();
 
   return (

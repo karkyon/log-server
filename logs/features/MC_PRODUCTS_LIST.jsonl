@@ -1,6 +1,0 @@
-{"traceId":"a89cd63b-40a3-4d6f-bdb8-9d704d538a00","type":"SCREEN_LOAD","featureId":"MC_PRODUCTS_LIST","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-23T00:34:13.353Z","elementId":null,"screenshot":null,"label":"マシニング部品一覧"}
-{"traceId":"a89cd63b-40a3-4d6f-bdb8-9d704d538a00","type":"CLICK","featureId":"MC_PRODUCTS_LIST","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-23T00:34:14.866Z","elementId":"CNDTN_STD:0:_TEXT","screenshot":null,"label":"CNDTN_STD:0:_TEXT"}
-{"traceId":"a89cd63b-40a3-4d6f-bdb8-9d704d538a00","type":"INPUT","featureId":"MC_PRODUCTS_LIST","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-23T00:34:15.506Z","elementId":"CNDTN_STD:0:_TEXT","screenshot":null,"value":"5112"}
-{"traceId":"a89cd63b-40a3-4d6f-bdb8-9d704d538a00","type":"CLICK","featureId":"MC_PRODUCTS_LIST","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-23T00:34:16.508Z","elementId":"BUTTON_MDL_R:1:POS_SEARCH_BTN","screenshot":null,"label":"検索"}
-{"traceId":"a89cd63b-40a3-4d6f-bdb8-9d704d538a00","type":"SCREEN_LOAD","featureId":"MC_PRODUCTS_LIST","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-23T00:34:18.301Z","elementId":null,"screenshot":null,"label":"マシニング部品一覧"}
-{"traceId":"a89cd63b-40a3-4d6f-bdb8-9d704d538a00","type":"CLICK","featureId":"MC_PRODUCTS_LIST","screenId":"MC_PRODUCTS_LIST","ts":"2026-03-23T00:34:23.982Z","elementId":"TLN_1_閲覧_0","screenshot":null,"label":"閲覧"}

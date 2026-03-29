@@ -82,11 +82,11 @@ function PatternSerpentine({ ptSeqs, patternLogs, patternSelectedLog, setPattern
                 const pimg = (() => {
                   if (!psp) return null;
                   const pmOld = psp.match(/logs[/\\]screenshots[/\\](.+)/);
-                  if (pmOld) return "http://192.168.1.11:3099/logs-screenshots/" + pmOld[1].replace(/\\/g, "/").split("/").map(encodeURIComponent).join("/");
+                  if (pmOld) return "https://tlog-apex.ddns.net/logs-screenshots/" + pmOld[1].replace(/\\/g, "/").split("/").map(encodeURIComponent).join("/");
                   const pmNew = psp.match(/screenshots[/\\]([^/\\]+\.(?:png|jpg|jpeg))/i);
-                  if (pmNew) return "http://192.168.1.11:3099/screenshots/" + encodeURIComponent(pmNew[1]);
+                  if (pmNew) return "https://tlog-apex.ddns.net/screenshots/" + encodeURIComponent(pmNew[1]);
                   const pmFile = psp.match(/([^/\\]+\.(?:png|jpg|jpeg))$/i);
-                  if (pmFile) return "http://192.168.1.11:3099/screenshots/" + encodeURIComponent(pmFile[1]);
+                  if (pmFile) return "https://tlog-apex.ddns.net/screenshots/" + encodeURIComponent(pmFile[1]);
                   return null;
                 })();
                 const pAct = patternSelectedLog?.id === plog?.id;
@@ -483,7 +483,7 @@ export default function PatternsPage() {
                         {patternSelectedLog.screenshotPath && (() => {
                           const sp: string = patternSelectedLog.screenshotPath;
                           const m = sp.match(/logs[/\\]screenshots[/\\](.+)/);
-                          const url = m ? "http://192.168.1.11:3099/logs-screenshots/" + m[1].replace(/\\/g,"/").split("/").map(encodeURIComponent).join("/") : null;
+                          const url = m ? "https://tlog-apex.ddns.net/logs-screenshots/" + m[1].replace(/\\/g,"/").split("/").map(encodeURIComponent).join("/") : null;
                           return url ? <img src={url} alt="" className="w-full rounded border" style={{ maxHeight: 180, objectFit: "contain" }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} /> : null;
                         })()}
                         <div className={`space-y-1 pt-2 border-t ${dark ? "border-gray-800" : "border-gray-100"}`}>
