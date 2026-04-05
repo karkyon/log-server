@@ -6,3 +6,6 @@ logs/features/
 logs/screenshots/
 screenshots/screenshots/
 logs/
+
+# スクリーンショット・ログデータ（実データはGitHubに上げない）
+screenshots/
